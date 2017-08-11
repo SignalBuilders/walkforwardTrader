@@ -16,6 +16,7 @@ print(sManager.describe())
 
 import time
 import warnings
+import numpy as np
 warnings.filterwarnings("ignore")
 ##GET ALGOS INITIALLY GOOD
 while True:
@@ -31,9 +32,11 @@ while True:
                     algoReturn, factorReturn, predictions =  b.makePredictions(joinedData)
                     metrics = dataAck.vizResults(algoReturn[:-252], factorReturn[:-252], False)
                     print("TRAIN:", metrics)
+                    if np.isnan(metrics["SHARPE"]) == True:
+                        raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
                     if metrics["SHARPE"] > -10.0:
                         ##STORE
-                        testMetrics = vizResults(algoReturn[-252:], factorReturn[-252:], False)
+                        testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
                         print("TEST:", testMetrics)
                         print("TODAY:", b.makeTodayPrediction(joinedData))
 
