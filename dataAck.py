@@ -387,12 +387,12 @@ def vizResults(returnStream, factorReturn, plotting = False):
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
                "STABILITY": empyrical.stability_of_timeseries(returnStream),
                "ALPHA":alpha,
-               "BETA":beta,
+               "BETA":abs(beta),
                "ANNUALIZED RETURN": empyrical.annual_return(returnStream)[0],
                "ACTIVITY": np.count_nonzero(returnStream)/float(len(returnStream)),
                "TREYNOR": ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn))),
-               "RAW BETA":empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1]
+               "RAW BETA":abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1])
                   
               }
     rollingPeriod = 252
