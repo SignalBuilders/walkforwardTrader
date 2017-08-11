@@ -405,7 +405,7 @@ def vizResults(returnStream, factorReturn, plotting = False):
     
     if len(rollingSharpe["252 Day Rolling Sharpe Algo"].values) > 50:
     
-        metrics["ROLLING SHARPE BETA"] = empyrical.beta(rollingSharpe["252 Day Rolling Sharpe Algo"], rollingSharpe["252 Day Rolling Sharpe Factor"])
+        metrics["ROLLING SHARPE BETA"] = abs(empyrical.beta(rollingSharpe["252 Day Rolling Sharpe Algo"], rollingSharpe["252 Day Rolling Sharpe Factor"]))
         metrics["25TH PERCENTILE SHARPE"] = np.percentile(rollingSharpe["252 Day Rolling Sharpe Algo"].values, 25)
 
         rollingDownside = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.max_drawdown(x)).dropna()
@@ -414,8 +414,8 @@ def vizResults(returnStream, factorReturn, plotting = False):
         rollingDownside = rollingDownside.join(rollingDownsideFactor)
         rollingDownside.columns = ["252 Day Rolling Downside Algo", "252 Day Rolling Downside Factor"]
 
-        metrics["ROLLING SHARPE STABILITY"] = stats.linregress(np.arange(len(rollingSharpe["252 Day Rolling Sharpe Algo"].values)),
-                                rollingSharpe["252 Day Rolling Sharpe Algo"].values).rvalue
+        metrics["ROLLING SHARPE STABILITY"] = abs(stats.linregress(np.arange(len(rollingSharpe["252 Day Rolling Sharpe Algo"].values)),
+                                rollingSharpe["252 Day Rolling Sharpe Algo"].values).rvalue)
     
         metrics["TREYNOR+"] = ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                                / (abs(empyrical.beta(returnStream, factorReturn)))) * abs(metrics["ROLLING SHARPE STABILITY"])
