@@ -48,12 +48,20 @@ while True:
                             dataAck.storeModel(b, metrics, testMetrics)
         except:
             print("FAILED", s.describe())
+            dataAck.logModel("Search Update", {
+                "message":"series failed",
+                "seriesDescription":str(s.describe())
+            })
             time.sleep(10)
 
         runsSeen += 1
 
         if runsSeen > 5:
             ##START NEW TICKER
+            dataAck.logModel("Search Update", {
+                "message":"restarting search with different ticker",
+                "currentTicker":tickerToTrade
+            })
             break
 
         
