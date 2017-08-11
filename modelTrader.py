@@ -16,7 +16,7 @@ for tick in tickersRequired:
         if item not in allDataRequired:
             allDataRequired.append(item)
 
-pulledData, validTickers = dataAck.downloadTickerData(tickersToPull)
+pulledData, validTickers = dataAck.downloadTickerData(allDataRequired)
 
 joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
 
