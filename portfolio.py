@@ -15,13 +15,14 @@ def getModels(ticker = None, returnEntireObject = False):
             if ticker is not None:
                 query.add_filter('ticker', '=', ticker)
             retrievedModels = list(query.fetch())
-            if returnEntireObject == False:
-                toReturn = []
-                for source in retrievedModels:
+            toReturn = []
+            for source in retrievedModels:
+                if returnEntireObject == False:
                     toReturn.append(pickle.loads(source["model"]))
-                return toReturn
-            else:
-                return retrievedModels
+                else:
+                    source["model"] = pickle.loads(source["model"])
+                    toReturn.append(source)
+            return toReturn
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
