@@ -15,6 +15,8 @@ sManager = dataAck.seriesManager(validTickers)
 print(sManager.describe())
 
 import time
+import warnings
+warnings.filterwarnings("ignore")
 ##GET ALGOS INITIALLY GOOD
 while True:
     s = sManager.createSeries()
