@@ -5,7 +5,7 @@ allModels = portfolio.getModels()
 tickersRequired = []
 for mod in allModels:
     print(mod.describe())
-    if mod.walkForward.targetTicker not in tickersRequired:
+    if mod.inputSeries.targetTicker not in tickersRequired:
         tickersRequired.append(mod.walkForward.targetTicker)
 
 
