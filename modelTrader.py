@@ -6,7 +6,7 @@ tickersRequired = []
 for mod in allModels:
     print(mod.describe())
     if mod.inputSeries.targetTicker not in tickersRequired:
-        tickersRequired.append(mod.walkForward.targetTicker)
+        tickersRequired.append(mod.inputSeries.targetTicker)
 
 
 ##ITEMS REQUIRED TO DOWNLOAD
