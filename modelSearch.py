@@ -26,7 +26,7 @@ while True:
 
     try:
         for defaultWindowSize in [10, 22]:
-            for trees in [25, 50, 100]:
+            for trees in [25, 50, 100, 250]:
                 for predictionLength in [2, 3, 5]:
                     b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
                     algoReturn, factorReturn, predictions =  b.makePredictions(joinedData)
@@ -34,7 +34,7 @@ while True:
                     print("TRAIN:", metrics)
                     if np.isnan(metrics["SHARPE"]) == True:
                         raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
-                    if metrics["SHARPE"] > -10.0:
+                    if metrics["SHARPE"] > 0.0:
                         ##STORE
                         testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
                         print("TEST:", testMetrics)
