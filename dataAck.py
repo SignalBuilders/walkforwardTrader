@@ -407,6 +407,7 @@ def vizResults(returnStream, factorReturn, plotting = False):
     
         metrics["ROLLING SHARPE BETA"] = abs(empyrical.beta(rollingSharpe["252 Day Rolling Sharpe Algo"], rollingSharpe["252 Day Rolling Sharpe Factor"]))
         metrics["25TH PERCENTILE SHARPE"] = np.percentile(rollingSharpe["252 Day Rolling Sharpe Algo"].values, 25)
+        metrics["MIN ROLLING SHARPE"] = np.percentile(rollingSharpe["252 Day Rolling Sharpe Algo"].values, 1)
 
         rollingDownside = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.max_drawdown(x)).dropna()
         rollingDownside.columns = ["252 Day Rolling Downside"]
