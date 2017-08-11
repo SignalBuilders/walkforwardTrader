@@ -7,20 +7,16 @@ for mod in allModels:
     print(mod.describe())
     if mod.inputSeries.targetTicker not in tickersRequired:
         tickersRequired.append(mod.inputSeries.targetTicker)
+    if mod.inputSeries.series.ticker not in tickersRequired:
+        tickersRequired.append(mod.inputSeries.series.ticker)
 
 
-##ITEMS REQUIRED TO DOWNLOAD
-allDataRequired = []
-for tick in tickersRequired:
-    for item in dataAck.getDataSourcesForTicker(tick):
-        if item not in allDataRequired:
-            allDataRequired.append(item)
 
-pulledData, validTickers = dataAck.downloadTickerData(allDataRequired)
+pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
 
 joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
 
-aggregateReturns = portolio.generateAggregateReturns(allModels, joinedData)
+aggregateReturns = portfolio.generateAggregateReturns(allModels, joinedData)
 
 hrpReturns, weights = produceHRPPredictions(aggregateReturns, 22, True)
 
