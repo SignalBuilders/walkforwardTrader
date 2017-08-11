@@ -453,7 +453,7 @@ class algoBlob:
         self.windowSize = windowSize
         self.trees = trees
         self.e2e = endToEnd(self.inputSeries, trees)
-        print("SERIES", self.inputSeries.describe(), "WINDOW", defaultWindowSize, "TREES", trees)
+        print("SERIES", self.inputSeries.describe(), "WINDOW", windowSize, "TREES", trees)
     
     def makePredictions(self, dataOfInterest, daysToCheck = None):
         #algoReturn, factorReturn, predictions 

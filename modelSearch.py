@@ -14,7 +14,7 @@ joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
 sManager = dataAck.seriesManager(validTickers)
 print(sManager.describe())
 
-
+import time
 ##GET ALGOS INITIALLY GOOD
 while True:
     s = sManager.createSeries()
