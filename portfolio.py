@@ -7,7 +7,7 @@ import hashlib
 import sys
 import numpy as np
 import pandas as pd
-def getModels(ticker = None):
+def getModels(ticker = None, returnEntireObject = False):
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
@@ -15,10 +15,13 @@ def getModels(ticker = None):
             if ticker is not None:
                 query.add_filter('ticker', '=', ticker)
             retrievedModels = list(query.fetch())
-            toReturn = []
-            for source in retrievedModels:
-                toReturn.append(pickle.loads(source["model"]))
-            return toReturn
+            if returnEntireObject == False:
+                toReturn = []
+                for source in retrievedModels:
+                    toReturn.append(pickle.loads(source["model"]))
+                return toReturn
+            else:
+                return retrievedModels
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
