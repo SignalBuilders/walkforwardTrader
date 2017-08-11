@@ -1,5 +1,8 @@
 import portfolio
 import dataAck
+import warnings
+import numpy as np
+warnings.filterwarnings("ignore")
 
 allModels = portfolio.getModels()
 tickersRequired = []
