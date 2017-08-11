@@ -21,7 +21,7 @@ joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
 
 aggregateReturns = portfolio.generateAggregateReturns(allModels, joinedData)
 
-hrpReturns, weights = produceHRPPredictions(aggregateReturns, 22, True)
+hrpReturns, weights = portfolio.produceHRPPredictions(aggregateReturns, 22, True)
 
 print(weights)
 
