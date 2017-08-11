@@ -6,12 +6,16 @@ warnings.filterwarnings("ignore")
 
 allModels = portfolio.getModels()
 tickersRequired = []
+tickersTraded = []
 for mod in allModels:
     print(mod.describe())
     if mod.inputSeries.targetTicker not in tickersRequired:
         tickersRequired.append(mod.inputSeries.targetTicker)
     if mod.inputSeries.series.ticker not in tickersRequired:
         tickersRequired.append(mod.inputSeries.series.ticker)
+    if mod.inputSeries.targetTicker not in tickersTraded:
+        tickersTraded.append(mod.inputSeries.targetTicker)
+    
 
 
 
@@ -32,7 +36,7 @@ for mod in allModels:
     portfolio.storeModelPrediction(mod, pred * weights[str(mod.describe())], joinedData.index[-1])
 
 ##TAKE WEIGHTS FROM PORTFOLIO
-for ticker in tickersRequired:
+for ticker in tickersTraded:
     netPosition = 0.0
     for pred in portfolio.getModelPrediction(ticker):
         ##CHECK IF PREDICTION STILL VALID
