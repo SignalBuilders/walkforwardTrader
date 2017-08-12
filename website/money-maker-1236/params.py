@@ -1,0 +1,6 @@
+datastoreName = "walkforward_models"
+dataSourcesDatastoreName = "gridworld_datasources"
+predictionsName = "walkforward_predictions"
+portfolioDB = "walkforward_portfolios"
+portfolioLookup = "walkforward_portfolio_info"
+portfolioAllocation = "walkforward_portfolio_allocation"

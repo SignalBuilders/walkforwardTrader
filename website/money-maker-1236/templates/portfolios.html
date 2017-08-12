@@ -1,0 +1,7 @@
+<!doctype html>
+{% include "header.html" %}
+<title>Available Portfolios</title>
+{% for result in availablePortfolios %}
+	<h1><a href="/{{ result.key }}">{{result.description}}</a></h1>
+	<body>HASH:{{result.key}}</body>
+{% endfor %}
