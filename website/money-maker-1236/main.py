@@ -18,6 +18,7 @@ import misc
 from flask import Flask, render_template
 import time
 import json
+import getData
 app = Flask(__name__)
 
 
@@ -28,12 +29,28 @@ def viewPortfolios():
     return render_template('portfolios.html', 
         availablePortfolios=misc.getPortfolios())
 
+@app.route('/benchmark/<benchmark>')
+def viewBenchmark(benchmark = None):
+    benchmarkReturn = getData.getDailyFactorReturn(benchmark, getData.getTickerData(benchmark))
+    rows = []
+    for i in range(len(benchmarkReturn)):
+
+        rows.append([int(time.mktime(benchmarkReturn.index[i].timetuple())) * 1000, benchmarkReturn.values[i].tolist()[0]])
+    print(rows)
+    columns = [benchmark]
+    return render_template('viewPortfolio.html', portfolio=json.dumps(rows, separators=(',', ': ')), 
+        columns=json.dumps(columns, separators=(',', ': ')))
+
+
 @app.route('/<portfolio>')
 def viewPortfolio(portfolio=None):
     """Return information about portfolio."""
 
+    benchmarkReturn = getData.getDailyFactorReturn("SPY", getData.getTickerData("SPY"))
+
     ##CONVERT ALLOCATIONS TO GRAPHABLE DATA
     allAllocations = misc.getPortfolioAllocations(portfolio)
+    print(allAllocations)
     rows = []
     columns = []
 

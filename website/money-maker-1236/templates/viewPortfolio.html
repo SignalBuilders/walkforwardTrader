@@ -37,7 +37,15 @@
           subtitle: 'in millions of dollars (USD)'
         },
         width: 900,
-        height: 500
+        height: 500,
+        hAxis: {
+            format: 'M/d/y',
+            
+        },
+        vAxis: {
+            format: '#####.###%'
+        },
+
       };
 
       var chart = new google.charts.Line(document.getElementById('linechart_material'));
