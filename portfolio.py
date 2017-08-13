@@ -60,6 +60,7 @@ def simpleTransform(inputArr):
     return toReturn
 def produceHRPPredictions(aggregateReturns, windowSize, maxWindowSize = False):
     hrpReturns = pd.DataFrame([])
+    historicalWeights = pd.DataFrame([])
     i = windowSize
     while i < len(aggregateReturns):
         corr = None
@@ -185,7 +186,7 @@ def getPortfolioModels(portfolioKey):
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
-            
+
     
 
 
