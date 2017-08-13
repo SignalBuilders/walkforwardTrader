@@ -83,7 +83,7 @@ def produceHRPPredictions(aggregateReturns, windowSize, maxWindowSize = False):
 
 
 import params
-def storeModelPrediction(model, pred, lastDataDayUsed):
+def storeModelPrediction(model, pred, lastDataDayUsed, shouldReturn = False):
     toUpload = {}
     toUpload["ticker"] = model.inputSeries.targetTicker
     toUpload["predictionLength"] = model.inputSeries.predictionPeriod
@@ -99,7 +99,10 @@ def storeModelPrediction(model, pred, lastDataDayUsed):
             key = datastoreClient.key(params.predictionsName, predictionHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
             organismToStore = datastore.Entity(key=key)
             organismToStore.update(toUpload)
-            datastoreClient.put(organismToStore)
+            if shouldReturn == False:
+                datastoreClient.put(organismToStore)
+            else:
+                return organismToStore
             break
         except:
             print("UPLOAD ERROR:", str(sys.exc_info()))
