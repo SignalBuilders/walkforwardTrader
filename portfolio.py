@@ -214,6 +214,29 @@ def storeAggregateModelPrediction(model, pred, predictionDay, shouldReturn = Fal
         except:
             print("UPLOAD ERROR:", str(sys.exc_info()))
             time.sleep(10)
+            
+            
+def getPredictionsByModel(model):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.predictionsName)
+            query.add_filter('model', '=', str(model.describe()))
+            retrievedPredictions = list(query.fetch())
+            toReturn = []
+            for pred in retrievedPredictions:
+                toReturn.append(pred)
+            return toReturn
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
     
 
-
+def getAggregatePredictionForModelDaily(model, joinedData):
+    todayPredictions = []
+    for pred in getPredictionsByModel(model):
+        ##CHECK IF PREDICTION STILL VALID
+        if len(joinedData[str(pred["lastDataDayUsed"]):]) - 1 < pred["predictionLength"]:##GETS TRADING DAYS SINCE LAST DATA DAY
+            todayPredictions.append(pred["prediction"])
+    print(model.describe(), todayPredictions, dataAck.computePosition(todayPredictions))
+    return dataAck.computePosition(todayPredictions)
