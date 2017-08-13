@@ -261,3 +261,17 @@ def storeManyItems(items):
                 print("UPLOAD ERROR:", str(sys.exc_info()))
                 time.sleep(10)
         i += 200
+        
+def getPortfolioAllocations(portfolioKey, predictionDay = None):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.portfolioAllocation)
+            query.add_filter('portfolio', '=', portfolioKey)
+            if predictionDay is not None:
+                query.add_filter('predictionDay', '=', predictionDay)
+            retrievedPredictions = list(query.fetch())
+            return retrievedPredictions
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
