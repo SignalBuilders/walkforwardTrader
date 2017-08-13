@@ -275,3 +275,7 @@ def getPortfolioAllocations(portfolioKey, predictionDay = None):
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+import hashlib
+def getModelHash(model):
+    return hashlib.sha224((str(model.describe())).encode('utf-8')).hexdigest()
