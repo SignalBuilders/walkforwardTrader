@@ -238,5 +238,5 @@ def getAggregatePredictionForModelDaily(model, joinedData):
         ##CHECK IF PREDICTION STILL VALID
         if len(joinedData[str(pred["lastDataDayUsed"]):]) - 1 < pred["predictionLength"]:##GETS TRADING DAYS SINCE LAST DATA DAY
             todayPredictions.append(pred["prediction"])
-    print(model.describe(), todayPredictions, dataAck.computePosition(todayPredictions))
+    #print(model.describe(), todayPredictions, dataAck.computePosition(todayPredictions))
     return dataAck.computePosition(todayPredictions)
