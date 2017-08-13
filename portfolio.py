@@ -190,6 +190,30 @@ def getPortfolioModels(portfolioKey):
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
+def storeAggregateModelPrediction(model, pred, predictionDay, shouldReturn = False):
+    ##STORES AGGREGATE PREDICTION MADE ON A GIVEN DAY
+    toUpload = {}
+    toUpload["ticker"] = model.inputSeries.targetTicker
+    toUpload["aggregatePrediction"] = pred
+    toUpload["predictionDay"] = predictionDay
+    toUpload["modelHash"] = hashlib.sha224((str(model.describe())).encode('utf-8')).hexdigest()
+    ##UPLOAD ORGANISM OBJECT
+    while True:
+        try:
+            datastoreClient = datastore.Client('money-maker-1236')
+            #HASH DIGEST
+            predictionHash = hashlib.sha224((str(model.describe()) + " " + str(toUpload["predictionDay"])).encode('utf-8')).hexdigest()
+            key = datastoreClient.key(params.aggregatePrediction, predictionHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
+            organismToStore = datastore.Entity(key=key)
+            organismToStore.update(toUpload)
+            if shouldReturn == False:
+                datastoreClient.put(organismToStore)
+            else:
+                return organismToStore
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)
     
 
 
