@@ -163,7 +163,8 @@ def getPortfolios():
             query = datastore_client.query(kind=params.portfolioLookup)
             retrievedPortfolios = [{
                 "key":item.key.name,
-                "description":item["description"]
+                "description":item["description"],
+                "benchmark":item["benchmark"]
             } for item in list(query.fetch())]
 
             return retrievedPortfolios

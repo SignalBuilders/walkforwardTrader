@@ -19,6 +19,7 @@ from flask import Flask, render_template
 import time
 import json
 import getData
+import empyrical
 app = Flask(__name__)
 
 
@@ -31,13 +32,19 @@ def viewPortfolios():
 
 @app.route('/benchmark/<benchmark>')
 def viewBenchmark(benchmark = None):
-    benchmarkReturn = getData.getDailyFactorReturn(benchmark, getData.getTickerData(benchmark))
+    benchmarkReturn = empyrical.cum_returns(getData.getDailyFactorReturn(benchmark, getData.getTickerData(benchmark))).dropna()
+    benchmarkReturn = benchmarkReturn.join(empyrical.cum_returns(getData.getDailyFactorReturn("AGG", getData.getTickerData("AGG"))), rsuffix="_HELLO").dropna()
+    columns = benchmarkReturn.columns.values.tolist()
+    print(columns)
     rows = []
     for i in range(len(benchmarkReturn)):
+        thisDay = [int(time.mktime(benchmarkReturn.index[i].timetuple())) * 1000]
+        for j in range(len(columns)):
+            thisDay.append(benchmarkReturn.values[i].tolist()[j])
 
-        rows.append([int(time.mktime(benchmarkReturn.index[i].timetuple())) * 1000, benchmarkReturn.values[i].tolist()[0]])
-    print(rows)
-    columns = [benchmark]
+        rows.append(thisDay)
+    
+
     return render_template('viewPortfolio.html', portfolio=json.dumps(rows, separators=(',', ': ')), 
         columns=json.dumps(columns, separators=(',', ': ')))
 
