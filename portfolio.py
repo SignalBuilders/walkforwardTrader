@@ -240,3 +240,24 @@ def getAggregatePredictionForModelDaily(model, joinedData):
             todayPredictions.append(pred["prediction"])
     #print(model.describe(), todayPredictions, dataAck.computePosition(todayPredictions))
     return dataAck.computePosition(todayPredictions)
+
+import datetime
+import pytz
+def getToday():
+    dt = datetime.datetime.utcnow()
+    dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    return dt
+
+def storeManyItems(items):
+    ##UPLOAD ORGANISM OBJECT
+    i = 0
+    while i < len(items):
+        while True:
+            try:
+                datastoreClient = datastore.Client('money-maker-1236')
+                datastoreClient.put_multi(items[i:i+200])
+                break
+            except:
+                print("UPLOAD ERROR:", str(sys.exc_info()))
+                time.sleep(10)
+        i += 200
