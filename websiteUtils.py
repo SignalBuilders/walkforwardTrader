@@ -4,6 +4,10 @@ import pandas as pd
 import empyrical
 
 import json
+
+def getPortfolios():
+	return portfolio.getPortfolios()
+
 def getDataForPortfolio(portfolioKey):
     models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
     ##DOWNLOAD REQUIRED DATA FOR TARGET TICKERS
