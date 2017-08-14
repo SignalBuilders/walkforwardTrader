@@ -397,7 +397,8 @@ import dataAck
 import pandas as pd
 import numpy as np
 import json
-def getDataForPortfolio(portfolioKey):
+import empyrical
+def getDataForPortfolio(portfolioKey, factorToTrade):
     models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
     ##DOWNLOAD REQUIRED DATA FOR TARGET TICKERS
     tickersRequired = []
@@ -405,6 +406,8 @@ def getDataForPortfolio(portfolioKey):
         print(mod.describe())
         if mod.inputSeries.targetTicker not in tickersRequired:
             tickersRequired.append(mod.inputSeries.targetTicker)
+    if factorToTrade not in tickersRequired:
+        tickersRequired.append(factorToTrade)
     pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
     joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
     ##GENERATE RETURNS FOR PORTFOLIO
