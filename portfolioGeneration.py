@@ -4,6 +4,9 @@ import time
 import pickle
 import hashlib
 import sys
+import dataAck
+import portfolio
+
 import numpy as np
 
 def getUniqueModels(allModels):
@@ -164,16 +167,453 @@ def storePortfolio(models, description, benchmark):
             organismToStore = datastore.Entity(key=key)
             organismToStore.update(toUpload)
             datastoreClient.put(organismToStore)
+            return portfolioHash
             break
         except:
             print("UPLOAD ERROR:", str(sys.exc_info()))
             time.sleep(10)
 
+def getPortfolioModels(portfolioKey):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.portfolioDB)
+            query.add_filter('portfolio', '=', portfolioKey)
+            
+            retrievedModels = [item["model"] for item in list(query.fetch())]
+
+            return retrievedModels
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+##GET ALL MODELS PART OF PORTFOLIOS
+def getAllPortfolioModels():
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.portfolioDB)
+            
+            retrievedModels = [item["model"] for item in list(query.fetch())]
+
+            return list(set(retrievedModels))
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+
+def getPertinentDataForModels(allModels):
+    tickersRequired = []
+    tickersTraded = []
+    for mod in allModels:
+        print(mod.describe())
+        if mod.inputSeries.targetTicker not in tickersRequired:
+            tickersRequired.append(mod.inputSeries.targetTicker)
+        if mod.inputSeries.series.ticker not in tickersRequired:
+            tickersRequired.append(mod.inputSeries.series.ticker)
+        if mod.inputSeries.targetTicker not in tickersTraded:
+            tickersTraded.append(mod.inputSeries.targetTicker)
+        
 
 
 
+    pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
+
+    joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
+    return joinedData
+
+def generateRawPredictions(allModels, joinedData, daysBack = False):
+    for mod in allModels:
+        pred = dataAck.computePosition([mod.makeTodayPrediction(joinedData)])
+        print(mod.describe(), pred, joinedData.index[-1])
+        portfolio.storeModelPrediction(mod, pred, joinedData.index[-1])
+        if daysBack == True:
+            ##ENSURE POPULATED FOR CORRECT PREDICTION STYLE
+            i = mod.inputSeries.predictionPeriod - 1
+            while i > 0:
+                pred = dataAck.computePosition([mod.makeTodayPrediction(joinedData[:-i])])
+                print(mod.describe(), pred, joinedData[:-i].index[-1])
+                portfolio.storeModelPrediction(mod, pred, joinedData[:-i].index[-1])
+                i -= 1
+                
 
 
+from google.cloud import datastore, storage, logging
+import time
+import params
+import hashlib
+import pandas as pd
+def downloadAggregatePredictions(model):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.aggregatePrediction)
+            
+            query.add_filter('modelHash', '=', hashlib.sha224((str(model.describe())).encode('utf-8')).hexdigest())
+            retrievedPredictions = list(query.fetch())
+            days = []
+            predictions = []
+            for pred in retrievedPredictions:
+                days.append(pred["predictionDay"])
+                predictions.append(pred["aggregatePrediction"])
+            
+            return pd.DataFrame(predictions, index=days, columns=[str(model.describe())]).sort_index()
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+def generateAggregateReturnsPredictions(allModels, joinedData):
+    aggregateReturns = None
+    aggregatePredictions = None
+    for model in allModels:
+        preds = portfolioGeneration.downloadAggregatePredictions(model).tz_localize(None)
+        dailyFactorReturn = dataAck.getDailyFactorReturn(model.inputSeries.targetTicker, joinedData)
+        transformedPreds = preds.join(dailyFactorReturn).dropna()
+        returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=[portfolio.getModelHash(model)])
+        preds.columns = [portfolio.getModelHash(model)]
+        if aggregateReturns is None:
+            aggregateReturns = returnStream
+            aggregatePredictions = preds
+        else:
+            aggregateReturns = aggregateReturns.join(returnStream)
+            aggregatePredictions = aggregatePredictions.join(preds)
+    return aggregateReturns, aggregatePredictions
+
+
+def storePortfolioAllocation(portfolioKey, predictionDay, algorithmWeights, tickerAllocation, transformedAlgoPrediction, shouldReturn = False):
+    toUpload = {}
+    toUpload["portfolio"] = portfolioKey
+    toUpload["predictionDay"] = predictionDay
+    
+    for item in algorithmWeights:
+        toUpload["algo_weight_" + item] = algorithmWeights[item]
+    
+    for item in transformedAlgoPrediction:
+        toUpload["algo_" + item] = transformedAlgoPrediction[item]
+    
+    for item in tickerAllocation:
+        toUpload["ticker_" + item] = tickerAllocation[item]
+        
+    ##SCALE TICKER ALLOCATIOn
+    totalAllocation = 1.0#sum([abs(tickerAllocation[item]) for item in tickerAllocation])
+    for item in tickerAllocation:
+        toUpload["scaled_ticker_" + item] = abs(tickerAllocation[item])/totalAllocation
+    
+    ##UPLOAD ORGANISM OBJECT
+    while True:
+        try:
+            datastoreClient = datastore.Client('money-maker-1236')
+            #HASH DIGEST
+            predictionHash = hashlib.sha224((str(portfolioKey) + " " + str(toUpload["predictionDay"])).encode('utf-8')).hexdigest()
+            key = datastoreClient.key(params.portfolioAllocation, predictionHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
+            organismToStore = datastore.Entity(key=key)
+            organismToStore.update(toUpload)
+            if shouldReturn == False:
+                datastoreClient.put(organismToStore)
+            else:
+                return organismToStore
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+
+import hrpPortfolioOpt as hrp
+def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSize = False):
+    hrpReturns = pd.DataFrame([])
+    historicalWeights = pd.DataFrame([])
+    i = windowSize
+    if startIndex is not None:
+        i = len(aggregateReturns) - windowSize - startIndex
+    while i < len(aggregateReturns):
+        corr = None
+        cov = None
+        if maxWindowSize == False:
+            corr = (aggregateReturns[:i]).corr()
+            cov = (aggregateReturns[:i]).cov()
+        else:
+            corr = (aggregateReturns[i-windowSize:i]).corr()
+            cov = (aggregateReturns[i-windowSize:i]).cov()
+        weights = hrp.getHRP(cov, corr)
+    #     display(weights)
+    #     display(aggregateReturns[i+windowSize:i+windowSize+1])
+        todayReturn = aggregateReturns[i:i+1] * weights
+    #     display(todayReturn)
+        sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
+        hrpReturns = pd.concat([hrpReturns, sumReturn])
+        thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
+        historicalWeights = pd.concat([historicalWeights, thisWeights])
+        i += 1
+    return hrpReturns, historicalWeights
+
+def storeHistoricalAllocations(portfolioKey, modelsInPortfolio, historicalWeights, aggregatePredictions):
+
+    aggregatePredictions = aggregatePredictions.dropna()
+    allocationsToStore = []
+    ##ITERATE THROUGH DAYS TO CALCULATE NET POSITION
+    for i in range(len(historicalWeights)):
+        netPosition = {}
+        weights = historicalWeights.iloc[i]
+        transformedAlgoPrediction = {}
+        for model in modelsInPortfolio:
+            if model.inputSeries.targetTicker not in netPosition:
+                netPosition[model.inputSeries.targetTicker] = 0.0
+            try:
+                aggregatePredictions.loc[historicalWeights.index[i]]
+            except:
+                continue
+            
+            netPosition[model.inputSeries.targetTicker] += weights[portfolio.getModelHash(model)] * aggregatePredictions.loc[historicalWeights.index[i]][portfolio.getModelHash(model)]
+            transformedAlgoPrediction[portfolio.getModelHash(model)] = weights[portfolio.getModelHash(model)] * aggregatePredictions.loc[historicalWeights.index[i]][portfolio.getModelHash(model)]
+        allocationsToStore.append(storePortfolioAllocation(portfolioKey, historicalWeights.index[i], weights.to_dict(), netPosition, transformedAlgoPrediction, shouldReturn=True))
+    portfolio.storeManyItems(allocationsToStore)
+
+
+def calculatePerformanceForTable(table, tickerOrder, joinedData):
+    aggregatePerformance = None
+    for i in range(len(tickerOrder)):
+        dailyFactorReturn = dataAck.getDailyFactorReturn(tickerOrder[i], joinedData)
+        thisPerformance = table[[table.columns[i]]].join(dailyFactorReturn).apply(lambda x:x[0] * x[1], axis=1)
+        thisPerformance = pd.DataFrame(thisPerformance, columns=[table.columns[i]])
+        if aggregatePerformance is None:
+            aggregatePerformance = thisPerformance
+        else:
+            aggregatePerformance = aggregatePerformance.join(thisPerformance)
+    return aggregatePerformance.dropna()
+
+import time
+def convertTableToJSON(table):
+    allArrs = []
+    for i in range(len(table.index)):
+        thisArr = []
+        timestamp = int(time.mktime(table.index[i].timetuple())) * 1000
+        thisArr.append(timestamp)
+        for j in range(len(table.columns)):
+            thisArr.append(table.iloc[i][j])
+        allArrs.append(thisArr)
+    return table.columns.values.tolist(), allArrs
+
+import portfolio
+import dataAck
+import pandas as pd
+import numpy as np
+import json
+def getDataForPortfolio(portfolioKey):
+    models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
+    ##DOWNLOAD REQUIRED DATA FOR TARGET TICKERS
+    tickersRequired = []
+    for mod in models:
+        print(mod.describe())
+        if mod.inputSeries.targetTicker not in tickersRequired:
+            tickersRequired.append(mod.inputSeries.targetTicker)
+    pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
+    joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
+    ##GENERATE RETURNS FOR PORTFOLIO
+    portfolioAllocations = portfolio.getPortfolioAllocations(portfolioKey)
+    
+    predsTable = pd.DataFrame([])
+    weightsTable = pd.DataFrame([])
+    tickerAllocationsTable = pd.DataFrame([])
+    scaledTickerAllocationsTable = pd.DataFrame([])
+    for allocation in portfolioAllocations:
+        colsAlgo = []
+        valsAlgo = []
+        colsAlgoWeight = []
+        valsAlgoWeight = []
+        colsTicker = []
+        valsTicker = []
+        colsTickerScaled = []
+        valsTickerScaled = []
+
+        for key in allocation:
+            if key.startswith("ticker_"):
+                colsTicker.append(key[len("ticker_"):])
+                valsTicker.append(allocation[key])
+            if key.startswith("scaled_ticker_"):
+                colsTickerScaled.append(key[len("scaled_ticker_"):])
+                valsTickerScaled.append(abs(allocation[key]) if np.isnan(allocation[key]) == False else 0.0)
+            if key.startswith("algo_") and not key.startswith("algo_weight_"):
+                colsAlgo.append(key[len("algo_"):])
+                valsAlgo.append(allocation[key])
+            if key.startswith("algo_weight_"):
+                colsAlgoWeight.append(key[len("algo_weight_"):])
+                valsAlgoWeight.append(allocation[key])
+
+        predsTable = pd.concat([predsTable, pd.DataFrame([valsAlgo], index = [allocation["predictionDay"]], columns=colsAlgo).tz_localize(None)])
+        weightsTable = pd.concat([weightsTable, pd.DataFrame([valsAlgoWeight], index = [allocation["predictionDay"]], columns=colsAlgoWeight).tz_localize(None)])
+        tickerAllocationsTable = pd.concat([tickerAllocationsTable, pd.DataFrame([valsTicker], index = [allocation["predictionDay"]], columns=colsTicker).tz_localize(None)])
+        scaledTickerAllocationsTable = pd.concat([scaledTickerAllocationsTable, pd.DataFrame([valsTickerScaled], index = [allocation["predictionDay"]], columns=colsTickerScaled).tz_localize(None)])
+    
+    predsTable = predsTable.sort_index()
+    weightsTable = weightsTable.sort_index()
+    tickerAllocationsTable = tickerAllocationsTable.sort_index()
+    scaledTickerAllocationsTable = scaledTickerAllocationsTable.sort_index()
+    
+    tickerPerformance = calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
+    
+    algoPerformance = pd.DataFrame(tickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return"])
+    
+    
+    benchmark = portfolio.getPortfolioByKey(portfolioKey)["benchmark"]
+    factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
+    factorReturn.columns = ["Factor Return (" + benchmark + ")"]
+    algoVsBenchmark = algoPerformance.join(factorReturn).dropna()
+    
+    ##FORM HASH TO TICKER
+    hashToTicker = {}
+    for model in models:
+        hashToTicker[portfolio.getModelHash(model)] = model.inputSeries.targetTicker
+
+    individualAlgoPerformance = calculatePerformanceForTable(predsTable,[hashToTicker[modelHash] for modelHash in predsTable.columns], joinedData)
+    
+    ##CONVERT TO USABLE OBJECTS
+    tickerCols, tickerRows = convertTableToJSON(empyrical.cum_returns(tickerPerformance))
+    algoCols, algoRows = convertTableToJSON(empyrical.cum_returns(algoPerformance))
+    algoVsBenchmarkCols, algoVsBenchmarkRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark))
+    individualAlgoPerformanceCols, individualAlgoPerformanceRows = convertTableToJSON(empyrical.cum_returns(individualAlgoPerformance))
+    scaledAllocationCols, scaledAllocationRows = convertTableToJSON(scaledTickerAllocationsTable)
+    weightsCols, weightsRows = convertTableToJSON(weightsTable)
+    alpha, beta = empyrical.alpha_beta(algoPerformance, factorReturn)
+    recentAlpha, recentBeta = empyrical.alpha_beta(algoPerformance[-100:], factorReturn[-100:])
+    recentSharpe = empyrical.sharpe_ratio(algoPerformance[-100:])
+    recentReturn = empyrical.cum_returns(algoPerformance[-100:]).values[-1][0]
+    algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
+    return {
+        "tickerCols":json.dumps(tickerCols),
+        "tickerRows":json.dumps(tickerRows),
+        "algoCols":json.dumps(algoCols),
+        "algoRows":json.dumps(algoRows),
+        "tickerCols":json.dumps(tickerCols),
+        "tickerRows":json.dumps(tickerRows),
+        "algoVsBenchmarkCols":json.dumps(algoVsBenchmarkCols),
+        "algoVsBenchmarkRows":json.dumps(algoVsBenchmarkRows),
+        "individualAlgoPerformanceCols":json.dumps(individualAlgoPerformanceCols),
+        "individualAlgoPerformanceRows":json.dumps(individualAlgoPerformanceRows),
+        "scaledAllocationCols":json.dumps(scaledAllocationCols),
+        "scaledAllocationRows":json.dumps(scaledAllocationRows),
+        "weightsCols":json.dumps(weightsCols),
+        "weightsRows":json.dumps(weightsRows),
+        "algoSharpe":empyrical.sharpe_ratio(algoPerformance),
+        "alpha":alpha,
+        "beta":beta,
+        "annualReturn":empyrical.annual_return(algoPerformance)[0],
+        "annualVolatility":empyrical.annual_volatility(algoPerformance),
+        "recentSharpe":recentSharpe,
+        "recentReturn":recentReturn,
+        "recentAlpha":recentAlpha,
+        "recentBeta":recentBeta,
+        "algoVsBenchmarkColsRecent":json.dumps(algoVsBenchmarkColsRecent),
+        "algoVsBenchmarkRowsRecent":json.dumps(algoVsBenchmarkRowsRecent),
+    }
+
+
+import pickle
+from google.cloud import datastore, storage, logging
+def cachePortfolio(portfolioInfo, portfolioData):
+    portfolioHash = portfolioInfo["key"]
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.portfolioDataCache)
+            blob = storage.Blob(portfolioHash, bucket)
+            blob.upload_from_string(pickle.dumps(portfolioData))
+            break
+        except:
+            print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    ##CACHE STATS
+    while True:
+        try:
+            datastoreClient = datastore.Client('money-maker-1236')
+            toUpload = {
+                "benchmark":portfolioInfo["benchmark"],
+                "description":portfolioInfo["description"]
+            }
+            for item in ["algoSharpe",
+                "alpha",
+                "beta",
+                "annualReturn",
+                "annualVolatility",
+                "recentSharpe",
+                "recentReturn",
+                "recentAlpha",
+                "recentBeta"]:
+                toUpload[item] = portfolioData[item]
+            key = datastoreClient.key(params.portfolioQuickCache, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
+            organismToStore = datastore.Entity(key=key)
+            organismToStore.update(toUpload)
+            datastoreClient.put(organismToStore)
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    pass
+
+def fetchPortfolio(portfolioHash):
+    storageClient = storage.Client('money-maker-1236')
+    failures = 0
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.portfolioDataCache)
+            blob = storage.Blob(portfolioHash, bucket)
+            return pickle.loads(blob.download_as_string())
+            break
+        except:
+            print("DOWNLOAD BLOB ERROR:", str(sys.exc_info()))
+            failures += 1
+            if failures > 5:
+                return None
+            # time.sleep(10)
+    pass
+def fetchQuickPortfolios():
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.portfolioQuickCache)
+            retrievedPortfolios = [{
+                "key":item.key.name,
+                "description":item["description"],
+                "benchmark":item["benchmark"],
+                "algoSharpe":item["algoSharpe"],
+                "alpha":item["alpha"] * 100,
+                "beta":item["beta"],
+                "annualReturn":item["annualReturn"] * 100,
+                "annualVolatility":item["annualVolatility"] * 100,
+                "recentSharpe":item["recentSharpe"],
+                "recentReturn":item["recentReturn"] * 100,
+                "recentAlpha":item["recentAlpha"] * 100,
+                "recentBeta":item["recentBeta"]
+            } for item in list(query.fetch())]
+
+            return retrievedPortfolios
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+            
+def fetchPortfolioInfo(portfolioHash):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            key = datastore_client.key(params.portfolioQuickCache, portfolioHash)
+            item = datastore_client.get(key)
+            retrievedPortfolio = {
+                "key":item.key.name,
+                "description":item["description"],
+                "benchmark":item["benchmark"],
+                "algoSharpe":item["algoSharpe"],
+                "alpha":item["alpha"] * 100,
+                "beta":item["beta"],
+                "annualReturn":item["annualReturn"] * 100,
+                "annualVolatility":item["annualVolatility"] * 100,
+                "recentSharpe":item["recentSharpe"],
+                "recentReturn":item["recentReturn"] * 100,
+                "recentAlpha":item["recentAlpha"] * 100,
+                "recentBeta":item["recentBeta"]
+            }
+
+            return retrievedPortfolio
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
 
 
