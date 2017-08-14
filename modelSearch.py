@@ -56,7 +56,7 @@ while True:
 
         runsSeen += 1
 
-        if runsSeen > 5:
+        if runsSeen > 2:
             ##START NEW TICKER
             dataAck.logModel("Search Update", {
                 "message":"restarting search with different ticker",
