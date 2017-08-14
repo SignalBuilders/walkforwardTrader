@@ -8,6 +8,30 @@ import json
 def getPortfolios():
 	return portfolio.getPortfolios()
 
+def calculatePerformanceForTable(table, tickerOrder, joinedData):
+    aggregatePerformance = None
+    for i in range(len(tickerOrder)):
+        dailyFactorReturn = dataAck.getDailyFactorReturn(tickerOrder[i], joinedData)
+        thisPerformance = table[[table.columns[i]]].join(dailyFactorReturn).apply(lambda x:x[0] * x[1], axis=1)
+        thisPerformance = pd.DataFrame(thisPerformance, columns=[table.columns[i]])
+        if aggregatePerformance is None:
+            aggregatePerformance = thisPerformance
+        else:
+            aggregatePerformance = aggregatePerformance.join(thisPerformance)
+    return aggregatePerformance.dropna()
+
+import time
+def convertTableToJSON(table):
+    allArrs = []
+    for i in range(len(table.index)):
+        thisArr = []
+        timestamp = int(time.mktime(table.index[i].timetuple())) * 1000
+        thisArr.append(timestamp)
+        for j in range(len(table.columns)):
+            thisArr.append(table.iloc[i][j])
+        allArrs.append(thisArr)
+    return table.columns.values.tolist(), allArrs
+
 def getDataForPortfolio(portfolioKey):
     models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
     ##DOWNLOAD REQUIRED DATA FOR TARGET TICKERS
