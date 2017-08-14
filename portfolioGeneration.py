@@ -266,7 +266,7 @@ def generateAggregateReturnsPredictions(allModels, joinedData):
     aggregateReturns = None
     aggregatePredictions = None
     for model in allModels:
-        preds = portfolioGeneration.downloadAggregatePredictions(model).tz_localize(None)
+        preds = downloadAggregatePredictions(model).tz_localize(None)
         dailyFactorReturn = dataAck.getDailyFactorReturn(model.inputSeries.targetTicker, joinedData)
         transformedPreds = preds.join(dailyFactorReturn).dropna()
         returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=[portfolio.getModelHash(model)])
