@@ -535,14 +535,6 @@ def vizResults(returnStream, factorReturn, plotting = False):
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     rollingPeriod = 252
 
-    rollingReturn = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.cum_returns(x)[-1]).dropna()
-    rollingReturn.columns = ["252 Day Rolling Return"]
-    rollingReturnFactor = factorReturn.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.cum_returns(x)[-1]).dropna()
-    rollingReturn = rollingReturn.join(rollingReturnFactor).dropna()
-    rollingReturn.columns = ["252 Day Rolling Return Algo", "252 Day Rolling Return Factor"]
-    if len(rollingReturn["252 Day Rolling Return Algo"].values) > 50:
-        
-
 
     rollingSharpe = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
     rollingSharpe.columns = ["252 Day Rolling Sharpe"]
