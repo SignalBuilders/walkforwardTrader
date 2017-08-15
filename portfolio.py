@@ -140,6 +140,9 @@ def getTickersWithModel():
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
+def prepareDataForModel(model, joinedData):
+    return joinedData[["Adj_Close_" + model.inputSeries.targetTicker, "Adj_Close_" + model.inputSeries.series.ticker]].dropna()
+
 def getModelsByKey(modelHashes):
     while True:
         try:

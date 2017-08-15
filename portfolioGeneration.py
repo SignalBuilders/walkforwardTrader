@@ -40,7 +40,7 @@ def generateAllReturns(allModels, joinedData):
     aggregatePredictions = None
     for mod in allModels:
         print(mod.describe())
-        algoReturn, factorReturn, predictions =  mod.makePredictions(joinedData)
+        algoReturn, factorReturn, predictions =  mod.makePredictions(portfolio.prepareDataForModel(mod, joinedData))
         algoReturn.columns = [str(mod.describe())]
         predictions.columns = [str(mod.describe())]
         if aggregateReturns is None:
@@ -224,7 +224,7 @@ def getPertinentDataForModels(allModels):
 
 def generateRawPredictions(allModels, joinedData, daysBack = False):
     for mod in allModels:
-        pred = dataAck.computePosition([mod.makeTodayPrediction(joinedData)])
+        pred = dataAck.computePosition([mod.makeTodayPrediction(portfolio.prepareDataForModel(mod, joinedData))])
         print(mod.describe(), pred, joinedData.index[-1])
         portfolio.storeModelPrediction(mod, pred, joinedData.index[-1])
         if daysBack == True:

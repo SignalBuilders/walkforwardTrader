@@ -63,7 +63,7 @@ def downloadTickerData(storedTickers):
 def joinDatasets(tickerDatas):
     baseTicker = tickerDatas[0]
     for ticker in tickerDatas[1:]:
-        baseTicker = baseTicker.join(ticker, how='outer').dropna()
+        baseTicker = baseTicker.join(ticker, how='outer')
     return baseTicker
 
 
