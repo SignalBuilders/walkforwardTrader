@@ -1,4 +1,5 @@
 import dataAck
+import portfolio
 allTickers = dataAck.getAllTickersPlain()
 while True:
     import random
@@ -34,7 +35,7 @@ while True:
                             ##RANDOMLY SKIP
                             continue
                         b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
-                        algoReturn, factorReturn, predictions =  b.makePredictions(joinedData)
+                        algoReturn, factorReturn, predictions =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData))
                         metrics = dataAck.vizResults(algoReturn[:-252], factorReturn[:-252], False)
                         print("TRAIN:", metrics)
                         if np.isnan(metrics["SHARPE"]) == True:
@@ -43,7 +44,7 @@ while True:
                             ##STORE
                             testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
                             print("TEST:", testMetrics)
-                            print("TODAY:", b.makeTodayPrediction(joinedData))
+                            print("TODAY:", b.makeTodayPrediction(portfolio.prepareDataForModel(b, joinedData)))
 
                             dataAck.storeModel(b, metrics, testMetrics)
         except:
