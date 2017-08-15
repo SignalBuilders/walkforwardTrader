@@ -121,6 +121,7 @@ def storePastPredictions(allModels, modelPredictions):
         for j in range(len(thisDF.values)):
 #             print(thisDF.index[i], thisDF.values[i][0])
             predictionsToStore.append(portfolio.storeAggregateModelPrediction(thisModel, thisDF.values[j][0], thisDF.index[j], shouldReturn=True))
+        print("NEED TO STORE", len(predictionsToStore))
         portfolio.storeManyItems(predictionsToStore)
             
 
