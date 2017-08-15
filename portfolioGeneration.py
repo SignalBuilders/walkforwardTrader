@@ -197,7 +197,6 @@ def getAllPortfolioModels():
             query = datastore_client.query(kind=params.portfolioDB)
             
             retrievedModels = [item["model"] for item in list(query.fetch())]
-
             return list(set(retrievedModels))
         except:
             time.sleep(10)
@@ -216,8 +215,6 @@ def getPertinentDataForModels(allModels):
         if mod.inputSeries.targetTicker not in tickersTraded:
             tickersTraded.append(mod.inputSeries.targetTicker)
         
-
-
 
     pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
 
