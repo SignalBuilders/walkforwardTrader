@@ -460,6 +460,7 @@ class endToEnd:
                 activity = np.count_nonzero(returnStream)/float(len(returnStream))
                 treynor = ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn)))
+                
                 if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
@@ -474,7 +475,7 @@ class endToEnd:
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "beta":abs(beta),
                             "activity":activity,
-                            "treynor":treynor
+                            "treynor":treynor,
                             "period":"first 600 days" if shortSeen == 1 else "first 900 days"
                     }, None
                     
@@ -482,7 +483,6 @@ class endToEnd:
                     print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
                    
                 shortSeen += 1
-
 
             return returnStream, factorReturn, predictions
     
@@ -649,6 +649,35 @@ def getTrainingData(ticker):
         return pickle.loads(blob.download_as_string())
     except:
         return None
+    pass
+
+
+def storeModelData(model, algoReturns, algoPredictions):
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.modelDataCache)
+            organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
+            blob = storage.Blob(organismHash, bucket)
+            blob.upload_from_string(pickle.dumps((algoReturns, algoPredictions)))
+            print("STORING", organismHash)
+            break
+        except:
+            print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    pass
+
+def getModelData(model):
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.modelDataCache)
+            organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
+            print("ATTEMPTING PULL", organismHash)
+            blob = storage.Blob(organismHash, bucket)
+            return pickle.loads(blob.download_as_string())
+        except:
+            return None
     pass
     
 

@@ -78,7 +78,7 @@ while True:
                             testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
                             print("TEST:", testMetrics)
                             print("TODAY:", b.makeTodayPrediction(portfolio.prepareDataForModel(b, joinedData)))
-
+                            dataAck.storeModelData(b, algoReturn, predictions)
                             dataAck.storeModel(b, metrics, testMetrics)
                         else:
                             dataAck.logModel("Model Skipped", {
