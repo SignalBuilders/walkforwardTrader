@@ -119,7 +119,10 @@ def diffSeries(priceVector, diffAmount):
     return (priceVector.diff(diffAmount)/priceVector).dropna()
 
 def volSeries(priceVector, lookback):
-    return (priceVector.rolling(window=lookback, center=False).std()).dropna()
+    return (priceVector.rolling(window=lookback, min_periods=lookback).std()).dropna()
+
+def rollingAvgSeries(priceVector, lookback):
+    return (priceVector.rolling(lookback, min_periods=lookback).mean()).dropna()
 
 import random
 class dataSeries:
@@ -139,6 +142,8 @@ class dataSeries:
 
         if random.uniform(0,1) < 0.3:
             self.volDays = random.randint(5, 22)
+           
+        self.smoothingDays = random.randint(1, 5)
         
         
     def transformJoinedData(self, joinedData):
@@ -152,7 +157,8 @@ class dataSeries:
 
         if self.volDays is not None:
             underlyingSeries = volSeries(underlyingSeries, self.volDays)
- 
+         
+        underlyingSeries = rollingAvgSeries(underlyingSeries, self.smoothingDays)
 
         return underlyingSeries.dropna()
 
@@ -164,7 +170,7 @@ class dataSeries:
             
     
     def describe(self):
-        return (self.ticker, self.diffDays, self.secondDiffDays, self.volDays)
+        return (self.ticker, self.diffDays, self.secondDiffDays, self.volDays, self.smoothingDays)
 
 class seriesManager:
     def __init__(self, tickers):
@@ -402,6 +408,7 @@ class endToEnd:
             returnStream = None
             factorReturn = None
             predictions = None
+            shortSeen = False
             for clippedIdentifiers in identifierWindows:
                 
                 splitIdentifiers = np.array_split(np.array(clippedIdentifiers), 32)
@@ -429,8 +436,6 @@ class endToEnd:
                 
                 preds = []
                 actuals = []
-                factorReturn = []
-                returnStream = []
                 days = []
                 for i in clippedIdentifiers:
                     preds.append(returnDict[i])
@@ -452,9 +457,19 @@ class endToEnd:
                 predictions = pd.DataFrame(transformedPreds[["Predictions"]]) if predictions is None else pd.concat([predictions, pd.DataFrame(transformedPreds[["Predictions"]])])
                 
                 alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
-
-                if empyrical.sharpe_ratio(returnStream) < 0.5 or abs(beta) > 0.4:
-                    return None, None, None
+                shortSharpe = empyrical.sharpe_ratio(returnStream)
+                activity = np.count_nonzero(returnStream)/float(len(returnStream))
+                if (empyrical.sharpe_ratio(returnStream) < 0.5 or abs(beta) > 0.4 or activity < 0.6) and shortSeen == False:
+                    return None, {
+                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                            "beta":abs(beta),
+                            "activity":activity
+                    }, None
+                    
+                elif shortSeen == False:
+                    print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta)
+                   
+                shortSeen = True
 
 
             return returnStream, factorReturn, predictions
