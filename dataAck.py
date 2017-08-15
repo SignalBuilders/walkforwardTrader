@@ -483,6 +483,8 @@ def storeModel(model, trainingMetrics, oosMetrics):
         toUpload["OOS_" + k] = oosMetrics[k]
     toUpload["ticker"] = model.inputSeries.targetTicker
     toUpload["predictionLength"] = model.inputSeries.predictionPeriod
+    toUpload["trees"] = model.trees
+    toUpload["windowSize"] = model.windowSize
     toUpload["model"] = pickle.dumps(model)
     organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
     ##UPLOAD ORGANISM OBJECT
