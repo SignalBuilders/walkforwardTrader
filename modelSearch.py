@@ -28,10 +28,10 @@ while True:
             s = sManager.createSeries()
 
         try:
-            for defaultWindowSize in [5, 10, 22, 44]:
+            for defaultWindowSize in [10, 22, 44]:
                 for trees in [25, 50, 100, 150]:
-                    for predictionLength in [2, 3, 5, 10]:
-                        if random.uniform(0,1) < 0.3:
+                    for predictionLength in [2, 3, 5]:
+                        if random.uniform(0,1) < 0.7:
                             ##RANDOMLY SKIP
                             continue
                         b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
