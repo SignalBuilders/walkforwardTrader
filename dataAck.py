@@ -1,7 +1,6 @@
 ##USE QUANDL AND PANDAS
 import quandl
 import pandas as pd
-import portfolio
 
 def getTickerData(ticker):
     ##RETURNS A DATAFRAME WITH ONLY THE COLUMNS WE CARE ABOUT
@@ -627,10 +626,9 @@ def storeTrainingData(ticker, joinedData):
     while True:
         try:
             bucket = storageClient.get_bucket(params.trainingDataCache)
-            dayHash = hashlib.sha224((ticker + "_" +str(portfolio.getToday())).encode('utf-8')).hexdigest()
-            blob = storage.Blob(dayHash, bucket)
+            blob = storage.Blob(ticker, bucket)
             blob.upload_from_string(pickle.dumps(joinedData))
-            print("STORING", dayHash)
+            print("STORING", ticker)
             break
         except:
             print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
@@ -641,9 +639,8 @@ def getTrainingData(ticker):
     storageClient = storage.Client('money-maker-1236')
     try:
         bucket = storageClient.get_bucket(params.trainingDataCache)
-        dayHash = hashlib.sha224((ticker + "_" +str(portfolio.getToday())).encode('utf-8')).hexdigest()
-        print("ATTEMPTING PULL", dayHash)
-        blob = storage.Blob(dayHash, bucket)
+        print("ATTEMPTING PULL", ticker)
+        blob = storage.Blob(ticker, bucket)
         return pickle.loads(blob.download_as_string())
     except:
         return None
