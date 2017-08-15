@@ -403,7 +403,7 @@ class endToEnd:
             ##FIRST CHECK FIRST 500 IDENTIFIERS AND THEN IF GOOD CONTINUE
             
 
-            identifierWindows = [identifiersToCheck[:252], identifiersToCheck[252:600], identifiersToCheck[600:900], identifiersToCheck[900:]] ##EXACTLY TWO YEARS
+            identifierWindows = [identifiersToCheck[:252], identifiersToCheck[252:600], identifiersToCheck[600:900], identifiersToCheck[900:1200], identifiersToCheck[1200:]] ##EXACTLY TWO YEARS
             returnStream = None
             factorReturn = None
             predictions = None
@@ -480,14 +480,19 @@ class endToEnd:
                             "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
                     }, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.5 or treynor < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.75 or treynor < 0.0) and shortSeen == 2) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.5 or treynor < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.75 or treynor < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                    periodName = "first 600 days"
+                    if shortSeen == 2:
+                        periodName = "first 900 days"
+                    elif shortSeen == 3:
+                        periodName = "first 1200 days"
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "alpha":alpha,
                             "beta":abs(beta),
                             "activity":activity,
                             "treynor":treynor,
-                            "period":"first 600 days" if shortSeen == 1 else "first 900 days",
+                            "period":periodName,
                             "algoReturn":algoAnnualReturn,
                             "algoVol":algoVol,
                             "factorReturn":factorAnnualReturn,
@@ -495,7 +500,7 @@ class endToEnd:
                             "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
                     }, None
                     
-                elif shortSeen < 3:
+                elif shortSeen < 4:
                     print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
                    
                 shortSeen += 1
