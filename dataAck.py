@@ -464,6 +464,7 @@ class endToEnd:
                 factorVol = empyrical.annual_volatility(factorReturn.values)
                 treynor = ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn)))
+                sharpeDiff = empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn)
                 
                 if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
                     return None, {
@@ -477,10 +478,11 @@ class endToEnd:
                             "algoVol":algoVol,
                             "factorReturn":factorAnnualReturn,
                             "factorVol":factorVol,
-                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
+                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol,
+                            "sharpeDiff":sharpeDiff
                     }, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.5 or treynor < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.75 or treynor < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.5 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.75 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
@@ -497,7 +499,8 @@ class endToEnd:
                             "algoVol":algoVol,
                             "factorReturn":factorAnnualReturn,
                             "factorVol":factorVol,
-                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
+                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol,
+                            "sharpeDiff":sharpeDiff
                     }, None
                     
                 elif shortSeen < 4:
@@ -525,7 +528,8 @@ def vizResults(returnStream, factorReturn, plotting = False):
                "TREYNOR": ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn))),
                "RAW BETA":abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1]),
-               "SOLAR": (empyrical.annual_return(returnStream)[0] - empyrical.annual_return(factorReturn)[0]) / empyrical.annual_volatility(returnStream.values)
+               "SOLAR": (empyrical.annual_return(returnStream)[0] - empyrical.annual_return(factorReturn)[0]) / empyrical.annual_volatility(returnStream.values),
+               "SHARPE DIFFERENCE": empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn)
                 
               }
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
@@ -537,12 +541,7 @@ def vizResults(returnStream, factorReturn, plotting = False):
     rollingReturn = rollingReturn.join(rollingReturnFactor).dropna()
     rollingReturn.columns = ["252 Day Rolling Return Algo", "252 Day Rolling Return Factor"]
     if len(rollingReturn["252 Day Rolling Return Algo"].values) > 50:
-        diffReturn = pd.DataFrame(rollingReturn.apply(lambda x: x[0] - x[1], axis=1), columns=["Return Difference"])
-        metrics["RETURN DIFFERENCE MIN"] = np.percentile(diffReturn["Return Difference"].values, 1)
-        metrics["RETURN DIFFERENCE AVERAGE"] = np.percentile(diffReturn["Return Difference"].values, 50)
-        metrics["RETURN DIFFERENCE BETA"] = abs(empyrical.beta(rollingReturn["252 Day Rolling Return Algo"], rollingReturn["252 Day Rolling Return Factor"]))
-        difVals = diffReturn["Return Difference"].values
-        metrics["RETURN DIFFERENCE GREATER THAN 0"] = len(difVals[np.where(difVals > 0)])/float(len(difVals))
+        
 
 
     rollingSharpe = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
@@ -552,6 +551,14 @@ def vizResults(returnStream, factorReturn, plotting = False):
     rollingSharpe.columns = ["252 Day Rolling Sharpe Algo", "252 Day Rolling Sharpe Factor"]
     
     if len(rollingSharpe["252 Day Rolling Sharpe Algo"].values) > 50:
+
+        diffSharpe = pd.DataFrame(rollingSharpe.apply(lambda x: x[0] - x[1], axis=1), columns=["Sharpe Difference"])
+        metrics["SHARPE DIFFERENCE MIN"] = np.percentile(diffSharpe["Return Difference"].values, 1)
+        metrics["SHARPE DIFFERENCE AVERAGE"] = np.percentile(diffSharpe["Return Difference"].values, 50)
+        difVals = diffSharpe["Sharpe Difference"].values
+        metrics["SHARPE DIFFERENCE GREATER THAN 0"] = len(difVals[np.where(difVals > 0)])/float(len(difVals))
+
+        ###
     
         metrics["ROLLING SHARPE BETA"] = abs(empyrical.beta(rollingSharpe["252 Day Rolling Sharpe Algo"], rollingSharpe["252 Day Rolling Sharpe Factor"]))
         metrics["25TH PERCENTILE SHARPE"] = np.percentile(rollingSharpe["252 Day Rolling Sharpe Algo"].values, 25)
