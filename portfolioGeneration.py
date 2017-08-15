@@ -398,18 +398,10 @@ import pandas as pd
 import numpy as np
 import json
 import empyrical
-def getDataForPortfolio(portfolioKey, factorToTrade):
+def getDataForPortfolio(portfolioKey, factorToTrade, joinedData):
     models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
-    ##DOWNLOAD REQUIRED DATA FOR TARGET TICKERS
-    tickersRequired = []
-    for mod in models:
-        print(mod.describe())
-        if mod.inputSeries.targetTicker not in tickersRequired:
-            tickersRequired.append(mod.inputSeries.targetTicker)
-    if factorToTrade not in tickersRequired:
-        tickersRequired.append(factorToTrade)
-    pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
-    joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
+    for model in models:
+        print(model.describe())
     ##GENERATE RETURNS FOR PORTFOLIO
     portfolioAllocations = portfolio.getPortfolioAllocations(portfolioKey)
     
@@ -447,9 +439,9 @@ def getDataForPortfolio(portfolioKey, factorToTrade):
         scaledTickerAllocationsTable = pd.concat([scaledTickerAllocationsTable, pd.DataFrame([valsTickerScaled], index = [allocation["predictionDay"]], columns=colsTickerScaled).tz_localize(None)])
     
     predsTable = predsTable.sort_index()
-    weightsTable = weightsTable.sort_index()
-    tickerAllocationsTable = tickerAllocationsTable.sort_index()
-    scaledTickerAllocationsTable = scaledTickerAllocationsTable.sort_index()
+    weightsTable = weightsTable.sort_index().fillna(0)
+    tickerAllocationsTable = tickerAllocationsTable.sort_index().fillna(0)
+    scaledTickerAllocationsTable = scaledTickerAllocationsTable.sort_index().fillna(0)
     
     tickerPerformance = calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
     
