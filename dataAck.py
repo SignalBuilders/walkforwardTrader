@@ -393,8 +393,9 @@ def vizResults(returnStream, factorReturn, plotting = False):
                "TREYNOR": ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn))),
                "RAW BETA":abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1])
-                  
+                
               }
+    metrics["TOTAL DAYS SEEN"] = len(returnStream)
     rollingPeriod = 252
     
     rollingSharpe = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
