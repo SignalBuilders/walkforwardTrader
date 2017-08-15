@@ -139,11 +139,10 @@ class dataSeries:
         if random.uniform(0,1) < 0.5:
             self.secondDiffDays = random.randint(1, 22)
             
-
         if random.uniform(0,1) < 0.3:
             self.volDays = random.randint(5, 22)
            
-        self.smoothingDays = random.randint(1, 5)
+        self.smoothingDays = random.randint(1, 3)
         
         
     def transformJoinedData(self, joinedData):
@@ -404,14 +403,14 @@ class endToEnd:
             ##FIRST CHECK FIRST 500 IDENTIFIERS AND THEN IF GOOD CONTINUE
             
 
-            identifierWindows = [identifiersToCheck[:504], identifiersToCheck[504:]] ##EXACTLY TWO YEARS
+            identifierWindows = [identifiersToCheck[:252], identifiersToCheck[252:600], identifiersToCheck[600:900], identifiersToCheck[900:]] ##EXACTLY TWO YEARS
             returnStream = None
             factorReturn = None
             predictions = None
-            shortSeen = False
+            shortSeen = 0
             for clippedIdentifiers in identifierWindows:
                 
-                splitIdentifiers = np.array_split(np.array(clippedIdentifiers), 32)
+                splitIdentifiers = np.array_split(np.array(clippedIdentifiers), 16)
                 
                 
                 runningP = []
@@ -459,17 +458,26 @@ class endToEnd:
                 alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
                 shortSharpe = empyrical.sharpe_ratio(returnStream)
                 activity = np.count_nonzero(returnStream)/float(len(returnStream))
-                if (empyrical.sharpe_ratio(returnStream) < 0.5 or abs(beta) > 0.4 or activity < 0.6) and shortSeen == False:
+                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "beta":abs(beta),
-                            "activity":activity
+                            "activity":activity,
+                            "period":"first 252 days"
+                    }, None
+                
+                elif ((empyrical.sharpe_ratio(returnStream) < 0.5 and shortSeen == 1) or (empyrical.sharpe_ratio(returnStream) < 0.75 and shortSeen == 2)) and (abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2):
+                    return None, {
+                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                            "beta":abs(beta),
+                            "activity":activity,
+                            "period":"first 600 days" if shortSeen == 1 else "first 900 days"
                     }, None
                     
-                elif shortSeen == False:
+                elif shortSeen < 3:
                     print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta)
                    
-                shortSeen = True
+                shortSeen += 1
 
 
             return returnStream, factorReturn, predictions
