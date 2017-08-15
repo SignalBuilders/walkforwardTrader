@@ -482,7 +482,7 @@ class endToEnd:
                             "sharpeDiff":sharpeDiff
                     }, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.5 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.5 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"

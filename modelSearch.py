@@ -73,7 +73,7 @@ while True:
                         print("TRAIN:", metrics)
                         if np.isnan(metrics["SHARPE"]) == True:
                             raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
-                        if metrics["SHARPE"] > 0.75 and metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.5 and metrics["SHARPE DIFFERENCE"] > 0.0:
+                        if metrics["SHARPE"] > 0.5 and metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.5 and metrics["SHARPE DIFFERENCE"] > 0.0:
                             ##STORE
                             testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
                             print("TEST:", testMetrics)
