@@ -554,6 +554,14 @@ def vizResults(returnStream, factorReturn, plotting = False):
         metrics["SHARPE DIFFERENCE GREATER THAN 0"] = len(difVals[np.where(difVals > 0)])/float(len(difVals))
 
         ###
+
+        relDiffSharpe = pd.DataFrame(rollingSharpe.apply(lambda x: (x[0] - x[1])/x[1], axis=1), columns=["Sharpe Difference"])
+        metrics["RELATIVE SHARPE DIFFERENCE MIN"] = np.percentile(relDiffSharpe["Sharpe Difference"].values, 1)
+        metrics["RELATIVE SHARPE DIFFERENCE AVERAGE"] = np.percentile(relDiffSharpe["Sharpe Difference"].values, 50)
+        relDifVals = relDiffSharpe["Sharpe Difference"].values
+        metrics["RELATIVE SHARPE DIFFERENCE GREATER THAN 0"] = len(relDifVals[np.where(relDifVals > 0)])/float(len(relDifVals))
+
+        ###
     
         metrics["ROLLING SHARPE BETA"] = abs(empyrical.beta(rollingSharpe["252 Day Rolling Sharpe Algo"], rollingSharpe["252 Day Rolling Sharpe Factor"]))
         metrics["25TH PERCENTILE SHARPE"] = np.percentile(rollingSharpe["252 Day Rolling Sharpe Algo"].values, 25)
