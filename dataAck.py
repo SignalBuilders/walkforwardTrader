@@ -325,6 +325,8 @@ class endToEnd:
                 
             if daysToCheck is not None:
                 identifiersToCheck = identifiersToCheck[-daysToCheck:]
+
+
                 
             splitIdentifiers = np.array_split(np.array(identifiersToCheck), self.parallelism)
             
@@ -373,6 +375,88 @@ class endToEnd:
             factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]])
             predictions = pd.DataFrame(transformedPreds[["Predictions"]])
             
+            return returnStream, factorReturn, predictions
+
+    def runModelsChunksSkipMP(self, dataOfInterest, daysToCheck = None):
+        xVals, yVals, yIndex, xToday = self.walkForward.generateWindows(dataOfInterest)
+        mpEngine = mp.get_context('fork')
+        with mpEngine.Manager() as manager:
+            returnDict = manager.dict()
+            
+            identifiersToCheck = []
+            
+            for i in range(len(xVals) - 44): ##44 is lag 
+                if i < 600:
+                    ##MIN TRAINING
+                    continue
+                identifiersToCheck.append(str(i))
+                
+            if daysToCheck is not None:
+                identifiersToCheck = identifiersToCheck[-daysToCheck:]
+
+
+            ##FIRST CHECK FIRST 500 IDENTIFIERS AND THEN IF GOOD CONTINUE
+            
+
+            identifierWindows = [identifiersToCheck[:504], identifiersToCheck[504:]] ##EXACTLY TWO YEARS
+            returnStream = None
+            factorReturn = None
+            predictions = None
+            for clippedIdentifiers in identifierWindows:
+                
+                splitIdentifiers = np.array_split(np.array(clippedIdentifiers), 32)
+                
+                
+                runningP = []
+                k = 0
+                for identifiers in splitIdentifiers:
+                    p = mpEngine.Process(target=endToEnd.runDayChunking, args=(self, xVals, yVals, identifiers, returnDict,k))
+                    p.start()
+                    runningP.append(p)
+                    
+                    k += 1
+                    
+
+                while len(runningP) > 0:
+                    newP = []
+                    for p in runningP:
+                        if p.is_alive() == True:
+                            newP.append(p)
+                        else:
+                            p.join()
+                    runningP = newP
+                    
+                
+                preds = []
+                actuals = []
+                factorReturn = []
+                returnStream = []
+                days = []
+                for i in clippedIdentifiers:
+                    preds.append(returnDict[i])
+                    actuals.append(yVals[int(i) + 44])
+                    days.append(yIndex[int(i) + 44])
+                    
+                ##CREATE ACCURATE BLENDING ACROSS DAYS
+                predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
+                i = 1
+                while i < self.walkForward.predictionPeriod:
+                    predsTable = predsTable.join(predsTable.shift(i), rsuffix="_" + str(i))
+                    i += 1
+                
+                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
+                dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
+                transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
+                returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
+                factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]]) if factorReturn is None else pd.concat([factorReturn, pd.DataFrame(transformedPreds[["Factor Return"]])])
+                predictions = pd.DataFrame(transformedPreds[["Predictions"]]) if predictions is None else pd.concat([predictions, pd.DataFrame(transformedPreds[["Predictions"]])])
+                
+                alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
+
+                if empyrical.sharpe_ratio(returnStream) < 0.5 or abs(beta) > 0.4:
+                    return None, None, None
+
+
             return returnStream, factorReturn, predictions
     
 
@@ -457,9 +541,12 @@ class algoBlob:
         self.e2e = endToEnd(self.inputSeries, trees)
         print("SERIES", self.inputSeries.describe(), "WINDOW", windowSize, "TREES", trees)
     
-    def makePredictions(self, dataOfInterest, daysToCheck = None):
+    def makePredictions(self, dataOfInterest, daysToCheck = None, earlyStop = False):
         #algoReturn, factorReturn, predictions 
-        return self.e2e.runModelsCHUNKINGMP(dataOfInterest, daysToCheck)
+        if earlyStop == False: 
+            return self.e2e.runModelsCHUNKINGMP(dataOfInterest, daysToCheck)
+        else:
+            return self.e2e.runModelsChunksSkipMP(dataOfInterest, daysToCheck)
     
     def makeTodayPrediction(self, dataOfInterest):
         return self.e2e.runModelToday(dataOfInterest)

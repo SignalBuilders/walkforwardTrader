@@ -31,11 +31,14 @@ while True:
             for defaultWindowSize in [10, 22, 44]:
                 for trees in [25, 50, 100, 150]:
                     for predictionLength in [2, 3, 5]:
-                        if random.uniform(0,1) < 0.7:
-                            ##RANDOMLY SKIP
-                            continue
                         b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
-                        algoReturn, factorReturn, predictions =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData))
+                        algoReturn, factorReturn, predictions =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
+                        if algoReturn is None:
+                            dataAck.logModel("Skipped Model", {
+                                "message":"stopped model evaluation early",
+                                "seriesDescription":str(b.describe())
+                            })
+                            continue
                         metrics = dataAck.vizResults(algoReturn[:-252], factorReturn[:-252], False)
                         print("TRAIN:", metrics)
                         if np.isnan(metrics["SHARPE"]) == True:
