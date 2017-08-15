@@ -545,8 +545,8 @@ def vizResults(returnStream, factorReturn, plotting = False):
     if len(rollingSharpe["252 Day Rolling Sharpe Algo"].values) > 50:
 
         diffSharpe = pd.DataFrame(rollingSharpe.apply(lambda x: x[0] - x[1], axis=1), columns=["Sharpe Difference"])
-        metrics["SHARPE DIFFERENCE MIN"] = np.percentile(diffSharpe["Return Difference"].values, 1)
-        metrics["SHARPE DIFFERENCE AVERAGE"] = np.percentile(diffSharpe["Return Difference"].values, 50)
+        metrics["SHARPE DIFFERENCE MIN"] = np.percentile(diffSharpe["Sharpe Difference"].values, 1)
+        metrics["SHARPE DIFFERENCE AVERAGE"] = np.percentile(diffSharpe["Sharpe Difference"].values, 50)
         difVals = diffSharpe["Sharpe Difference"].values
         metrics["SHARPE DIFFERENCE GREATER THAN 0"] = len(difVals[np.where(difVals > 0)])/float(len(difVals))
 
