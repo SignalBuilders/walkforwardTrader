@@ -52,44 +52,44 @@ while True:
             s = sManager.createSeries()
             
 
-        try:
-            for defaultWindowSize in [5, 10, 22, 44]:
-                for trees in [25, 50, 100, 150, 300]:
-                    for predictionLength in [3, 5, 7, 10]:
-                        if random.uniform(0,1) < 0.5: ##RANDOMLY SKIP
-                            continue
-                        b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
-                        algoReturn, factorReturn, predictions =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
-                        if algoReturn is None:
-                            toLog = factorReturn
-                            if np.isnan(toLog["sharpe"]) == True:
-                                raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
-                                
-                            toLog["modelDescription"] = str(b.describe())
-                            dataAck.logModel("Model Stopped Early", toLog)
-                            print("Model Stopped Early", toLog)
-                            continue
-                        metrics = dataAck.vizResults(algoReturn[:-252], factorReturn[:-252], False)
-                        print("TRAIN:", metrics)
-                        if np.isnan(metrics["SHARPE"]) == True:
+        # try:
+        for defaultWindowSize in [5, 10, 22, 44]:
+            for trees in [25, 50, 100, 150, 300]:
+                for predictionLength in [3, 5, 7, 10]:
+                    if random.uniform(0,1) < 0.5: ##RANDOMLY SKIP
+                        continue
+                    b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
+                    algoReturn, factorReturn, predictions =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
+                    if algoReturn is None:
+                        toLog = factorReturn
+                        if np.isnan(toLog["sharpe"]) == True:
                             raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
-                        if metrics["SHARPE"] > 0.5 and metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.5 and metrics["SHARPE DIFFERENCE"] > 0.0:
-                            ##STORE
-                            testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
-                            print("TEST:", testMetrics)
-                            print("TODAY:", b.makeTodayPrediction(portfolio.prepareDataForModel(b, joinedData)))
-                            dataAck.storeModelData(b, algoReturn, predictions)
-                            dataAck.storeModel(b, metrics, testMetrics)
-                        else:
-                            toLog = {"modelDescription":str(b.describe())}
-                            for k in metrics:
-                                toLog[k] = metrics[k]
-                            dataAck.logModel("Model Skipped", toLog)
-        except:
-            print("FAILED", s.describe())
-            dataAck.logModel("Series Failed", {
-                "seriesDescription":str(s.describe())
-            })
+                            
+                        toLog["modelDescription"] = str(b.describe())
+                        dataAck.logModel("Model Stopped Early", toLog)
+                        print("Model Stopped Early", toLog)
+                        continue
+                    metrics = dataAck.vizResults(algoReturn[:-252], factorReturn[:-252], False)
+                    print("TRAIN:", metrics)
+                    if np.isnan(metrics["SHARPE"]) == True:
+                        raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
+                    if metrics["SHARPE"] > 0.5 and metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.5 and metrics["SHARPE DIFFERENCE"] > 0.0:
+                        ##STORE
+                        testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
+                        print("TEST:", testMetrics)
+                        print("TODAY:", b.makeTodayPrediction(portfolio.prepareDataForModel(b, joinedData)))
+                        dataAck.storeModelData(b, algoReturn, predictions)
+                        dataAck.storeModel(b, metrics, testMetrics)
+                    else:
+                        toLog = {"modelDescription":str(b.describe())}
+                        for k in metrics:
+                            toLog[k] = metrics[k]
+                        dataAck.logModel("Model Skipped", toLog)
+        # except:
+        #     print("FAILED", s.describe())
+        #     dataAck.logModel("Series Failed", {
+        #         "seriesDescription":str(s.describe())
+        #     })
 
         runsSeen += 1
 
