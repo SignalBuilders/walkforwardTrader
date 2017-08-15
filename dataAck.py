@@ -465,40 +465,40 @@ class endToEnd:
                 treynor = ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn)))
                 
-                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "beta":abs(beta),
-                            "alpha":alpha,
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":"first 252 days",
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
-                    }, None
+                # if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
+                #     return None, {
+                #             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                #             "beta":abs(beta),
+                #             "alpha":alpha,
+                #             "activity":activity,
+                #             "treynor":treynor,
+                #             "period":"first 252 days",
+                #             "algoReturn":algoAnnualReturn,
+                #             "algoVol":algoVol,
+                #             "factorReturn":factorAnnualReturn,
+                #             "factorVol":factorVol,
+                #             "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
+                #     }, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.5 or treynor < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.75 or treynor < 0.0) and shortSeen == 2) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2):
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "alpha":alpha,
-                            "beta":abs(beta),
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":"first 600 days" if shortSeen == 1 else "first 900 days",
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
-                    }, None
+                # elif (((empyrical.sharpe_ratio(returnStream) < 0.5 or treynor < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.75 or treynor < 0.0) and shortSeen == 2) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2):
+                #     return None, {
+                #             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                #             "alpha":alpha,
+                #             "beta":abs(beta),
+                #             "activity":activity,
+                #             "treynor":treynor,
+                #             "period":"first 600 days" if shortSeen == 1 else "first 900 days",
+                #             "algoReturn":algoAnnualReturn,
+                #             "algoVol":algoVol,
+                #             "factorReturn":factorAnnualReturn,
+                #             "factorVol":factorVol,
+                #             "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol
+                #     }, None
                     
-                elif shortSeen < 3:
-                    print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
+                # elif shortSeen < 3:
+                #     print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
                    
-                shortSeen += 1
+                # shortSeen += 1
 
             return returnStream, factorReturn, predictions
     

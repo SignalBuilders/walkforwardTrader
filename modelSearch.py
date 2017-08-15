@@ -81,12 +81,10 @@ while True:
                             dataAck.storeModelData(b, algoReturn, predictions)
                             dataAck.storeModel(b, metrics, testMetrics)
                         else:
-                            dataAck.logModel("Model Skipped", {
-                                "modelDescription":str(b.describe()),
-                                "sharpe":metrics["SHARPE"], ##OVERLOADED IN FAIL
-                                "activity":metrics["ACTIVITY"],
-                                "beta":metrics["BETA"]
-                            })
+                            toLog = {"modelDescription":str(b.describe())}
+                            for k in metrics:
+                                toLog[k] = metrics[k]
+                            dataAck.logModel("Model Skipped", toLog)
         except:
             print("FAILED", s.describe())
             dataAck.logModel("Series Failed", {
