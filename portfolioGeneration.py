@@ -461,6 +461,7 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData):
     
     ##CONVERT TO USABLE OBJECTS
     tickerCols, tickerRows = convertTableToJSON(empyrical.cum_returns(tickerPerformance))
+    tickerAllocationsCols, tickerAllocationsRows = convertTableToJSON(tickerAllocationsTable[-10:])
     algoCols, algoRows = convertTableToJSON(empyrical.cum_returns(algoPerformance))
     algoVsBenchmarkCols, algoVsBenchmarkRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark))
     individualAlgoPerformanceCols, individualAlgoPerformanceRows = convertTableToJSON(empyrical.cum_returns(individualAlgoPerformance))
@@ -474,6 +475,8 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData):
     return {
         "tickerCols":json.dumps(tickerCols),
         "tickerRows":json.dumps(tickerRows),
+        "tickerAllocationsCols":json.dumps(tickerAllocationsCols),
+        "tickerAllocationsRows":json.dumps(tickerAllocationsRows),
         "algoCols":json.dumps(algoCols),
         "algoRows":json.dumps(algoRows),
         "tickerCols":json.dumps(tickerCols),
