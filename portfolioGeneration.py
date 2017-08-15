@@ -24,6 +24,7 @@ def getUniqueModels(allModels):
             "info":modelEntity
         })
     modelsToReturn = []
+    modelEntities = []
     for seq in sequences:
         bestModel = None
         for modelInfo in sequences[seq]:
@@ -33,7 +34,8 @@ def getUniqueModels(allModels):
                 if bestModel["info"]["STABILITY"] < modelInfo["info"]["STABILITY"]:
                     bestModel = modelInfo
         modelsToReturn.append(bestModel["model"])
-    return modelsToReturn
+        modelEntities.append(bestModel["info"])
+    return modelsToReturn, modelEntities
 
 def generateAllReturns(allModels, joinedData):
     aggregateReturns = None
