@@ -467,7 +467,7 @@ class endToEnd:
                             "period":"first 252 days"
                     }, None
                 
-                elif ((empyrical.sharpe_ratio(returnStream) < 0.5 and shortSeen == 1) or (empyrical.sharpe_ratio(returnStream) < 0.75 and shortSeen == 2)) and (abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2):
+                elif ((empyrical.sharpe_ratio(returnStream) < 0.5 and shortSeen == 1) or (empyrical.sharpe_ratio(returnStream) < 0.75 and shortSeen == 2) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2):
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "beta":abs(beta),
