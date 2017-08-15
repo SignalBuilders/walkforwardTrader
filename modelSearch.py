@@ -5,14 +5,38 @@ while True:
     import random
     tickerToTrade = allTickers[random.randint(0, len(allTickers)) - 1]
     print(tickerToTrade)
+    
+    tData = dataAck.getTrainingData(tickerToTrade)
+    joinedData = None
+    validTickers = None
 
-    tickersToPull = dataAck.getDataSourcesForTicker(tickerToTrade)
-    print(tickersToPull)
+    
+    
+    if tData is None:
+        dataAck.logModel("Cache", {
+            "type":"miss",
+            "ticker":tickerToTrade,
+            "day":str(portfolio.getToday())
+        })
 
-    pulledData, validTickers = dataAck.downloadTickerData(tickersToPull)
+        tickersToPull = dataAck.getDataSourcesForTicker(tickerToTrade)
+        print(tickersToPull)
 
-    joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
+        pulledData, validTickers = dataAck.downloadTickerData(tickersToPull)
 
+        joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
+        
+        dataAck.storeTrainingData(tickerToTrade, (joinedData, validTickers))
+    else:
+        joinedData = tData[0]
+        validTickers = tData[1]
+        dataAck.logModel("Cache", {
+            "type":"hit",
+            "ticker":tickerToTrade,
+            "day":str(portfolio.getToday())
+        })
+        
+    
     sManager = dataAck.seriesManager(validTickers)
     print(sManager.describe())
 
@@ -26,37 +50,48 @@ while True:
         s = sManager.createSeries()
         while s.checkValidity(s.transformJoinedData(joinedData[:"2016-01-01"])) == False:
             s = sManager.createSeries()
+            
 
         try:
-            for defaultWindowSize in [10, 22, 44]:
-                for trees in [25, 50, 100, 150]:
-                    for predictionLength in [2, 3, 5]:
+            for defaultWindowSize in [5, 10, 22, 44]:
+                for trees in [25, 50, 100, 150, 300]:
+                    for predictionLength in [2, 3, 5, 7]:
+                        if random.uniform(0,1) < 0.5: ##RANDOMLY SKIP
+                            continue
                         b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
                         algoReturn, factorReturn, predictions =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
                         if algoReturn is None:
-                            dataAck.logModel("Skipped Model", {
-                                "message":"stopped model evaluation early",
-                                "seriesDescription":str(b.describe())
-                            })
+                            toLog = factorReturn
+                            if np.isnan(toLog["sharpe"]) == True:
+                                raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
+                                
+                            toLog["modelDescription"] = str(b.describe())
+                            dataAck.logModel("Model Stopped Early", toLog)
+                            print("Model Stopped Early", toLog)
                             continue
                         metrics = dataAck.vizResults(algoReturn[:-252], factorReturn[:-252], False)
                         print("TRAIN:", metrics)
                         if np.isnan(metrics["SHARPE"]) == True:
                             raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
-                        if metrics["SHARPE"] > 1.0 and metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.3:
+                        if metrics["SHARPE"] > 1.0 and metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.6:
                             ##STORE
                             testMetrics = dataAck.vizResults(algoReturn[-252:], factorReturn[-252:], False)
                             print("TEST:", testMetrics)
                             print("TODAY:", b.makeTodayPrediction(portfolio.prepareDataForModel(b, joinedData)))
 
                             dataAck.storeModel(b, metrics, testMetrics)
+                        else:
+                            dataAck.logModel("Model Skipped", {
+                                "modelDescription":str(b.describe()),
+                                "sharpe":metrics["SHARPE"], ##OVERLOADED IN FAIL
+                                "activity":metrics["ACTIVITY"],
+                                "beta":metrics["BETA"]
+                            })
         except:
             print("FAILED", s.describe())
-            dataAck.logModel("Search Update", {
-                "message":"series failed",
+            dataAck.logModel("Series Failed", {
                 "seriesDescription":str(s.describe())
             })
-            time.sleep(10)
 
         runsSeen += 1
 

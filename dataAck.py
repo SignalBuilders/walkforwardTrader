@@ -1,6 +1,7 @@
 ##USE QUANDL AND PANDAS
 import quandl
 import pandas as pd
+import portfolio
 
 def getTickerData(ticker):
     ##RETURNS A DATAFRAME WITH ONLY THE COLUMNS WE CARE ABOUT
@@ -620,5 +621,32 @@ def storeModel(model, trainingMetrics, oosMetrics):
         else:
             toLog[item] = str(model.describe())
     logModel("StoredModel", toLog)
+    
+def storeTrainingData(ticker, joinedData):
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.trainingDataCache)
+            dayHash = hashlib.sha224((ticker + "_" +str(portfolio.getToday())).encode('utf-8')).hexdigest()
+            blob = storage.Blob(dayHash, bucket)
+            blob.upload_from_string(pickle.dumps(joinedData))
+            print("STORING", dayHash)
+            break
+        except:
+            print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    pass
+
+def getTrainingData(ticker):
+    storageClient = storage.Client('money-maker-1236')
+    try:
+        bucket = storageClient.get_bucket(params.trainingDataCache)
+        dayHash = hashlib.sha224((ticker + "_" +str(portfolio.getToday())).encode('utf-8')).hexdigest()
+        print("ATTEMPTING PULL", dayHash)
+        blob = storage.Blob(dayHash, bucket)
+        return pickle.loads(blob.download_as_string())
+    except:
+        return None
+    pass
     
 
