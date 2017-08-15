@@ -28,7 +28,7 @@ while True:
             s = sManager.createSeries()
 
         try:
-            for defaultWindowSize in [10, 22]:
+            for defaultWindowSize in [5, 10, 22]:
                 for trees in [25, 50, 100, 250]:
                     for predictionLength in [2, 3, 5]:
                         if random.uniform(0,1) < 0.5:
@@ -57,7 +57,7 @@ while True:
 
         runsSeen += 1
 
-        if runsSeen > 2:
+        if runsSeen > 10:
             ##START NEW TICKER
             dataAck.logModel("Search Update", {
                 "message":"restarting search with different ticker",
