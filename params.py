@@ -10,3 +10,7 @@ portfolioQuickCache = "walkforward_quick_cache"
 trainingDataCache = "walkforward_training_cache"
 modelDataCache = "walkforward_model_cache"
 tradingPortfolios = "walkforward_trading_portfolios"
+
+##TRADING
+portfolioDataTradingCache = "walkforward_portfolio_trading_data"
+portfolioQuickTradingCache = "walkforward_quick_tradong_cache"

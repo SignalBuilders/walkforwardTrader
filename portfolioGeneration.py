@@ -426,7 +426,8 @@ import pandas as pd
 import numpy as np
 import json
 import empyrical
-def getDataForPortfolio(portfolioKey, factorToTrade, joinedData):
+
+def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate = None):
     models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
     for model in models:
         print(model.describe())
@@ -501,6 +502,19 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData):
     recentSharpe = empyrical.sharpe_ratio(algoPerformance[-100:])
     recentReturn = empyrical.cum_returns(algoPerformance[-100:]).values[-1][0]
     algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
+    
+    if recentStartDate is not None:
+        if len(algoPerformance[recentStartDate:]) > 0:
+            recentAlpha, recentBeta = empyrical.alpha_beta(algoPerformance[recentStartDate:], factorReturn[recentStartDate:])
+            recentSharpe = empyrical.sharpe_ratio(algoPerformance[recentStartDate:])
+            recentReturn = empyrical.cum_returns(algoPerformance[recentStartDate:]).values[-1][0]
+            algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[recentStartDate:]))
+        else:
+            recentAlpha, recentBeta = ("NaN", "NaN")
+            recentSharpe = "NaN"
+            recentReturn = "NaN"
+            algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = ([], [])
+
     return {
         "tickerCols":json.dumps(tickerCols),
         "tickerRows":json.dumps(tickerRows),
@@ -534,12 +548,12 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData):
 
 import pickle
 from google.cloud import datastore, storage, logging
-def cachePortfolio(portfolioInfo, portfolioData):
+def cachePortfolio(portfolioInfo, portfolioData, mode):
     portfolioHash = portfolioInfo["key"]
     storageClient = storage.Client('money-maker-1236')
     while True:
         try:
-            bucket = storageClient.get_bucket(params.portfolioDataCache)
+            bucket = storageClient.get_bucket(params.portfolioDataCache if mode == "Available" else params.portfolioDataTradingCache)
             blob = storage.Blob(portfolioHash, bucket)
             blob.upload_from_string(pickle.dumps(portfolioData))
             break
@@ -566,7 +580,9 @@ def cachePortfolio(portfolioInfo, portfolioData):
                 "recentAlpha",
                 "recentBeta"]:
                 toUpload[item] = portfolioData[item]
-            key = datastoreClient.key(params.portfolioQuickCache, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
+            if mode == "Trading":
+                toUpload["startedTrading"] = portfolioInfo["startedTrading"]
+            key = datastoreClient.key(params.portfolioQuickCache if mode == "Available" else params.portfolioQuickTradingCache, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
             organismToStore = datastore.Entity(key=key)
             organismToStore.update(toUpload)
             datastoreClient.put(organismToStore)
@@ -576,12 +592,12 @@ def cachePortfolio(portfolioInfo, portfolioData):
             time.sleep(10)
     pass
 
-def fetchPortfolio(portfolioHash):
+def fetchPortfolio(portfolioHash, mode):
     storageClient = storage.Client('money-maker-1236')
     failures = 0
     while True:
         try:
-            bucket = storageClient.get_bucket(params.portfolioDataCache)
+            bucket = storageClient.get_bucket(params.portfolioDataCache if mode == "Available" else params.portfolioDataTradingCache)
             blob = storage.Blob(portfolioHash, bucket)
             return pickle.loads(blob.download_as_string())
             break
@@ -592,11 +608,12 @@ def fetchPortfolio(portfolioHash):
                 return None
             # time.sleep(10)
     pass
-def fetchQuickPortfolios():
+
+def fetchQuickPortfolios(mode):
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
-            query = datastore_client.query(kind=params.portfolioQuickCache)
+            query = datastore_client.query(kind=params.portfolioQuickCache if mode == "Available" else params.portfolioQuickTradingCache)
             retrievedPortfolios = [{
                 "key":item.key.name,
                 "description":item["description"],
@@ -608,21 +625,23 @@ def fetchQuickPortfolios():
                 "annualReturn":item["annualReturn"] * 100,
                 "annualVolatility":item["annualVolatility"] * 100,
                 "recentSharpe":item["recentSharpe"],
-                "recentReturn":item["recentReturn"] * 100,
-                "recentAlpha":item["recentAlpha"] * 100,
-                "recentBeta":item["recentBeta"]
+                "recentReturn":item["recentReturn"] * 100 if item["recentReturn"] != "NaN" else "NaN",
+                "recentAlpha":item["recentAlpha"] * 100 if item["recentAlpha"] != "NaN" else "NaN",
+                "recentBeta":item["recentBeta"],
+                "startedTrading":None if mode == "Available" else item["startedTrading"]
             } for item in list(query.fetch())]
+
 
             return retrievedPortfolios
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
             
-def fetchPortfolioInfo(portfolioHash):
+def fetchPortfolioInfo(portfolioHash, mode):
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
-            key = datastore_client.key(params.portfolioQuickCache, portfolioHash)
+            key = datastore_client.key(params.portfolioQuickCache if mode == "Available" else params.portfolioQuickTradingCache, portfolioHash)
             item = datastore_client.get(key)
             retrievedPortfolio = {
                 "key":item.key.name,
@@ -635,12 +654,38 @@ def fetchPortfolioInfo(portfolioHash):
                 "annualReturn":item["annualReturn"] * 100,
                 "annualVolatility":item["annualVolatility"] * 100,
                 "recentSharpe":item["recentSharpe"],
-                "recentReturn":item["recentReturn"] * 100,
-                "recentAlpha":item["recentAlpha"] * 100,
-                "recentBeta":item["recentBeta"]
+                "recentReturn":item["recentReturn"] * 100 if item["recentReturn"] != "NaN" else "NaN",
+                "recentAlpha":item["recentAlpha"] * 100 if item["recentAlpha"] != "NaN" else "NaN",
+                "recentBeta":item["recentBeta"],
+                "startedTrading":None if mode == "Available" else item["startedTrading"]
             }
 
             return retrievedPortfolio
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+def fetchQuickTradingPortfolios(tradingHashes):
+    toKeep = []
+    for item in fetchQuickPortfolios():
+        if item["key"] in tradingHashes:
+            toKeep.append(item)
+    return toKeep
+
+def getTradingPortfolioHashes(includeDates = False):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.tradingPortfolios)
+            fetchedData = list(query.fetch())
+            retrievedPortfolios = [item.key.name for item in fetchedData]
+
+            if includeDates == True:
+                retrievedPortfolios = {}
+                for item in fetchedData:
+                    retrievedPortfolios[item.key.name] = item["startedTrading"]
+
+            return retrievedPortfolios
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
