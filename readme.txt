@@ -18,3 +18,6 @@ Once all model predictions are made, portfolio predictions can be made using agg
 
 Once all predictions for portfolios are logged, it is essential to cache results so they are viewable from the website
 
+-> Move Portfolios to Trading Portfolios
+
+-> Generate Net Position From Trading Portfolios and Save 
