@@ -31,7 +31,7 @@ def getUniqueModels(allModels):
             if bestModel is None:
                 bestModel = modelInfo
             else:
-                if bestModel["info"]["STABILITY"] < modelInfo["info"]["STABILITY"]:
+                if bestModel["info"]["RELATIVE SHARPE"] < modelInfo["info"]["RELATIVE SHARPE"]:
                     bestModel = modelInfo
         modelsToReturn.append(bestModel["model"])
         modelEntities.append(bestModel["info"])
