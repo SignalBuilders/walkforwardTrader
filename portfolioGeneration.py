@@ -359,6 +359,20 @@ def produceEWPredictions(aggregateReturns, startIndex):
         i += 1
     return ewReturns
 
+def getWeightingForAlgos(allModels, columns):
+    countPerTicker = {}
+    hashes = {}
+    for mod in allModels:
+        hashes[portfolio.getModelHash(mod)] = mod.inputSeries.targetTicker
+        if mod.inputSeries.targetTicker not in countPerTicker:
+            countPerTicker[mod.inputSeries.targetTicker] = 0.0
+        countPerTicker[mod.inputSeries.targetTicker] += 1.0
+    weightsToSend = []
+    for col in columns:
+        weightsToSend.append(1.0/countPerTicker[hashes[col]])
+        
+    return [item/sum(weightsToSend) for item in weightsToSend]
+
 def storeHistoricalAllocations(portfolioKey, modelsInPortfolio, historicalWeights, aggregatePredictions):
 
     aggregatePredictions = aggregatePredictions.dropna()
