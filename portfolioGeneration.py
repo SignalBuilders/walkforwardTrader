@@ -690,6 +690,30 @@ def getTradingPortfolioHashes(includeDates = False):
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
+def getFundData():
+    storageClient = storage.Client('money-maker-1236')
+    historicalData = None
+    realizedData = None
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.portfolioDataTradingCache)
+            blob = storage.Blob("HISTORICALFUND", bucket)
+            historicalData = pickle.loads(blob.download_as_string())
+            break
+        except:
+            print("DOWNLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(1)
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.portfolioDataTradingCache)
+            blob = storage.Blob("REALIZEDFUND", bucket)
+            realizedData = pickle.loads(blob.download_as_string())
+            break
+        except:
+            print("DOWNLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(1)
+    return historicalData, realizedData
+
 
 
 
