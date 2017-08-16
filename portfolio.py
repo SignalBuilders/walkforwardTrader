@@ -184,7 +184,8 @@ def getPortfolios():
             retrievedPortfolios = [{
                 "key":item.key.name,
                 "description":item["description"],
-                "benchmark":item["benchmark"]
+                "benchmark":item["benchmark"],
+                "portfolioType":item["portfolioType"]
             } for item in list(query.fetch())]
 
             return retrievedPortfolios
