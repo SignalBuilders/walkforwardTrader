@@ -126,14 +126,15 @@ def storePastPredictions(allModels, modelPredictions):
             
 
 
-def storePortfolio(models, description, benchmark):
+def storePortfolio(models, description, benchmark, portfolioType):
     allHashes = []
     for model in models:
         organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
         allHashes.append(organismHash)
     
     allHashes.sort()
-    portfolioHash = hashlib.sha224(str(allHashes).encode('utf-8')).hexdigest()
+    portfolioString = str(allHashes) + description + benchmark + portfolioType
+    portfolioHash = hashlib.sha224(portfolioString.encode('utf-8')).hexdigest()
     print("PORTFOLIO HASH:", portfolioHash)
     for hashing in allHashes:
         print(hashing)
@@ -162,7 +163,8 @@ def storePortfolio(models, description, benchmark):
         try:
             toUpload = {
                 "description":description,
-                "benchmark":benchmark
+                "benchmark":benchmark,
+                "portfolioType":portfolioType
             }
             datastoreClient = datastore.Client('money-maker-1236')
             #HASH DIGEST
@@ -345,6 +347,18 @@ def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSiz
         i += 1
     return hrpReturns, historicalWeights
 
+def produceEWPredictions(aggregateReturns, startIndex):
+    ewReturns = pd.DataFrame([])
+    i = 0
+    if startIndex is not None:
+        i = len(aggregateReturns) - startIndex
+    while i < len(aggregateReturns):
+        todayReturn = aggregateReturns[i:i+1] * 1.0/len(aggregateReturns.columns.values)
+        sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
+        ewReturns = pd.concat([ewReturns, sumReturn])
+        i += 1
+    return ewReturns
+
 def storeHistoricalAllocations(portfolioKey, modelsInPortfolio, historicalWeights, aggregatePredictions):
 
     aggregatePredictions = aggregatePredictions.dropna()
@@ -524,7 +538,9 @@ def cachePortfolio(portfolioInfo, portfolioData):
             datastoreClient = datastore.Client('money-maker-1236')
             toUpload = {
                 "benchmark":portfolioInfo["benchmark"],
-                "description":portfolioInfo["description"]
+                "description":portfolioInfo["description"],
+                "portfolioType":portfolioInfo["portfolioType"]
+                
             }
             for item in ["algoSharpe",
                 "alpha",
@@ -571,6 +587,7 @@ def fetchQuickPortfolios():
                 "key":item.key.name,
                 "description":item["description"],
                 "benchmark":item["benchmark"],
+                "portfolioType":item["portfolioType"],
                 "algoSharpe":item["algoSharpe"],
                 "alpha":item["alpha"] * 100,
                 "beta":item["beta"],
@@ -597,6 +614,7 @@ def fetchPortfolioInfo(portfolioHash):
                 "key":item.key.name,
                 "description":item["description"],
                 "benchmark":item["benchmark"],
+                "portfolioType":item["portfolioType"],
                 "algoSharpe":item["algoSharpe"],
                 "alpha":item["alpha"] * 100,
                 "beta":item["beta"],
