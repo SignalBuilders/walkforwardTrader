@@ -429,53 +429,53 @@ class endToEnd:
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
 
-                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
-                            "beta":abs(beta),
-                            "alpha":alpha,
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":"first 252 days",
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "sharpeDiff":sharpeDiff,
-                            "relativeSharpe":relativeSharpe,
-                            "sharpeDiffSlippage":sharpeDiffSlippage,
-                            "relativeSharpeSlippage":relativeSharpeSlippage
-                    }, None
+                # if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
+                #     return None, {
+                #             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                #             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                #             "beta":abs(beta),
+                #             "alpha":alpha,
+                #             "activity":activity,
+                #             "treynor":treynor,
+                #             "period":"first 252 days",
+                #             "algoReturn":algoAnnualReturn,
+                #             "algoVol":algoVol,
+                #             "factorReturn":factorAnnualReturn,
+                #             "factorVol":factorVol,
+                #             "sharpeDiff":sharpeDiff,
+                #             "relativeSharpe":relativeSharpe,
+                #             "sharpeDiffSlippage":sharpeDiffSlippage,
+                #             "relativeSharpeSlippage":relativeSharpeSlippage
+                #     }, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
-                    periodName = "first 600 days"
-                    if shortSeen == 2:
-                        periodName = "first 900 days"
-                    elif shortSeen == 3:
-                        periodName = "first 1200 days"
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
-                            "alpha":alpha,
-                            "beta":abs(beta),
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":periodName,
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "sharpeDiff":sharpeDiff,
-                            "relativeSharpe":relativeSharpe,
-                            "sharpeDiffSlippage":sharpeDiffSlippage,
-                            "relativeSharpeSlippage":relativeSharpeSlippage
-                    }, None
+                # elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                #     periodName = "first 600 days"
+                #     if shortSeen == 2:
+                #         periodName = "first 900 days"
+                #     elif shortSeen == 3:
+                #         periodName = "first 1200 days"
+                #     return None, {
+                #             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                #             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                #             "alpha":alpha,
+                #             "beta":abs(beta),
+                #             "activity":activity,
+                #             "treynor":treynor,
+                #             "period":periodName,
+                #             "algoReturn":algoAnnualReturn,
+                #             "algoVol":algoVol,
+                #             "factorReturn":factorAnnualReturn,
+                #             "factorVol":factorVol,
+                #             "sharpeDiff":sharpeDiff,
+                #             "relativeSharpe":relativeSharpe,
+                #             "sharpeDiffSlippage":sharpeDiffSlippage,
+                #             "relativeSharpeSlippage":relativeSharpeSlippage
+                #     }, None
                     
-                elif shortSeen < 4:
-                    print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
+                # elif shortSeen < 4:
+                #     print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
                    
-                shortSeen += 1
+                # shortSeen += 1
 
             return returnStream, factorReturn, predictions, slippageAdjustedReturn
     
