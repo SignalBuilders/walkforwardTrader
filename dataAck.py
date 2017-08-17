@@ -50,6 +50,7 @@ def downloadTickerData(storedTickers):
 
         while len(runningP) > 0:
                 runningP = cycleP(runningP)
+                
         storedData = {}  
         for ticker in storedTickers:
             try:
