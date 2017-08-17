@@ -446,7 +446,7 @@ class endToEnd:
                             "relativeSharpe":relativeSharpe,
                             "sharpeDiffSlippage":sharpeDiffSlippage,
                             "relativeSharpeSlippage":relativeSharpeSlippage
-                    }, None
+                    }, None, None
                 
                 elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
@@ -470,7 +470,7 @@ class endToEnd:
                             "relativeSharpe":relativeSharpe,
                             "sharpeDiffSlippage":sharpeDiffSlippage,
                             "relativeSharpeSlippage":relativeSharpeSlippage
-                    }, None
+                    }, None, None
                     
                 elif shortSeen < 4:
                     print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
