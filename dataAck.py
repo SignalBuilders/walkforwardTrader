@@ -1,6 +1,7 @@
 ##USE QUANDL AND PANDAS
 import quandl
 import pandas as pd
+import portfolioGeneration
 
 def getTickerData(ticker):
     ##RETURNS A DATAFRAME WITH ONLY THE COLUMNS WE CARE ABOUT
