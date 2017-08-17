@@ -419,49 +419,49 @@ class endToEnd:
                 sharpeDiff = empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpe = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
                 
-                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
-                            "beta":abs(beta),
-                            "alpha":alpha,
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":"first 252 days",
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "sharpeDiff":sharpeDiff,
-                            "relativeSharpe":relativeSharpe
-                    }, None
+                # if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
+                #     return None, {
+                #             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                #             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                #             "beta":abs(beta),
+                #             "alpha":alpha,
+                #             "activity":activity,
+                #             "treynor":treynor,
+                #             "period":"first 252 days",
+                #             "algoReturn":algoAnnualReturn,
+                #             "algoVol":algoVol,
+                #             "factorReturn":factorAnnualReturn,
+                #             "factorVol":factorVol,
+                #             "sharpeDiff":sharpeDiff,
+                #             "relativeSharpe":relativeSharpe
+                #     }, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
-                    periodName = "first 600 days"
-                    if shortSeen == 2:
-                        periodName = "first 900 days"
-                    elif shortSeen == 3:
-                        periodName = "first 1200 days"
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
-                            "alpha":alpha,
-                            "beta":abs(beta),
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":periodName,
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "sharpeDiff":sharpeDiff,
-                            "relativeSharpe":relativeSharpe
-                    }, None
+                # elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                #     periodName = "first 600 days"
+                #     if shortSeen == 2:
+                #         periodName = "first 900 days"
+                #     elif shortSeen == 3:
+                #         periodName = "first 1200 days"
+                #     return None, {
+                #             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                #             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                #             "alpha":alpha,
+                #             "beta":abs(beta),
+                #             "activity":activity,
+                #             "treynor":treynor,
+                #             "period":periodName,
+                #             "algoReturn":algoAnnualReturn,
+                #             "algoVol":algoVol,
+                #             "factorReturn":factorAnnualReturn,
+                #             "factorVol":factorVol,
+                #             "sharpeDiff":sharpeDiff,
+                #             "relativeSharpe":relativeSharpe
+                #     }, None
                     
-                elif shortSeen < 4:
-                    print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
+                # elif shortSeen < 4:
+                #     print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
                    
-                shortSeen += 1
+                # shortSeen += 1
 
             return returnStream, factorReturn, predictions
     
@@ -473,9 +473,13 @@ class endToEnd:
 from scipy import stats
 
 def vizResults(returnStream, factorReturn, plotting = False):
+    print("CHECK EQUAL START BEFORE FIX")
+    print(returnStream)
+    print(factorReturn)
+
     ##ENSURE EQUAL LENGTH
     factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
-    print("CHECK EQUAL START")
+    print("CHECK EQUAL START AFTER FIX")
     print(returnStream)
     print(factorReturn)
 
