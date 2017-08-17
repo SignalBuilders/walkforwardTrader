@@ -429,6 +429,7 @@ import empyrical
 
 def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate = None):
     models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
+
     for model in models:
         print(model.describe())
     ##GENERATE RETURNS FOR PORTFOLIO
@@ -472,15 +473,23 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate
     tickerAllocationsTable = tickerAllocationsTable.sort_index().fillna(0)
     scaledTickerAllocationsTable = scaledTickerAllocationsTable.sort_index().fillna(0)
     
-    tickerPerformance = calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
+    rawTickerPerformance = calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
     
-    algoPerformance = pd.DataFrame(tickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return"])
+    rawAlgoPerformance = pd.DataFrame(rawTickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
     
+    tickerPerformance, algoPerformance, algoTransactionCost =  calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
     
     benchmark = portfolio.getPortfolioByKey(portfolioKey)["benchmark"]
     factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
     factorReturn.columns = ["Factor Return (" + benchmark + ")"]
     algoVsBenchmark = algoPerformance.join(factorReturn).dropna()
+    algoVsBenchmark = algoVsBenchmark.join(rawAlgoPerformance).dropna()
+
+    tickerAlphaBetas = []
+    for ticker in tickerAllocationsTable.columns.values:
+        thisFactorReturn = dataAck.getDailyFactorReturn(ticker, joinedData)
+        alpha, beta = empyrical.alpha_beta(algoPerformance, thisFactorReturn)
+        tickerAlphaBetas.append({"ticker":ticker, "alpha":alpha * 100, "beta":beta})
     
     ##FORM HASH TO TICKER
     hashToTicker = {}
@@ -502,13 +511,16 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate
     recentSharpe = empyrical.sharpe_ratio(algoPerformance[-100:])
     recentReturn = empyrical.cum_returns(algoPerformance[-100:]).values[-1][0]
     algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
-    
+    commissionCols, commissionRows = convertTableToJSON(algoTransactionCost)
+
+
     if recentStartDate is not None:
         if len(algoPerformance[recentStartDate:]) > 0:
             recentAlpha, recentBeta = empyrical.alpha_beta(algoPerformance[recentStartDate:], factorReturn[recentStartDate:])
+            recentAlpha = recentAlpha * 100
             recentSharpe = empyrical.sharpe_ratio(algoPerformance[recentStartDate:])
-            recentReturn = empyrical.cum_returns(algoPerformance[recentStartDate:]).values[-1][0]
-            algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[recentStartDate:]))
+            recentReturn = empyrical.cum_returns(algoPerformance[recentStartDate:]).values[-1][0] * 100
+            algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[recentStartDate:])) * 100
         else:
             recentAlpha, recentBeta = ("NaN", "NaN")
             recentSharpe = "NaN"
@@ -533,27 +545,50 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate
         "weightsCols":json.dumps(weightsCols),
         "weightsRows":json.dumps(weightsRows),
         "algoSharpe":empyrical.sharpe_ratio(algoPerformance),
-        "alpha":alpha,
+        "alpha":alpha * 100,
         "beta":beta,
-        "annualReturn":empyrical.annual_return(algoPerformance)[0],
-        "annualVolatility":empyrical.annual_volatility(algoPerformance),
+        "annualReturn":empyrical.annual_return(algoPerformance)[0] * 100,
+        "annualVolatility":empyrical.annual_volatility(algoPerformance) * 100,
         "recentSharpe":recentSharpe,
         "recentReturn":recentReturn,
         "recentAlpha":recentAlpha,
         "recentBeta":recentBeta,
         "algoVsBenchmarkColsRecent":json.dumps(algoVsBenchmarkColsRecent),
         "algoVsBenchmarkRowsRecent":json.dumps(algoVsBenchmarkRowsRecent),
+        "commissionCols":json.dumps(commissionCols),
+        "commissionRows":json.dumps(commissionRows),
+        "tickerAlphaBetas":tickerAlphaBetas
     }
 
 
 import pickle
 from google.cloud import datastore, storage, logging
+
+#AVAILABLE_MODE = "AVAILABLE"
+#PAPER_TRADING_MODE = "PAPER_TRADING_MODE"
+#TRADING_MODE = "TRADING_MODE"
+
+
 def cachePortfolio(portfolioInfo, portfolioData, mode):
+    lookupDB1 = None
+    lookupDB2 = None
+    if mode == params.AVAILABLE_MODE:
+        lookupDB1 = params.portfolioDataCache
+        lookupDB2 = params.portfolioQuickCache
+
+    if mode == params.PAPER_TRADING_MODE:
+        lookupDB1 = params.portfolioDataPaperTradingCache
+        lookupDB2 = params.portfolioQuickPaperTradingCache
+    
+    if mode == params.TRADING_MODE:
+        lookupDB1 = params.portfolioDataTradingCache
+        lookupDB2 = params.portfolioQuickTradingCache
+
     portfolioHash = portfolioInfo["key"]
     storageClient = storage.Client('money-maker-1236')
     while True:
         try:
-            bucket = storageClient.get_bucket(params.portfolioDataCache if mode == "Available" else params.portfolioDataTradingCache)
+            bucket = storageClient.get_bucket(lookupDB1)
             blob = storage.Blob(portfolioHash, bucket)
             blob.upload_from_string(pickle.dumps(portfolioData))
             break
@@ -580,9 +615,9 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
                 "recentAlpha",
                 "recentBeta"]:
                 toUpload[item] = portfolioData[item]
-            if mode == "Trading":
+            if mode != params.AVAILABLE_MODE:
                 toUpload["startedTrading"] = portfolioInfo["startedTrading"]
-            key = datastoreClient.key(params.portfolioQuickCache if mode == "Available" else params.portfolioQuickTradingCache, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
+            key = datastoreClient.key(lookupDB2, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
             organismToStore = datastore.Entity(key=key)
             organismToStore.update(toUpload)
             datastoreClient.put(organismToStore)
@@ -593,11 +628,21 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
     pass
 
 def fetchPortfolio(portfolioHash, mode):
+    lookupDB = None
+    if mode == params.AVAILABLE_MODE:
+        lookupDB = params.portfolioDataCache
+
+    if mode == params.PAPER_TRADING_MODE:
+        lookupDB = params.portfolioDataPaperTradingCache
+    
+    if mode == params.TRADING_MODE:
+        lookupDB = params.portfolioDataTradingCache
+
     storageClient = storage.Client('money-maker-1236')
     failures = 0
     while True:
         try:
-            bucket = storageClient.get_bucket(params.portfolioDataCache if mode == "Available" else params.portfolioDataTradingCache)
+            bucket = storageClient.get_bucket(lookupDB)
             blob = storage.Blob(portfolioHash, bucket)
             return pickle.loads(blob.download_as_string())
             break
@@ -610,25 +655,35 @@ def fetchPortfolio(portfolioHash, mode):
     pass
 
 def fetchQuickPortfolios(mode):
+    lookupDB = None
+    if mode == params.AVAILABLE_MODE:
+        lookupDB = params.portfolioQuickCache
+
+    if mode == params.PAPER_TRADING_MODE:
+        lookupDB = params.portfolioQuickPaperTradingCache
+    
+    if mode == params.TRADING_MODE:
+        lookupDB = params.portfolioQuickTradingCache
+
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
-            query = datastore_client.query(kind=params.portfolioQuickCache if mode == "Available" else params.portfolioQuickTradingCache)
+            query = datastore_client.query(kind=lookupDB)
             retrievedPortfolios = [{
                 "key":item.key.name,
                 "description":item["description"],
                 "benchmark":item["benchmark"],
                 "portfolioType":item["portfolioType"],
                 "algoSharpe":item["algoSharpe"],
-                "alpha":item["alpha"] * 100,
+                "alpha":item["alpha"],
                 "beta":item["beta"],
-                "annualReturn":item["annualReturn"] * 100,
-                "annualVolatility":item["annualVolatility"] * 100,
+                "annualReturn":item["annualReturn"],
+                "annualVolatility":item["annualVolatility"],
                 "recentSharpe":item["recentSharpe"],
-                "recentReturn":item["recentReturn"] * 100 if item["recentReturn"] != "NaN" else "NaN",
-                "recentAlpha":item["recentAlpha"] * 100 if item["recentAlpha"] != "NaN" else "NaN",
+                "recentReturn":item["recentReturn"],
+                "recentAlpha":item["recentAlpha"],
                 "recentBeta":item["recentBeta"],
-                "startedTrading":None if mode == "Available" else item["startedTrading"]
+                "startedTrading":None if mode == params.AVAILABLE_MODE else item["startedTrading"]
             } for item in list(query.fetch())]
 
 
@@ -638,10 +693,20 @@ def fetchQuickPortfolios(mode):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
             
 def fetchPortfolioInfo(portfolioHash, mode):
+    lookupDB = None
+    if mode == params.AVAILABLE_MODE:
+        lookupDB = params.portfolioQuickCache
+
+    if mode == params.PAPER_TRADING_MODE:
+        lookupDB = params.portfolioQuickPaperTradingCache
+    
+    if mode == params.TRADING_MODE:
+        lookupDB = params.portfolioQuickTradingCache
+
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
-            key = datastore_client.key(params.portfolioQuickCache if mode == "Available" else params.portfolioQuickTradingCache, portfolioHash)
+            key = datastore_client.key(lookupDB, portfolioHash)
             item = datastore_client.get(key)
             retrievedPortfolio = {
                 "key":item.key.name,
@@ -657,7 +722,7 @@ def fetchPortfolioInfo(portfolioHash, mode):
                 "recentReturn":item["recentReturn"] * 100 if item["recentReturn"] != "NaN" else "NaN",
                 "recentAlpha":item["recentAlpha"] * 100 if item["recentAlpha"] != "NaN" else "NaN",
                 "recentBeta":item["recentBeta"],
-                "startedTrading":None if mode == "Available" else item["startedTrading"]
+                "startedTrading":None if mode == params.AVAILABLE_MODE else item["startedTrading"]
             }
 
             return retrievedPortfolio
@@ -665,18 +730,24 @@ def fetchPortfolioInfo(portfolioHash, mode):
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
-def fetchQuickTradingPortfolios(tradingHashes):
-    toKeep = []
-    for item in fetchQuickPortfolios():
-        if item["key"] in tradingHashes:
-            toKeep.append(item)
-    return toKeep
 
-def getTradingPortfolioHashes(includeDates = False):
+def getTradingPortfolioHashes(mode, includeDates = False):
+
+
+    lookupDB = None
+    if mode == params.PAPER_TRADING_MODE:
+        lookupDB = params.paperTradingPortfolios
+    
+    if mode == params.TRADING_MODE:
+        lookupDB = params.tradingPortfolios
+
+    ##APPLICABLE DBs
+    #params.paperTradingPortfolios
+    #params.tradingPortfolios
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
-            query = datastore_client.query(kind=params.tradingPortfolios)
+            query = datastore_client.query(kind=lookupDB)
             fetchedData = list(query.fetch())
             retrievedPortfolios = [item.key.name for item in fetchedData]
 
@@ -694,28 +765,38 @@ def getFundData():
     storageClient = storage.Client('money-maker-1236')
     historicalData = None
     realizedData = None
-    while True:
-        try:
-            bucket = storageClient.get_bucket(params.portfolioDataTradingCache)
-            blob = storage.Blob("HISTORICALFUND", bucket)
-            historicalData = pickle.loads(blob.download_as_string())
-            break
-        except:
-            print("DOWNLOAD BLOB ERROR:", str(sys.exc_info()))
-            time.sleep(1)
-    while True:
-        try:
-            bucket = storageClient.get_bucket(params.portfolioDataTradingCache)
-            blob = storage.Blob("REALIZEDFUND", bucket)
-            realizedData = pickle.loads(blob.download_as_string())
-            break
-        except:
-            print("DOWNLOAD BLOB ERROR:", str(sys.exc_info()))
-            time.sleep(1)
+    try:
+        bucket = storageClient.get_bucket(params.portfolioDataTradingCache)
+        blob = storage.Blob("HISTORICALFUND", bucket)
+        historicalData = pickle.loads(blob.download_as_string())
+    except:
+        print("DOWNLOAD BLOB ERROR:", str(sys.exc_info()))
+
+    try:
+        bucket = storageClient.get_bucket(params.portfolioDataTradingCache)
+        blob = storage.Blob("REALIZEDFUND", bucket)
+        realizedData = pickle.loads(blob.download_as_string())
+    except:
+        print("DOWNLOAD BLOB ERROR:", str(sys.exc_info()))
     return historicalData, realizedData
 
 
 
+def estimateTransactionCost(allocationsTable, joinedData):
+    commissionPerTransaction = 0.002
+    allocationChanges = allocationsTable.diff(1)
+    allocationChanges[0:1] = allocationsTable[0:1] ##ABSORB FULL CHANGE ON FIRST DAY
+    allocationChanges = allocationChanges.apply(lambda x:[abs(item * commissionPerTransaction) for item in x], axis=1)
+
+    return allocationChanges
+
+def calculatePerformanceForAllocations(allocations, joinedData):
+    rawAllocationPerformance = calculatePerformanceForTable(allocations, allocations.columns, joinedData)
+    estimatedTransactionCost = estimateTransactionCost(allocations, joinedData)
+    allocationPerformance = rawAllocationPerformance - estimatedTransactionCost
+    return allocationPerformance.dropna(),\
+        pd.DataFrame(allocationPerformance.apply(lambda x: sum(x), axis=1), columns = ["Fund Return"]).dropna(),\
+        pd.DataFrame(estimatedTransactionCost.apply(lambda x: sum(x), axis=1), columns=["Fund Transaction Cost"]).dropna()
 
 
 
