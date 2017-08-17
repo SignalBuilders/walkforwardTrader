@@ -422,6 +422,7 @@ class endToEnd:
                 if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
                             "beta":abs(beta),
                             "alpha":alpha,
                             "activity":activity,
@@ -431,7 +432,6 @@ class endToEnd:
                             "algoVol":algoVol,
                             "factorReturn":factorAnnualReturn,
                             "factorVol":factorVol,
-                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol,
                             "sharpeDiff":sharpeDiff,
                             "relativeSharpe":relativeSharpe
                     }, None
@@ -444,6 +444,7 @@ class endToEnd:
                         periodName = "first 1200 days"
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
                             "alpha":alpha,
                             "beta":abs(beta),
                             "activity":activity,
@@ -453,7 +454,6 @@ class endToEnd:
                             "algoVol":algoVol,
                             "factorReturn":factorAnnualReturn,
                             "factorVol":factorVol,
-                            "solar":(algoAnnualReturn - factorAnnualReturn) / algoVol,
                             "sharpeDiff":sharpeDiff,
                             "relativeSharpe":relativeSharpe
                     }, None
@@ -489,7 +489,6 @@ def vizResults(returnStream, factorReturn, plotting = False):
                "TREYNOR": ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn))),
                "RAW BETA":abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1]),
-               "SOLAR": (empyrical.annual_return(returnStream)[0] - empyrical.annual_return(factorReturn)[0]) / empyrical.annual_volatility(returnStream.values),
                "SHARPE DIFFERENCE": empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn),
                "RELATIVE SHARPE": (empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn))/empyrical.sharpe_ratio(factorReturn),
                "FACTOR SHARPE": empyrical.sharpe_ratio(factorReturn)
