@@ -483,7 +483,7 @@ class endToEnd:
         
 from scipy import stats
 
-def vizResults(returnStream, factorReturn, plotting = False):
+def vizResults(predictions, returnStream, factorReturn, plotting = False):
     ##ENSURE EQUAL LENGTH
     factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
 
