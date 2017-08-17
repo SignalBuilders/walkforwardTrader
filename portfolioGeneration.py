@@ -351,10 +351,10 @@ def storePortfolioAllocation(portfolioKey, predictionDay, algorithmWeights, tick
     for item in tickerAllocation:
         toUpload["ticker_" + item] = tickerAllocation[item]
         
-    ##SCALE TICKER ALLOCATIOn
-    totalAllocation = 1.0#sum([abs(tickerAllocation[item]) for item in tickerAllocation])
+    ##SCALE TICKER 
+    totalAllocation = sum([abs(tickerAllocation[item]) for item in tickerAllocation])
     for item in tickerAllocation:
-        toUpload["scaled_ticker_" + item] = abs(tickerAllocation[item])/totalAllocation
+        toUpload["scaled_ticker_" + item] = tickerAllocation[item]/totalAllocation
     
     ##UPLOAD ORGANISM OBJECT
     while True:
@@ -546,6 +546,21 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         thisFactorReturn = dataAck.getDailyFactorReturn(ticker, joinedData)
         alpha, beta = empyrical.alpha_beta(algoPerformance, thisFactorReturn)
         tickerAlphaBetas.append({"ticker":ticker, "alpha":alpha * 100, "beta":beta})
+        
+        
+    ##GET SCALED PERFORMANCE [FULL CAPITAL USED EACH DAY]
+    rawTickerPerformanceScaled = calculatePerformanceForTable(scaledTickerAllocationsTable, scaledTickerAllocationsTable.columns, joinedData)
+    
+    rawAlgoPerformanceScaled = pd.DataFrame(rawTickerPerformanceScaled.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
+    
+    unused, algoPerformanceScaled, algoTransactionCostScaled =  calculatePerformanceForAllocations(scaledTickerAllocationsTable, joinedData)
+    
+
+    algoPerformanceScaled.columns = ["Algo Return"]
+    algoVsBenchmarkScaled = algoPerformanceScaled.join(factorReturn).dropna()
+    algoVsBenchmarkScaled = algoVsBenchmarkScaled.join(rawAlgoPerformanceScaled).dropna()
+    
+    
     
     ##FORM HASH TO TICKER
     hashToTicker = {}
@@ -565,10 +580,22 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     alpha, beta = empyrical.alpha_beta(algoPerformance, factorReturn)
     recentAlpha, recentBeta = empyrical.alpha_beta(algoPerformance[-100:], factorReturn[-100:])
     recentSharpe = empyrical.sharpe_ratio(algoPerformance[-100:])
-    recentReturn = empyrical.cum_returns(algoPerformance[-100:]).values[-1][0]
+    recentReturn = empyrical.cum_returns(algoPerformance[-100:]).values[-1][0] * 100
     algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
     commissionCols, commissionRows = convertTableToJSON(algoTransactionCost)
-
+    
+    algoVsBenchmarkScaledCols, algoVsBenchmarkScaledRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled))
+    commissionScaledCols, commissionScaledRows = convertTableToJSON(algoTransactionCostScaled)
+    scaledReturn = empyrical.annual_return(algoPerformanceScaled)[0] * 100
+    scaledVolatility = empyrical.annual_volatility(algoPerformanceScaled) * 100
+    scaledAlpha, scaledBeta = empyrical.alpha_beta(algoPerformanceScaled, factorReturn)
+    
+    
+    algoVsBenchmarkScaledColsRecent, algoVsBenchmarkScaledRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[-100:]))
+    scaledReturnRecent = empyrical.annual_return(algoPerformanceScaled[-100:])[0] * 100
+    scaledVolatilityRecent = empyrical.annual_volatility(algoPerformanceScaled[-100:]) * 100
+    scaledAlphaRecent, scaledBetaRecent = empyrical.alpha_beta(algoPerformanceScaled[-100:], factorReturn[-100:])
+    
     
     
     
@@ -608,7 +635,7 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         "annualVolatility":empyrical.annual_volatility(algoPerformance) * 100,
         "recentSharpe":recentSharpe,
         "recentReturn":recentReturn,
-        "recentAlpha":recentAlpha,
+        "recentAlpha":recentAlpha * 100,
         "recentBeta":recentBeta,
         "algoVsBenchmarkColsRecent":json.dumps(algoVsBenchmarkColsRecent),
         "algoVsBenchmarkRowsRecent":json.dumps(algoVsBenchmarkRowsRecent),
@@ -620,7 +647,24 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         "availableSharpe":availableSharpe,
         "availableReturn":availableReturn,
         "algoVsBenchmarkColsAvailable":json.dumps(algoVsBenchmarkColsAvailable),
-        "algoVsBenchmarkRowsAvailable":json.dumps(algoVsBenchmarkRowsAvailable)
+        "algoVsBenchmarkRowsAvailable":json.dumps(algoVsBenchmarkRowsAvailable),
+        "algoVsBenchmarkScaledCols":json.dumps(algoVsBenchmarkScaledCols), 
+        "algoVsBenchmarkScaledRows":json.dumps(algoVsBenchmarkScaledRows),
+        "commissionScaledCols":json.dumps(commissionScaledCols), 
+        "commissionScaledRows":json.dumps(commissionScaledRows),
+        "scaledReturn":scaledReturn,
+        "scaledVolatility":scaledVolatility,
+        "scaledAlpha":scaledAlpha * 100,
+        "scaledBeta":scaledBeta,
+        "algoVsBenchmarkScaledColsRecent":json.dumps(algoVsBenchmarkScaledColsRecent),
+        "algoVsBenchmarkScaledRowsRecent":json.dumps(algoVsBenchmarkScaledRowsRecent),
+        "scaledReturnRecent":scaledReturnRecent,
+        "scaledVolatilityRecent":scaledVolatilityRecent,
+        "scaledAlphaRecent":scaledAlphaRecent * 100,
+        "scaledBetaRecent":scaledBetaRecent
+        
+        
+        
         
     }
     
