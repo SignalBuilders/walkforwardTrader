@@ -59,7 +59,7 @@ while True:
                         if random.uniform(0,1) < 0.5: ##RANDOMLY SKIP
                             continue
                         b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
-                        algoReturn, factorReturn, predictions =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
+                        algoReturn, factorReturn, predictions, slippageAdjustedReturn =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
                         if algoReturn is None:
                             toLog = factorReturn
                             if np.isnan(toLog["sharpe"]) == True:
@@ -69,16 +69,16 @@ while True:
                             dataAck.logModel("Model Stopped Early", toLog)
                             print("Model Stopped Early", toLog)
                             continue
-                        metrics = dataAck.vizResults(predictions[:-252], algoReturn[:-252], factorReturn[:-252], False)
+                        metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                         print("TRAIN:", metrics)
                         if np.isnan(metrics["SHARPE"]) == True:
                             raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
                         if metrics["SHARPE"] > 0.5 and metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.5 and metrics["SHARPE DIFFERENCE"] > 0.0:
                             ##STORE
-                            testMetrics = dataAck.vizResults(predictions[-252:], algoReturn[-252:], factorReturn[-252:], False)
+                            testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                             print("TEST:", testMetrics)
                             print("TODAY:", b.makeTodayPrediction(portfolio.prepareDataForModel(b, joinedData)))
-                            dataAck.storeModelData(b, algoReturn, predictions)
+                            dataAck.storeModelData(b, algoReturn, predictions, slippageAdjustedReturn)
                             dataAck.storeModel(b, metrics, testMetrics)
                         else:
                             toLog = {"modelDescription":str(b.describe())}

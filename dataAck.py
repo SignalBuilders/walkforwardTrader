@@ -360,6 +360,7 @@ class endToEnd:
             returnStream = None
             factorReturn = None
             predictions = None
+            slippageAdjustedReturn = None
             shortSeen = 0
             for clippedIdentifiers in identifierWindows:
                 
@@ -476,7 +477,7 @@ class endToEnd:
                    
                 shortSeen += 1
 
-            return returnStream, factorReturn, predictions
+            return returnStream, factorReturn, predictions, slippageAdjustedReturn
     
 
     def runModelToday(self, dataOfInterest):
@@ -485,14 +486,11 @@ class endToEnd:
         
 from scipy import stats
 
-def vizResults(predictions, returnStream, factorReturn, plotting = False):
+def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = False):
     ##ENSURE EQUAL LENGTH
     factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
 
     ##CALCULATE SHARPE WITH SLIPPAGE
-    estimatedSlippageLoss = portfolioGeneration.estimateTransactionCost(predictions)
-    estimatedSlippageLoss.columns = returnStream.columns
-    slippageAdjustedReturn = (returnStream - estimatedSlippageLoss).dropna()
     sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
     relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
 
@@ -554,9 +552,6 @@ def vizResults(predictions, returnStream, factorReturn, plotting = False):
         metrics["ROLLING SHARPE STABILITY"] = abs(stats.linregress(np.arange(len(rollingSharpe["252 Day Rolling Sharpe Algo"].values)),
                                 rollingSharpe["252 Day Rolling Sharpe Algo"].values).rvalue)
     
-        metrics["TREYNOR+"] = ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
-                               / (abs(empyrical.beta(returnStream, factorReturn)))) * abs(metrics["ROLLING SHARPE STABILITY"])
-
 
         rollingReturn = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.cum_returns(x)[-1]).dropna()
         rollingReturn.columns = ["ROLLING RETURN"]
@@ -676,14 +671,14 @@ def getTrainingData(ticker):
     pass
 
 
-def storeModelData(model, algoReturns, algoPredictions):
+def storeModelData(model, algoReturns, algoPredictions, algoReturnsSlippage):
     storageClient = storage.Client('money-maker-1236')
     while True:
         try:
             bucket = storageClient.get_bucket(params.modelDataCache)
             organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
             blob = storage.Blob(organismHash, bucket)
-            blob.upload_from_string(pickle.dumps((algoReturns, algoPredictions)))
+            blob.upload_from_string(pickle.dumps((algoReturns, algoPredictions, algoReturnsSlippage)))
             print("STORING", organismHash)
             break
         except:
