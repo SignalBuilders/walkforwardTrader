@@ -422,6 +422,7 @@ class endToEnd:
 
 
                 ##CALCULATE SHARPE WITH SLIPPAGE
+                print(returnStream)
                 print(portfolioGeneration.estimateTransactionCost(predictions))
                 slippageAdjustedReturn = (returnStream - portfolioGeneration.estimateTransactionCost(predictions)).dropna()
                 print(slippageAdjustedReturn)
