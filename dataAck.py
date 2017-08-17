@@ -421,7 +421,7 @@ class endToEnd:
 
 
                 ##CALCULATE SHARPE WITH SLIPPAGE
-                slippageAdjustedReturn = (returnStream - relativeEstimatedTransactionCostportfolioGeneration.estimateTransactionCost(predictions)).dropna()
+                slippageAdjustedReturn = (returnStream - portfolioGeneration.estimateTransactionCost(predictions)).dropna()
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
 
@@ -487,7 +487,7 @@ def vizResults(returnStream, factorReturn, plotting = False):
     factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
 
     ##CALCULATE SHARPE WITH SLIPPAGE
-    slippageAdjustedReturn = (returnStream - relativeEstimatedTransactionCostportfolioGeneration.estimateTransactionCost(predictions)).dropna()
+    slippageAdjustedReturn = (returnStream - portfolioGeneration.estimateTransactionCost(predictions)).dropna()
     sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
     relativeSharpeSlippage = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
 
