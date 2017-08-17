@@ -116,8 +116,16 @@ def visualizeModels(modelReturns):
 def storePastPredictions(allModels, modelPredictions):
     ##THESE ARE SUMMED PREDICTIONS...DIFFERENT THAN PREDICTIONS MADE DAILY
     lastDayUsedPredictions = modelPredictions.dropna()
+    allStoredModels = getAllPortfolioModels()
+    print(allStoredModels)
     for i in range(len(lastDayUsedPredictions.columns)):
+        ##CHECK IF ALREADY STORED
+        
         thisModel = allModels[i]
+        if portfolio.getModelHash(thisModel) in allStoredModels:
+            print("SKIPPING", thisModel.describe())
+            continue
+        
         print(thisModel.describe())
         thisDF = lastDayUsedPredictions[[lastDayUsedPredictions.columns[i]]]
         predictionsToStore = []
