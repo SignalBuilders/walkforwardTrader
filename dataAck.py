@@ -333,75 +333,6 @@ class endToEnd:
             if j % 30 == 0:
                 print("THREAD ", k, "PROGRESS:", j/len(identifiers))
        
-    
-    
-    def runModelsCHUNKINGMP(self, dataOfInterest, daysToCheck = None):
-        xVals, yVals, yIndex, xToday = self.walkForward.generateWindows(dataOfInterest)
-        mpEngine = mp.get_context('fork')
-        with mpEngine.Manager() as manager:
-            returnDict = manager.dict()
-            
-            identifiersToCheck = []
-            
-            for i in range(len(xVals) - 44): ##44 is lag 
-                if i < 600:
-                    ##MIN TRAINING
-                    continue
-                identifiersToCheck.append(str(i))
-                
-            if daysToCheck is not None:
-                identifiersToCheck = identifiersToCheck[-daysToCheck:]
-
-
-                
-            splitIdentifiers = np.array_split(np.array(identifiersToCheck), self.parallelism)
-            
-            
-            runningP = []
-            k = 0
-            for identifiers in splitIdentifiers:
-                p = mpEngine.Process(target=endToEnd.runDayChunking, args=(self, xVals, yVals, identifiers, returnDict,k))
-                p.start()
-                runningP.append(p)
-                
-                k += 1
-                
-
-            while len(runningP) > 0:
-                newP = []
-                for p in runningP:
-                    if p.is_alive() == True:
-                        newP.append(p)
-                    else:
-                        p.join()
-                runningP = newP
-                
-            
-            preds = []
-            actuals = []
-            factorReturn = []
-            returnStream = []
-            days = []
-            for i in identifiersToCheck:
-                preds.append(returnDict[i])
-                actuals.append(yVals[int(i) + 44])
-                days.append(yIndex[int(i) + 44])
-                
-            ##CREATE ACCURATE BLENDING ACROSS DAYS
-            predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
-            i = 1
-            while i < self.walkForward.predictionPeriod:
-                predsTable = predsTable.join(predsTable.shift(i), rsuffix="_" + str(i))
-                i += 1
-            
-            transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
-            dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
-            transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
-            returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])
-            factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]])
-            predictions = pd.DataFrame(transformedPreds[["Predictions"]])
-            
-            return returnStream, factorReturn, predictions
 
     def runModelsChunksSkipMP(self, dataOfInterest, daysToCheck = None):
         xVals, yVals, yIndex, xToday = self.walkForward.generateWindows(dataOfInterest)
@@ -476,6 +407,10 @@ class endToEnd:
                 factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]]) if factorReturn is None else pd.concat([factorReturn, pd.DataFrame(transformedPreds[["Factor Return"]])])
                 predictions = pd.DataFrame(transformedPreds[["Predictions"]]) if predictions is None else pd.concat([predictions, pd.DataFrame(transformedPreds[["Predictions"]])])
                 
+                print("CHECK EQUAL START")
+                print(returnStream)
+                print(factorReturn)
+
                 alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
                 shortSharpe = empyrical.sharpe_ratio(returnStream)
                 activity = np.count_nonzero(returnStream)/float(len(returnStream))
@@ -542,6 +477,10 @@ class endToEnd:
 from scipy import stats
 
 def vizResults(returnStream, factorReturn, plotting = False):
+    ##ENSURE EQUAL LENGTH
+    factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
+
+
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
                "STABILITY": empyrical.stability_of_timeseries(returnStream),
