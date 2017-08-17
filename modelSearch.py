@@ -3,7 +3,7 @@ import portfolio
 allTickers = dataAck.getAllTickersPlain()
 while True:
     import random
-    tickerToTrade = "VGK"#allTickers[random.randint(0, len(allTickers)) - 1]
+    tickerToTrade = allTickers[random.randint(0, len(allTickers)) - 1]
     print(tickerToTrade)
     
     tData = dataAck.getTrainingData(tickerToTrade)

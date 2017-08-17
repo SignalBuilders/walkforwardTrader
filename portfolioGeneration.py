@@ -26,15 +26,18 @@ def getUniqueModels(allModels):
     modelsToReturn = []
     modelEntities = []
     for seq in sequences:
-        bestModel = None
-        for modelInfo in sequences[seq]:
-            if bestModel is None:
-                bestModel = modelInfo
-            else:
-                if bestModel["info"]["RELATIVE SHARPE"] < modelInfo["info"]["RELATIVE SHARPE"]:
+        try:
+            bestModel = None
+            for modelInfo in sequences[seq]:
+                if bestModel is None:
                     bestModel = modelInfo
-        modelsToReturn.append(bestModel["model"])
-        modelEntities.append(bestModel["info"])
+                else:
+                    if bestModel["info"]["RELATIVE SHARPE"] < modelInfo["info"]["RELATIVE SHARPE"]:
+                        bestModel = modelInfo
+            modelsToReturn.append(bestModel["model"])
+            modelEntities.append(bestModel["info"])
+        except:
+            print(bestModel["model"].describe(), "MISSING")
     return modelsToReturn, modelEntities
 
 def generateAllReturns(allModels, joinedData):

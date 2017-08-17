@@ -473,15 +473,8 @@ class endToEnd:
 from scipy import stats
 
 def vizResults(returnStream, factorReturn, plotting = False):
-    print("CHECK EQUAL START BEFORE FIX")
-    print(returnStream)
-    print(factorReturn)
-
     ##ENSURE EQUAL LENGTH
     factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
-    print("CHECK EQUAL START AFTER FIX")
-    print(returnStream)
-    print(factorReturn)
 
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
