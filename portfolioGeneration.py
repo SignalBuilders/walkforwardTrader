@@ -671,17 +671,11 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
                 "recentSharpe",
                 "recentReturn",
                 "recentAlpha",
-                "recentBeta"]
-            if mode != params.AVAILABLE_MODE:
-                lookups =  ["algoSharpe",
-                            "alpha",
-                            "beta",
-                            "annualReturn",
-                            "annualVolatility",
-                            "availableSharpe",
-                            "availableReturn",
-                            "availableAlpha",
-                            "availableBeta"]
+                "recentBeta",
+                "availableSharpe",
+                "availableReturn",
+                "availableAlpha",
+                "availableBeta"]
             for item in lookups:
                 toUpload[item] = portfolioData[item]
             key = datastoreClient.key(lookupDB2, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
@@ -736,43 +730,30 @@ def fetchQuickPortfolios(mode):
         try:
             datastore_client = datastore.Client('money-maker-1236')
             query = datastore_client.query(kind=lookupDB)
-            if mode == params.AVAILABLE_MODE:
-                retrievedPortfolios = [{
-                    "key":item.key.name,
-                    "description":item["description"],
-                    "benchmark":item["benchmark"],
-                    "portfolioType":item["portfolioType"],
-                    "algoSharpe":item["algoSharpe"],
-                    "alpha":item["alpha"],
-                    "beta":item["beta"],
-                    "annualReturn":item["annualReturn"],
-                    "annualVolatility":item["annualVolatility"],
-                    "recentSharpe":item["recentSharpe"],
-                    "recentReturn":item["recentReturn"],
-                    "recentAlpha":item["recentAlpha"],
-                    "recentBeta":item["recentBeta"],
-                    "startedTrading":item["startedTrading"]
-                } for item in list(query.fetch())]
+            retrievedPortfolios = [{
+                "key":item.key.name,
+                "description":item["description"],
+                "benchmark":item["benchmark"],
+                "portfolioType":item["portfolioType"],
+                "algoSharpe":item["algoSharpe"],
+                "alpha":item["alpha"],
+                "beta":item["beta"],
+                "annualReturn":item["annualReturn"],
+                "annualVolatility":item["annualVolatility"],
+                "recentSharpe":item["recentSharpe"],
+                "recentReturn":item["recentReturn"],
+                "recentAlpha":item["recentAlpha"],
+                "recentBeta":item["recentBeta"],
+                "availableSharpe":item["availableSharpe"],
+                "availableReturn":item["availableReturn"],
+                "availableAlpha":item["availableAlpha"],
+                "availableBeta":item["availableBeta"],
+                "startedTrading":item["startedTrading"]
+            } for item in list(query.fetch())]
 
 
-                return retrievedPortfolios
-            else:
-                retrievedPortfolios = [{
-                    "key":item.key.name,
-                    "description":item["description"],
-                    "benchmark":item["benchmark"],
-                    "portfolioType":item["portfolioType"],
-                    "algoSharpe":item["algoSharpe"],
-                    "alpha":item["alpha"],
-                    "beta":item["beta"],
-                    "annualReturn":item["annualReturn"],
-                    "annualVolatility":item["annualVolatility"],
-                    "recentSharpe":item["availableSharpe"],
-                    "recentReturn":item["availableReturn"],
-                    "recentAlpha":item["availableAlpha"],
-                    "recentBeta":item["availableBeta"],
-                    "startedTrading":item["startedTrading"]
-                } for item in list(query.fetch())]
+            return retrievedPortfolios
+
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
@@ -804,10 +785,14 @@ def fetchPortfolioInfo(portfolioHash, mode):
                 "annualReturn":item["annualReturn"] * 100,
                 "annualVolatility":item["annualVolatility"] * 100,
                 "recentSharpe":item["recentSharpe"],
-                "recentReturn":item["recentReturn"] * 100 if item["recentReturn"] != "NaN" else "NaN",
-                "recentAlpha":item["recentAlpha"] * 100 if item["recentAlpha"] != "NaN" else "NaN",
+                "recentReturn":item["recentReturn"] * 100,
+                "recentAlpha":item["recentAlpha"] * 100,
                 "recentBeta":item["recentBeta"],
-                "startedTrading":None if mode == params.AVAILABLE_MODE else item["startedTrading"]
+                "availableSharpe":item["availableSharpe"],
+                "availableReturn":item["availableReturn"] * 100 if item["availableReturn"] != "NaN" else "NaN",
+                "availableAlpha":item["availableAlpha"] * 100 if item["availableAlpha"] != "NaN" else "NaN",
+                "availableBeta":item["availableBeta"],
+                "startedTrading":item["startedTrading"]
             }
 
             return retrievedPortfolio
