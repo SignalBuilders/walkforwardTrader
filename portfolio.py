@@ -164,17 +164,15 @@ def getModelsByKey(modelHashes):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
             
 def getPortfolioByKey(portfolioHash):
-    while True:
-        try:
-            datastore_client = datastore.Client('money-maker-1236')
-            ##form keys
-            key = datastore_client.key(params.portfolioLookup, portfolioHash)
-                
-            return datastore_client.get(key)
+    try:
+        datastore_client = datastore.Client('money-maker-1236')
+        ##form keys
+        key = datastore_client.key(params.portfolioLookup, portfolioHash)
             
-        except:
-            time.sleep(10)
-            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+        return datastore_client.get(key)
+    except:
+        return None
+
             
 def getPortfolios():
     while True:
