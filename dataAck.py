@@ -108,6 +108,26 @@ def getDataSourcesForTicker(ticker):
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
+def getModelInformationByKey(modelHashes):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            ##form keys
+            keys = []
+            for hashing in modelHashes:
+                key = datastore_client.key(params.datastoreName, hashing)
+                keys.append(key)
+                
+            retrievedModels = datastore_client.get_multi(keys)
+            toReturn = []
+            for source in retrievedModels:
+                del source["model"]
+                toReturn.append(source)
+            return toReturn
+            
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
 
 ##SERIES MANIPULATION
