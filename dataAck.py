@@ -418,7 +418,13 @@ class endToEnd:
                            / abs(empyrical.beta(returnStream, factorReturn)))
                 sharpeDiff = empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpe = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
-                
+
+
+                ##CALCULATE SHARPE WITH SLIPPAGE
+                slippageAdjustedReturn = (returnStream - relativeEstimatedTransactionCostportfolioGeneration.estimateTransactionCost(predictions)).dropna()
+                sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
+                relativeSharpeSlippage = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
+
                 # if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
                 #     return None, {
                 #             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
@@ -433,7 +439,9 @@ class endToEnd:
                 #             "factorReturn":factorAnnualReturn,
                 #             "factorVol":factorVol,
                 #             "sharpeDiff":sharpeDiff,
-                #             "relativeSharpe":relativeSharpe
+                #             "relativeSharpe":relativeSharpe,
+                #             "sharpeDiffSlippage":sharpeDiffSlippage,
+                #             "relativeSharpeSlippage":relativeSharpeSlippage
                 #     }, None
                 
                 # elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
@@ -455,7 +463,9 @@ class endToEnd:
                 #             "factorReturn":factorAnnualReturn,
                 #             "factorVol":factorVol,
                 #             "sharpeDiff":sharpeDiff,
-                #             "relativeSharpe":relativeSharpe
+                #             "relativeSharpe":relativeSharpe,
+                #             "sharpeDiffSlippage":sharpeDiffSlippage,
+                #             "relativeSharpeSlippage":relativeSharpeSlippage
                 #     }, None
                     
                 # elif shortSeen < 4:
@@ -476,6 +486,11 @@ def vizResults(returnStream, factorReturn, plotting = False):
     ##ENSURE EQUAL LENGTH
     factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
 
+    ##CALCULATE SHARPE WITH SLIPPAGE
+    slippageAdjustedReturn = (returnStream - relativeEstimatedTransactionCostportfolioGeneration.estimateTransactionCost(predictions)).dropna()
+    sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
+    relativeSharpeSlippage = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
+
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
                "STABILITY": empyrical.stability_of_timeseries(returnStream),
@@ -488,7 +503,9 @@ def vizResults(returnStream, factorReturn, plotting = False):
                "RAW BETA":abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1]),
                "SHARPE DIFFERENCE": empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn),
                "RELATIVE SHARPE": (empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn))/empyrical.sharpe_ratio(factorReturn),
-               "FACTOR SHARPE": empyrical.sharpe_ratio(factorReturn)
+               "FACTOR SHARPE": empyrical.sharpe_ratio(factorReturn),
+               "SHARPE DIFFERENCE SLIPPAGE":sharpeDiffSlippage,
+               "RELATIVE SHARPE SLIPPAGE":relativeSharpeSlippage
               }
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     rollingPeriod = 252

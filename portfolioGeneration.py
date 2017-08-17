@@ -818,17 +818,16 @@ def getFundData():
 
 
 
-def estimateTransactionCost(allocationsTable, joinedData):
+def estimateTransactionCost(allocationsTable):
     commissionPerTransaction = 0.002
     allocationChanges = allocationsTable.diff(1)
     allocationChanges[0:1] = allocationsTable[0:1] ##ABSORB FULL CHANGE ON FIRST DAY
     allocationChanges = allocationChanges.apply(lambda x:[abs(item * commissionPerTransaction) for item in x], axis=1)
-
     return allocationChanges
 
 def calculatePerformanceForAllocations(allocations, joinedData):
     rawAllocationPerformance = calculatePerformanceForTable(allocations, allocations.columns, joinedData)
-    estimatedTransactionCost = estimateTransactionCost(allocations, joinedData)
+    estimatedTransactionCost = estimateTransactionCost(allocations)
     allocationPerformance = rawAllocationPerformance - estimatedTransactionCost
     return allocationPerformance.dropna(),\
         pd.DataFrame(allocationPerformance.apply(lambda x: sum(x), axis=1), columns = ["Fund Return"]).dropna(),\
