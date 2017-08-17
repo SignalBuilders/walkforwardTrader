@@ -406,10 +406,6 @@ class endToEnd:
                 returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
                 factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]]) if factorReturn is None else pd.concat([factorReturn, pd.DataFrame(transformedPreds[["Factor Return"]])])
                 predictions = pd.DataFrame(transformedPreds[["Predictions"]]) if predictions is None else pd.concat([predictions, pd.DataFrame(transformedPreds[["Predictions"]])])
-                
-                print("CHECK EQUAL START")
-                print(returnStream)
-                print(factorReturn)
 
                 alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
                 shortSharpe = empyrical.sharpe_ratio(returnStream)
@@ -479,7 +475,9 @@ from scipy import stats
 def vizResults(returnStream, factorReturn, plotting = False):
     ##ENSURE EQUAL LENGTH
     factorReturn = factorReturn[returnStream.index[0]:] ##IF FACTOR DOES NOT START AT SAME SPOT CAN CREATE VERY SKEWED RESULTS
-
+    print("CHECK EQUAL START")
+    print(returnStream)
+    print(factorReturn)
 
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
@@ -493,7 +491,8 @@ def vizResults(returnStream, factorReturn, plotting = False):
                "RAW BETA":abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1]),
                "SOLAR": (empyrical.annual_return(returnStream)[0] - empyrical.annual_return(factorReturn)[0]) / empyrical.annual_volatility(returnStream.values),
                "SHARPE DIFFERENCE": empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn),
-               "RELATIVE SHARPE": (empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn))/empyrical.sharpe_ratio(factorReturn)
+               "RELATIVE SHARPE": (empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn))/empyrical.sharpe_ratio(factorReturn),
+               "FACTOR SHARPE": empyrical.sharpe_ratio(factorReturn)
               }
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     rollingPeriod = 252
