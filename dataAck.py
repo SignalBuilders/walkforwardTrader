@@ -424,7 +424,7 @@ class endToEnd:
                 ##CALCULATE SHARPE WITH SLIPPAGE
                 slippageAdjustedReturn = (returnStream - portfolioGeneration.estimateTransactionCost(predictions)).dropna()
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
-                relativeSharpeSlippage = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
+                relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
 
                 # if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
                 #     return None, {
@@ -490,7 +490,7 @@ def vizResults(predictions, returnStream, factorReturn, plotting = False):
     ##CALCULATE SHARPE WITH SLIPPAGE
     slippageAdjustedReturn = (returnStream - portfolioGeneration.estimateTransactionCost(predictions)).dropna()
     sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
-    relativeSharpeSlippage = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
+    relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
 
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
@@ -506,9 +506,10 @@ def vizResults(predictions, returnStream, factorReturn, plotting = False):
                "RELATIVE SHARPE": (empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn))/empyrical.sharpe_ratio(factorReturn),
                "FACTOR SHARPE": empyrical.sharpe_ratio(factorReturn),
                "SHARPE DIFFERENCE SLIPPAGE":sharpeDiffSlippage,
-               "RELATIVE SHARPE SLIPPAGE":relativeSharpeSlippage
+               "RELATIVE SHARPE SLIPPAGE":relativeSharpeSlippage,
               }
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
+    metrics["SHARPE SLIPPAGE DECAY"] = metrics["SHARPE DIFFERENCE SLIPPAGE"] - metrics["SHARPE DIFFERENCE"]
     rollingPeriod = 252
 
 
