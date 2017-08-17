@@ -422,6 +422,7 @@ class endToEnd:
 
 
                 ##CALCULATE SHARPE WITH SLIPPAGE
+                print(portfolioGeneration.estimateTransactionCost(predictions))
                 slippageAdjustedReturn = (returnStream - portfolioGeneration.estimateTransactionCost(predictions)).dropna()
                 print(slippageAdjustedReturn)
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
