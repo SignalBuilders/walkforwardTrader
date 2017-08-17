@@ -126,7 +126,17 @@ def storePastPredictions(allModels, modelPredictions):
             predictionsToStore.append(portfolio.storeAggregateModelPrediction(thisModel, thisDF.values[j][0], thisDF.index[j], shouldReturn=True))
         print("NEED TO STORE", len(predictionsToStore))
         portfolio.storeManyItems(predictionsToStore)
-            
+      
+
+def getPortfolioHash(models, description, benchmark, portfolioType):
+    allHashes = []
+    for model in models:
+        organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
+        allHashes.append(organismHash)
+    
+    allHashes.sort()
+    portfolioString = str(allHashes) + description + benchmark + portfolioType
+    return hashlib.sha224(portfolioString.encode('utf-8')).hexdigest()
 
 
 def storePortfolio(models, description, benchmark, portfolioType):
@@ -167,7 +177,8 @@ def storePortfolio(models, description, benchmark, portfolioType):
             toUpload = {
                 "description":description,
                 "benchmark":benchmark,
-                "portfolioType":portfolioType
+                "portfolioType":portfolioType,
+                "startedTrading":portfolio.getToday()
             }
             datastoreClient = datastore.Client('money-maker-1236')
             #HASH DIGEST
@@ -463,7 +474,7 @@ import numpy as np
 import json
 import empyrical
 
-def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate = None):
+def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartDate):
     models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
 
     for model in models:
@@ -518,6 +529,7 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate
     benchmark = portfolio.getPortfolioByKey(portfolioKey)["benchmark"]
     factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
     factorReturn.columns = ["Factor Return (" + benchmark + ")"]
+    algoPerformance.columns = ["Algo Return"]
     algoVsBenchmark = algoPerformance.join(factorReturn).dropna()
     algoVsBenchmark = algoVsBenchmark.join(rawAlgoPerformance).dropna()
 
@@ -549,19 +561,20 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate
     algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
     commissionCols, commissionRows = convertTableToJSON(algoTransactionCost)
 
-
-    if recentStartDate is not None:
-        if len(algoPerformance[recentStartDate:]) > 0:
-            recentAlpha, recentBeta = empyrical.alpha_beta(algoPerformance[recentStartDate:], factorReturn[recentStartDate:])
-            recentAlpha = recentAlpha * 100
-            recentSharpe = empyrical.sharpe_ratio(algoPerformance[recentStartDate:])
-            recentReturn = empyrical.cum_returns(algoPerformance[recentStartDate:]).values[-1][0] * 100
-            algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[recentStartDate:])) * 100
-        else:
-            recentAlpha, recentBeta = ("NaN", "NaN")
-            recentSharpe = "NaN"
-            recentReturn = "NaN"
-            algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = ([], [])
+    
+    
+    
+    if len(algoPerformance[availableStartDate:]) > 0:
+        availableAlpha, availableBeta = empyrical.alpha_beta(algoPerformance[availableStartDate:], factorReturn[availableStartDate:])
+        availableAlpha = availableAlpha * 100
+        availableSharpe = empyrical.sharpe_ratio(algoPerformance[availableStartDate:])
+        availableReturn = empyrical.cum_returns(algoPerformance[availableStartDate:]).values[-1][0] * 100
+        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[availableStartDate:])) * 100
+    else:
+        availableAlpha, availableBeta = ("NaN", "NaN")
+        availableSharpe = "NaN"
+        availableReturn = "NaN"
+        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = ([], [])
 
     return {
         "tickerCols":json.dumps(tickerCols),
@@ -593,8 +606,16 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, recentStartDate
         "algoVsBenchmarkRowsRecent":json.dumps(algoVsBenchmarkRowsRecent),
         "commissionCols":json.dumps(commissionCols),
         "commissionRows":json.dumps(commissionRows),
-        "tickerAlphaBetas":tickerAlphaBetas
+        "tickerAlphaBetas":tickerAlphaBetas,
+        "availableAlpha":availableAlpha,
+        "availableBeta":availableBeta,
+        "availableSharpe":availableSharpe,
+        "availableReturn":availableReturn,
+        "algoVsBenchmarkColsAvailable":json.dumps(algoVsBenchmarkColsAvailable),
+        "algoVsBenchmarkRowsAvailable":json.dumps(algoVsBenchmarkRowsAvailable)
+        
     }
+    
 
 
 import pickle
@@ -638,10 +659,11 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
             toUpload = {
                 "benchmark":portfolioInfo["benchmark"],
                 "description":portfolioInfo["description"],
-                "portfolioType":portfolioInfo["portfolioType"]
+                "portfolioType":portfolioInfo["portfolioType"],
+                "startedTrading":portfolioInfo["startedTrading"]
                 
             }
-            for item in ["algoSharpe",
+            lookups =  ["algoSharpe",
                 "alpha",
                 "beta",
                 "annualReturn",
@@ -649,10 +671,19 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
                 "recentSharpe",
                 "recentReturn",
                 "recentAlpha",
-                "recentBeta"]:
-                toUpload[item] = portfolioData[item]
+                "recentBeta"]
             if mode != params.AVAILABLE_MODE:
-                toUpload["startedTrading"] = portfolioInfo["startedTrading"]
+                lookups =  ["algoSharpe",
+                            "alpha",
+                            "beta",
+                            "annualReturn",
+                            "annualVolatility",
+                            "availableSharpe",
+                            "availableReturn",
+                            "availableAlpha",
+                            "availableBeta"]
+            for item in lookups:
+                toUpload[item] = portfolioData[item]
             key = datastoreClient.key(lookupDB2, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
             organismToStore = datastore.Entity(key=key)
             organismToStore.update(toUpload)
@@ -705,25 +736,43 @@ def fetchQuickPortfolios(mode):
         try:
             datastore_client = datastore.Client('money-maker-1236')
             query = datastore_client.query(kind=lookupDB)
-            retrievedPortfolios = [{
-                "key":item.key.name,
-                "description":item["description"],
-                "benchmark":item["benchmark"],
-                "portfolioType":item["portfolioType"],
-                "algoSharpe":item["algoSharpe"],
-                "alpha":item["alpha"],
-                "beta":item["beta"],
-                "annualReturn":item["annualReturn"],
-                "annualVolatility":item["annualVolatility"],
-                "recentSharpe":item["recentSharpe"],
-                "recentReturn":item["recentReturn"],
-                "recentAlpha":item["recentAlpha"],
-                "recentBeta":item["recentBeta"],
-                "startedTrading":None if mode == params.AVAILABLE_MODE else item["startedTrading"]
-            } for item in list(query.fetch())]
+            if mode == params.AVAILABLE_MODE:
+                retrievedPortfolios = [{
+                    "key":item.key.name,
+                    "description":item["description"],
+                    "benchmark":item["benchmark"],
+                    "portfolioType":item["portfolioType"],
+                    "algoSharpe":item["algoSharpe"],
+                    "alpha":item["alpha"],
+                    "beta":item["beta"],
+                    "annualReturn":item["annualReturn"],
+                    "annualVolatility":item["annualVolatility"],
+                    "recentSharpe":item["recentSharpe"],
+                    "recentReturn":item["recentReturn"],
+                    "recentAlpha":item["recentAlpha"],
+                    "recentBeta":item["recentBeta"],
+                    "startedTrading":item["startedTrading"]
+                } for item in list(query.fetch())]
 
 
-            return retrievedPortfolios
+                return retrievedPortfolios
+            else:
+                retrievedPortfolios = [{
+                    "key":item.key.name,
+                    "description":item["description"],
+                    "benchmark":item["benchmark"],
+                    "portfolioType":item["portfolioType"],
+                    "algoSharpe":item["algoSharpe"],
+                    "alpha":item["alpha"],
+                    "beta":item["beta"],
+                    "annualReturn":item["annualReturn"],
+                    "annualVolatility":item["annualVolatility"],
+                    "recentSharpe":item["availableSharpe"],
+                    "recentReturn":item["availableReturn"],
+                    "recentAlpha":item["availableAlpha"],
+                    "recentBeta":item["availableBeta"],
+                    "startedTrading":item["startedTrading"]
+                } for item in list(query.fetch())]
         except:
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
