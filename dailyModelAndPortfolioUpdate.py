@@ -44,7 +44,7 @@ joinedData = portfolioGeneration.getPertinentDataForModels(allModels)
 
 # In[30]:
 
-portfolioGeneration.generateRawPredictionsMP(allModels, joinedData, threadsToUse=3)
+portfolioGeneration.generateRawPredictionsMP(allModels, joinedData, threadsToUse=20)
 
 
 # In[31]:
