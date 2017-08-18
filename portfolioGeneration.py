@@ -586,12 +586,14 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     
     algoVsBenchmarkScaledCols, algoVsBenchmarkScaledRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled))
     commissionScaledCols, commissionScaledRows = convertTableToJSON(algoTransactionCostScaled)
+    scaledSharpe = empyrical.sharpe_ratio(algoPerformanceScaled)
     scaledReturn = empyrical.annual_return(algoPerformanceScaled)[0] * 100
     scaledVolatility = empyrical.annual_volatility(algoPerformanceScaled) * 100
     scaledAlpha, scaledBeta = empyrical.alpha_beta(algoPerformanceScaled, factorReturn)
     
     
     algoVsBenchmarkScaledColsRecent, algoVsBenchmarkScaledRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[-100:]))
+    scaledSharpeRecent = empyrical.sharpe_ratio(algoPerformanceScaled[-100:])
     scaledReturnRecent = empyrical.annual_return(algoPerformanceScaled[-100:])[0] * 100
     scaledVolatilityRecent = empyrical.annual_volatility(algoPerformanceScaled[-100:]) * 100
     scaledAlphaRecent, scaledBetaRecent = empyrical.alpha_beta(algoPerformanceScaled[-100:], factorReturn[-100:])
@@ -668,6 +670,7 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         "commissionScaledCols":json.dumps(commissionScaledCols), 
         "commissionScaledRows":json.dumps(commissionScaledRows),
         "scaledReturn":scaledReturn,
+        "scaledSharpe":scaledSharpe,
         "scaledVolatility":scaledVolatility,
         "scaledAlpha":scaledAlpha * 100,
         "scaledBeta":scaledBeta,
@@ -677,6 +680,7 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         "scaledVolatilityRecent":scaledVolatilityRecent,
         "scaledAlphaRecent":scaledAlphaRecent * 100,
         "scaledBetaRecent":scaledBetaRecent,
+        "scaledSharpeRecent":scaledSharpeRecent,
         "availableAlphaScaled":availableAlphaScaled,
         "availableBetaScaled":availableBetaScaled,
         "availableSharpeScaled":availableSharpeScaled,
@@ -732,7 +736,8 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
                 "startedTrading":portfolioInfo["startedTrading"]
                 
             }
-            lookups =  ["algoSharpe",
+            lookups =  [
+                "algoSharpe",
                 "alpha",
                 "beta",
                 "annualReturn",
@@ -744,7 +749,8 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
                 "availableSharpe",
                 "availableReturn",
                 "availableAlpha",
-                "availableBeta"]
+                "availableBeta"
+            ]
             for item in lookups:
                 toUpload[item] = portfolioData[item]
             key = datastoreClient.key(lookupDB2, portfolioHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
