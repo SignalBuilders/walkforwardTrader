@@ -600,16 +600,31 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     
     
     if len(algoPerformance[availableStartDate:]) > 0:
+        ##NORMAL
         availableAlpha, availableBeta = empyrical.alpha_beta(algoPerformance[availableStartDate:], factorReturn[availableStartDate:])
         availableAlpha = availableAlpha * 100
         availableSharpe = empyrical.sharpe_ratio(algoPerformance[availableStartDate:])
         availableReturn = empyrical.cum_returns(algoPerformance[availableStartDate:]).values[-1][0] * 100
-        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[availableStartDate:])) * 100
+        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[availableStartDate:]))
+        
+        ##SCALED
+        availableAlphaScaled, availableBetaScaled = empyrical.alpha_beta(algoPerformanceScaled[availableStartDate:], factorReturn[availableStartDate:])
+        availableAlphaScaled = availableAlphaScaled * 100
+        availableSharpeScaled = empyrical.sharpe_ratio(algoPerformanceScaled[availableStartDate:])
+        availableReturnScaled = empyrical.cum_returns(algoPerformanceScaled[availableStartDate:]).values[-1][0] * 100
+        algoVsBenchmarkColsAvailableScaled, algoVsBenchmarkRowsAvailableScaled = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[availableStartDate:]))
     else:
+        #NORMAL
         availableAlpha, availableBeta = ("NaN", "NaN")
         availableSharpe = "NaN"
         availableReturn = "NaN"
         algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = ([], [])
+        
+        #SCALED
+        availableAlphaScaled, availableBetaScaled = ("NaN", "NaN")
+        availableSharpeScaled = "NaN"
+        availableReturnScaled = "NaN"
+        algoVsBenchmarkColsAvailableScaled, algoVsBenchmarkRowsAvailableScaled = ([], [])
 
     return {
         "tickerCols":json.dumps(tickerCols),
@@ -661,11 +676,13 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         "scaledReturnRecent":scaledReturnRecent,
         "scaledVolatilityRecent":scaledVolatilityRecent,
         "scaledAlphaRecent":scaledAlphaRecent * 100,
-        "scaledBetaRecent":scaledBetaRecent
-        
-        
-        
-        
+        "scaledBetaRecent":scaledBetaRecent,
+        "availableAlphaScaled":availableAlphaScaled,
+        "availableBetaScaled":availableBetaScaled,
+        "availableSharpeScaled":availableSharpeScaled,
+        "availableReturnScaled":availableReturnScaled,
+        "algoVsBenchmarkColsAvailableScaled":json.dumps(algoVsBenchmarkColsAvailableScaled),
+        "algoVsBenchmarkRowsAvailableScaled":json.dumps(algoVsBenchmarkRowsAvailableScaled), 
     }
     
 
