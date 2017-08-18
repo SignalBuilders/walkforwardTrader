@@ -880,6 +880,9 @@ def getTradingPortfolioHashes(mode, includeDates = False):
 
 
     lookupDB = None
+    if mode == params.AVAILABLE_MODE:
+        lookupDB = params.
+
     if mode == params.PAPER_TRADING_MODE:
         lookupDB = params.paperTradingPortfolios
     
