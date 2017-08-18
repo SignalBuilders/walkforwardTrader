@@ -159,7 +159,7 @@ print("****UPDATING ALL PORTFOLIO CACHES****")
 for mode in [params.AVAILABLE_MODE, params.PAPER_TRADING_MODE, params.TRADING_MODE]:
     print("MODE", mode)
     portfolioInfos = []
-    downloadedPortfolioInfo = portfolioGeneration.getTradingPortfolioHashes(mode, includeDates = True) if mode != params.AVAILABLE_MODE else portfolio.getPortfolios()
+    downloadedPortfolioInfo = portfolioGeneration.getTradingPortfolioHashes(mode, includeDates = True)
     for tradingPortfolio in downloadedPortfolioInfo:
         portfolioHash = tradingPortfolio
         portfolioInfo = portfolio.getPortfolioByKey(portfolioHash)
@@ -168,7 +168,7 @@ for mode in [params.AVAILABLE_MODE, params.PAPER_TRADING_MODE, params.TRADING_MO
             "description":portfolioInfo["description"],
             "benchmark":portfolioInfo["benchmark"],
             "portfolioType":portfolioInfo["portfolioType"],
-            "startedTrading":downloadedPortfolioInfo[portfolioHash] if mode != params.AVAILABLE_MODE else portfolioInfo["startedTrading"]
+            "startedTrading":downloadedPortfolioInfo[portfolioHash]
         }
         print(portfolioInfo)
         portfolioInfos.append(portfolioInfo)
