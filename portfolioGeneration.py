@@ -943,5 +943,44 @@ def calculatePerformanceForAllocations(allocations, joinedData):
         pd.DataFrame(estimatedTransactionCost.apply(lambda x: sum(x), axis=1), columns=["Fund Transaction Cost"]).dropna()
 
 
+##STORE AND RETRIEVE SYSTEM UPDATE STATUS
+
+def storeSystemStatus(dayToLog, startTime, endTime, elapsedTime, modelsSeen, portfoliosSeen):
+    while True:
+        try:
+            datastoreClient = datastore.Client('money-maker-1236')
+            key = datastoreClient.key(params.systemStatus)
+            organismToStore = datastore.Entity(key=key)
+            toUpload = {
+                "day":dayToLog,
+                "startTime":startTime,
+                "endTime":endTime,
+                "elapsedTime":elapsedTime,
+                "modelsSeen":modelsSeen,
+                "portfoliosSeen":portfoliosSeen
+            }
+            organismToStore.update(toUpload)
+            datastoreClient.put(organismToStore)
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    pass
+    
+
+def getSystemStatus(dayToCheck = None):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.systemStatus, order=["-day"])
+            if dayToCheck is not None:
+                query.add_filter('day', '=', dayToCheck)
+            
+            retrievedUpdates = list(query.fetch())
+
+            return retrievedUpdates
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
 

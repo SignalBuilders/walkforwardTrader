@@ -25,3 +25,7 @@ tradingPortfolios = "walkforward_trading_portfolios"
 AVAILABLE_MODE = "AVAILABLE"
 PAPER_TRADING_MODE = "PAPER_TRADING_MODE"
 TRADING_MODE = "TRADING_MODE"
+
+
+##STATUS
+systemStatus = "walkforward_status"
