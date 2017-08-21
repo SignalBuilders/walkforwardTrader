@@ -86,6 +86,17 @@ def downloadTickerData(storedTickers):
         return storedData, list(storedData.keys())
 
 def joinDatasets(tickerDatas):
+    """
+    forms one large dataframe from tickers retrieved using :meth:`dataAck.downloadTickerData`
+
+    :param tickerDatas: list of tickers dataframes to join
+
+    :returns: one large dataframe of ticker data
+
+    .. note:: one large dataframe makes transformations easier, as they can be performed
+    all at once
+
+    """
     baseTicker = tickerDatas[0]
     for ticker in tickerDatas[1:]:
         baseTicker = baseTicker.join(ticker, how='outer')
