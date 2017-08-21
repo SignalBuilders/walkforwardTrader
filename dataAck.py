@@ -476,7 +476,7 @@ class endToEnd:
                     }, None, None
                     
                 elif shortSeen < 4:
-                    print("CONTINUING", "SHARPE:", shortSharpe, "BETA:", beta, "TREYNOR:", treynor)
+                    print("CONTINUING", "SHARPE:", shortSharpe, "SHARPE DIFF:", sharpeDiff, "RAW BETA:", rawBeta, "TREYNOR:", treynor)
                    
                 shortSeen += 1
 
