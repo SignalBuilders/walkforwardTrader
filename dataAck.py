@@ -244,6 +244,10 @@ def rollingAvgSeries(priceVector, lookback):
 
 import random
 class dataSeries:
+    """
+    object created by :class:`dataAck.seriesManager` to store transformation instructions for raw price data
+
+    """
     def __init__(self, ticker):
         self.ticker = ticker
         
