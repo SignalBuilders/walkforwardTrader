@@ -112,6 +112,14 @@ import sys
 import numpy as np
 
 def getAllTickersPlain():
+    """
+    gets all tickers available to use for trading
+
+    :returns: list of tickers to trade
+
+    .. note:: this is based on average daily trading volume
+
+    """
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
@@ -127,6 +135,16 @@ def getAllTickersPlain():
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
 def getDataSourcesForTicker(ticker):
+    """
+    gets all tickers to use as sources for a given ticker
+
+    :param ticker: ticker to use in query
+
+    :returns: all applicable tickers
+
+    .. note:: this is based on looking at tradeable tickers that have low beta to the given ticker
+
+    """
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
@@ -143,6 +161,14 @@ def getDataSourcesForTicker(ticker):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
 def getModelInformationByKey(modelHashes):
+    """
+    returns model infromation stored after model passes screening metrics
+
+    :param modelHashes: all hashes sought to examine
+
+    :returns: entities of modelHashes
+
+    """
     while True:
         try:
             datastore_client = datastore.Client('money-maker-1236')
