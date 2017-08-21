@@ -536,10 +536,12 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
     relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
 
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
+    alphaSlippage, betaSlippage = empyrical.alpha_beta(slippageAdjustedReturn, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
                "SHARPE SLIPPAGE":empyrical.sharpe_ratio(slippageAdjustedReturn),
                "STABILITY": empyrical.stability_of_timeseries(returnStream),
                "ALPHA":alpha,
+               "ALPHA SLIPPAGE":alphaSlippage,
                "BETA":abs(beta),
                "ANNUALIZED RETURN": empyrical.annual_return(returnStream)[0],
                "ACTIVITY": np.count_nonzero(returnStream)/float(len(returnStream)),
