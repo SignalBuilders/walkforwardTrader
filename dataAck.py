@@ -10,7 +10,14 @@ walkforwardInputSeries, endToEnd, and algoBlob.
 
 """
 def getTickerData(ticker):
-    ##RETURNS A DATAFRAME WITH ONLY THE COLUMNS WE CARE ABOUT
+    """
+    calls quandl API to download ticker data from /EOD
+
+    :param ticker: ticker to fetch
+
+    :returns: a dataframe of the ticker containing the adj_close price
+
+    """
     limitedDf = quandl.get(["EOD/" + ticker +".11"], authtoken="G3AvFe4ZUZoBEthhjmEY")
     limitedDf.columns = ["Adj_Close_" + ticker]
     return limitedDf
