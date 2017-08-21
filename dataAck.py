@@ -93,8 +93,7 @@ def joinDatasets(tickerDatas):
 
     :returns: one large dataframe of ticker data
 
-    .. note:: one large dataframe makes transformations easier, as they can be performed
-    all at once
+    .. note:: one large dataframe makes transformations easier, as they can be performed all at once
 
     """
     baseTicker = tickerDatas[0]
