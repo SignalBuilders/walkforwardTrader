@@ -244,11 +244,12 @@ def rollingAvgSeries(priceVector, lookback):
 
 import random
 class dataSeries:
-    """
-    object created by :class:`dataAck.seriesManager` to store transformation instructions for raw price data
-
-    """
     def __init__(self, ticker):
+        """
+        object created by :class:`dataAck.seriesManager` to store transformation instructions for raw price data
+
+        :param ticker: ticker to use for all data manipulation      
+        """
         self.ticker = ticker
         
         self.diffDays = None
@@ -268,6 +269,14 @@ class dataSeries:
         
         
     def transformJoinedData(self, joinedData):
+        """
+        takes a large dataframe and performs stored manipulations to it
+
+        :param joinedData: large dataframe of raw price data
+
+        :returns: modified data
+
+        """
         underlyingSeries = createPriceSeries(joinedData, self.ticker)
 
         if self.diffDays is not None:
@@ -284,6 +293,14 @@ class dataSeries:
         return underlyingSeries.dropna()
 
     def checkValidity(self, dseries):
+        """
+        takes some transformed series and determines if it is invalid over some time range
+
+        :param dseries: modified data
+
+        :returns: modified data
+
+        """
         if pd.DataFrame(dseries).max()[0] == float("inf") or pd.DataFrame(dseries).min()[0] == float("-inf"):
             return False
         else:
