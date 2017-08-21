@@ -853,6 +853,10 @@ def fetchQuickPortfolios(mode):
                     "availableBetaScaled",
                     "availableSharpeScaled",
                     "availableReturnScaled",
+                    "benchmark",
+                    "description",
+                    "portfolioType",
+                    "startedTrading"
                 ]
                 for key in lookups:
                     toSave[key] = item[key]
