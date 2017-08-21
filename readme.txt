@@ -4,21 +4,17 @@
 
 Model search iterates through different series and different learning combinations and stores results in params.datastoreName
 
--> Generate Portfolios
+-> automaticPortfolioGenerator.py
 
--> Generate Model Predictions
+Automatically creates random portfolios of algorithms
 
-Finds all models that are contained within a portfolio and produces a prediction that is stored
+-> [Once Required] Upgrade Portfolio to Trading Portfolios.ipynb
 
--> Generate Portfolio Prediction
+Move a discovered portfolio to paper trading or real trading
 
-Once all model predictions are made, portfolio predictions can be made using aggregate predictions and return streams
+-> [Each Day] dailyModelAndPortfolioUpdate.py
 
--> Website Viewer
-
-Once all predictions for portfolios are logged, it is essential to cache results so they are viewable from the website
+Update all models and portfolios saved with daily predictions...results saved in params.status and displayed on website when logo is clicked.
 
 
--> Move Portfolios to Trading Portfolios
-
--> Generate Net Position From Trading Portfolios and Save 
+	-> Generate Net Position From Trading Portfolios and Save [Done only when trading algorithms]
