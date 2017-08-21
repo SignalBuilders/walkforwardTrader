@@ -410,6 +410,7 @@ class endToEnd:
                 predictions = pd.DataFrame(transformedPreds[["Predictions"]]) if predictions is None else pd.concat([predictions, pd.DataFrame(transformedPreds[["Predictions"]])])
 
                 alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
+                rawBeta = abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1])
                 shortSharpe = empyrical.sharpe_ratio(returnStream)
                 activity = np.count_nonzero(returnStream)/float(len(returnStream))
                 algoAnnualReturn = empyrical.annual_return(returnStream.values)[0]
@@ -429,7 +430,7 @@ class endToEnd:
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
 
-                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.6 or activity < 0.5) and shortSeen == 0:
+                if (empyrical.sharpe_ratio(returnStream) < 0.0 or rawBeta > 0.7 or activity < 0.5) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
@@ -445,10 +446,11 @@ class endToEnd:
                             "sharpeDiff":sharpeDiff,
                             "relativeSharpe":relativeSharpe,
                             "sharpeDiffSlippage":sharpeDiffSlippage,
-                            "relativeSharpeSlippage":relativeSharpeSlippage
+                            "relativeSharpeSlippage":relativeSharpeSlippage,
+                            "rawBeta":rawBeta
                     }, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or rawBeta > 0.55 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
@@ -469,7 +471,8 @@ class endToEnd:
                             "sharpeDiff":sharpeDiff,
                             "relativeSharpe":relativeSharpe,
                             "sharpeDiffSlippage":sharpeDiffSlippage,
-                            "relativeSharpeSlippage":relativeSharpeSlippage
+                            "relativeSharpeSlippage":relativeSharpeSlippage,
+                            "rawBeta":rawBeta
                     }, None, None
                     
                 elif shortSeen < 4:
