@@ -442,6 +442,7 @@ class endToEnd:
                 estimatedSlippageLoss = portfolioGeneration.estimateTransactionCost(predictions)
                 estimatedSlippageLoss.columns = returnStream.columns
                 slippageAdjustedReturn = (returnStream - estimatedSlippageLoss).dropna()
+                slippageSharpe = empyrical.sharpe_ratio(slippageAdjustedReturn)
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
 
@@ -466,7 +467,7 @@ class endToEnd:
                             "stability":stability
                     }, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6 or stability < 0.4) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6 or stability < 0.4) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
