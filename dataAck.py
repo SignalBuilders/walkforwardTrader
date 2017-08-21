@@ -450,6 +450,7 @@ class endToEnd:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                            "sharpeSlippage":slippageSharpe,
                             "beta":abs(beta),
                             "alpha":alpha,
                             "activity":activity,
@@ -476,6 +477,7 @@ class endToEnd:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                            "sharpeSlippage":slippageSharpe,
                             "alpha":alpha,
                             "beta":abs(beta),
                             "activity":activity,
@@ -517,6 +519,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
 
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
+               "SHARPE SLIPPAGE":empyrical.sharpe_ratio(slippageAdjustedReturn),
                "STABILITY": empyrical.stability_of_timeseries(returnStream),
                "ALPHA":alpha,
                "BETA":abs(beta),
