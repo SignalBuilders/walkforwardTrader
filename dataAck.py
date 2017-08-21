@@ -435,7 +435,7 @@ class endToEnd:
                 treynor = ((empyrical.annual_return(returnStream.values)[0] - empyrical.annual_return(factorReturn.values)[0]) \
                            / abs(empyrical.beta(returnStream, factorReturn)))
                 sharpeDiff = empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn)
-                relativeSharpe = sharpeDiff / empyrical.sharpe_ratio(factorReturn)
+                relativeSharpe = sharpeDiff / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
                 stability = empyrical.stability_of_timeseries(returnStream)
 
                 ##CALCULATE SHARPE WITH SLIPPAGE
