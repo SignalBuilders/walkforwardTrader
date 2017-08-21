@@ -181,7 +181,7 @@ def performPortfolioPerformanceEstimation(thisPredictions, thisReturns, hashToMo
         "startedTrading":portfolioInfo["startedTrading"]
     }
     print(portfolioInfo)
-    portfolioData = portfolioGeneration.getDataForPortfolio(portfolioHash, factorToTrade, joinedData, portfolioInfo["startedTrading"])
+    portfolioData = portfolioGeneration.getDataForPortfolio(portfolioHash, portfolioInfo["benchmark"], joinedData, portfolioInfo["startedTrading"])
     portfolioGeneration.cachePortfolio(portfolioInfo, portfolioData, params.AVAILABLE_MODE)
 
     
