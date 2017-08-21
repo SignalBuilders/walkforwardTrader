@@ -465,7 +465,7 @@ class endToEnd:
                             "rawBeta":rawBeta
                     }, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or rawBeta > 0.55 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or rawBeta > 0.6 or activity < 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
@@ -510,7 +510,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
 
     ##CALCULATE SHARPE WITH SLIPPAGE
     sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
-    relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
+    relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
 
     alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
     metrics = {"SHARPE": empyrical.sharpe_ratio(returnStream),
@@ -523,13 +523,15 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
                            / abs(empyrical.beta(returnStream, factorReturn))),
                "RAW BETA":abs(empyrical.alpha_beta(returnStream.apply(lambda x:applyBinary(x), axis=0), factorReturn.apply(lambda x:applyBinary(x), axis=0))[1]),
                "SHARPE DIFFERENCE": empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn),
-               "RELATIVE SHARPE": (empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn))/empyrical.sharpe_ratio(factorReturn),
+               "RELATIVE SHARPE": (empyrical.sharpe_ratio(returnStream) - empyrical.sharpe_ratio(factorReturn))/empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn))),
                "FACTOR SHARPE": empyrical.sharpe_ratio(factorReturn),
                "SHARPE DIFFERENCE SLIPPAGE":sharpeDiffSlippage,
                "RELATIVE SHARPE SLIPPAGE":relativeSharpeSlippage,
               }
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     metrics["SHARPE SLIPPAGE DECAY"] = metrics["SHARPE DIFFERENCE SLIPPAGE"] - metrics["SHARPE DIFFERENCE"]
+    
+
     rollingPeriod = 252
 
 
@@ -549,7 +551,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
 
         ###
 
-        relDiffSharpe = pd.DataFrame(rollingSharpe.apply(lambda x: (x[0] - x[1])/x[1], axis=1), columns=["Sharpe Difference"])
+        relDiffSharpe = pd.DataFrame(rollingSharpe.apply(lambda x: (x[0] - x[1])/x[1] * (x[1]/abs(x[1])), axis=1), columns=["Sharpe Difference"])
         metrics["RELATIVE SHARPE DIFFERENCE MIN"] = np.percentile(relDiffSharpe["Sharpe Difference"].values, 1)
         metrics["RELATIVE SHARPE DIFFERENCE AVERAGE"] = np.percentile(relDiffSharpe["Sharpe Difference"].values, 50)
         relDifVals = relDiffSharpe["Sharpe Difference"].values
@@ -577,6 +579,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
                         / returnStream.values.std()
 
         metrics["ROLLING SHARPE ERROR"] = rollingSharpe["252 Day Rolling Sharpe Algo"].std()
+        metrics["ONE STD SHARPE"] = empyrical.sharpe_ratio(slippageAdjustedReturn) - metrics["ROLLING SHARPE ERROR"]
         if plotting == True:
             import matplotlib.pyplot as plt 
             rollingSharpe.plot()
