@@ -548,7 +548,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["SHARPE DIFFERENCE AVERAGE"] = np.percentile(diffSharpe["Sharpe Difference"].values, 50)
         difVals = diffSharpe["Sharpe Difference"].values
         metrics["SHARPE DIFFERENCE GREATER THAN 0"] = len(difVals[np.where(difVals > 0)])/float(len(difVals))
-
+        metrics["25TH PERCENTILE SHARPE DIFFERENCE"] = np.percentile(diffSharpe["Sharpe Difference"].values, 25)
         ###
 
         relDiffSharpe = pd.DataFrame(rollingSharpe.apply(lambda x: (x[0] - x[1])/x[1] * (x[1]/abs(x[1])), axis=1), columns=["Sharpe Difference"])
@@ -556,7 +556,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["RELATIVE SHARPE DIFFERENCE AVERAGE"] = np.percentile(relDiffSharpe["Sharpe Difference"].values, 50)
         relDifVals = relDiffSharpe["Sharpe Difference"].values
         metrics["RELATIVE SHARPE DIFFERENCE GREATER THAN 0"] = len(relDifVals[np.where(relDifVals > 0)])/float(len(relDifVals))
-
+        metrics["25TH PERCENTILE RELATIVE SHARPE DIFFERENCE"] = np.percentile(relDiffSharpe["Sharpe Difference"].values, 25)
         ###
     
         metrics["ROLLING SHARPE BETA"] = abs(empyrical.beta(rollingSharpe["252 Day Rolling Sharpe Algo"], rollingSharpe["252 Day Rolling Sharpe Factor"]))
