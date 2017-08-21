@@ -3,7 +3,6 @@ import quandl
 import pandas as pd
 import portfolioGeneration
 """
-
 dataAck.py is used for general manipulation of trading data as well as storing
 the constructs for model creation being made up of a seriesManager, 
 walkforwardInputSeries, endToEnd, and algoBlob.
