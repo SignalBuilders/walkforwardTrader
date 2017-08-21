@@ -2,11 +2,7 @@
 import quandl
 import pandas as pd
 import portfolioGeneration
-"""
-:synopsis: dataAck.py is used for general manipulation of trading data as well as storing the constructs for model creation being made up of a seriesManager, walkforwardInputSeries, endToEnd, and algoBlob.
 
-
-"""
 def getTickerData(ticker):
     """
     calls quandl API to download ticker data from /EOD
@@ -25,6 +21,14 @@ import time
 import multiprocessing as mp
 import sys
 def cycleP(runningProcesses):
+    """
+    cycles through running processes to free ones that have ended
+
+    :param runningProcesses: list of previously running processes
+
+    :returns: a list of currently running processes
+
+    """
     newP = []
     for p in runningProcesses:
         if p.is_alive() == True:
