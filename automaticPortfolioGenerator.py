@@ -36,23 +36,8 @@ for i in range(len(allModels)):
 # In[17]:
 
 factorToTrade = "SPY"
-uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData =    autoPortfolio.computeReturnsForUniqueModelsCache(allModels, factorToTrade)
+uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData = autoPortfolio.computeReturnsForUniqueModelsCache(allModels, factorToTrade)
 
-
-# # ENSURE ALL MODELS HAVE PREDICTIONS IN SYSTEM AND BACKFILLED
-# 
-
-# In[18]:
-
-for item in allModels:
-    modelStatus = autoPortfolio.checkAggregatePredictionsStored(item)
-    print(item.describe(), modelStatus)
-    if modelStatus == False:
-        ##NEED TO STORE MODEL PREDICTIONS
-        portfolioGeneration.storePastPredictions([item], modelPredictions[[str(item.describe())]])
-        
-        ##NEED TO BACKFILL DAYS NOT CACHED
-        autoPortfolio.runBackfillMP(item, joinedData, 16)
 
 
 # # PREPARE FOR AUTOMATIC GENERATOR

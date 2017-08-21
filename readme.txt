@@ -4,9 +4,15 @@
 
 Model search iterates through different series and different learning combinations and stores results in params.datastoreName
 
--> automaticPortfolioGenerator.py
+-> modelResultCacher.py
 
-Automatically creates random portfolios of algorithms
+Saves and backfills aggregate model predictions
+
+	-> automaticPortfolioGenerator.py
+
+	Automatically creates random portfolios of algorithms
+
+	-> [Manual] Manual Portfolio Generation.ipynb
 
 -> [Once Required] Upgrade Portfolio to Trading Portfolios.ipynb
 
