@@ -56,7 +56,7 @@ while True:
             for defaultWindowSize in [5, 10, 22, 44]:
                 for trees in [25, 50, 100, 150, 300]:
                     for predictionLength in [5, 7, 10, 15]:
-                        if random.uniform(0,1) < 0.5: ##RANDOMLY SKIP
+                        if random.uniform(0,1) < 0.7: ##RANDOMLY SKIP
                             continue
                         b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, tickerToTrade)
                         algoReturn, factorReturn, predictions, slippageAdjustedReturn =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
