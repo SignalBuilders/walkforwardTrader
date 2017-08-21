@@ -444,7 +444,7 @@ class endToEnd:
                 slippageAdjustedReturn = (returnStream - estimatedSlippageLoss).dropna()
                 slippageSharpe = empyrical.sharpe_ratio(slippageAdjustedReturn)
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
-                relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn)
+                relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
 
                 if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.7 or activity < 0.5 or stability < 0.4) and shortSeen == 0:
                     return None, {
