@@ -69,7 +69,7 @@ for item in allModels:
 
 
 # In[ ]:
-
+print("STARTING GENERATION")
 autoPortfolio.createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=16)
 
 
