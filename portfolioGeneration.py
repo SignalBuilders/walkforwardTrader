@@ -750,7 +750,21 @@ def cachePortfolio(portfolioInfo, portfolioData, mode):
                 "availableSharpe",
                 "availableReturn",
                 "availableAlpha",
-                "availableBeta"
+                "availableBeta",
+                "scaledReturn",
+                "scaledSharpe",
+                "scaledVolatility",
+                "scaledAlpha",
+                "scaledBeta",
+                "scaledReturnRecent",
+                "scaledVolatilityRecent",
+                "scaledAlphaRecent",
+                "scaledBetaRecent",
+                "scaledSharpeRecent",
+                "availableAlphaScaled",
+                "availableBetaScaled",
+                "availableSharpeScaled",
+                "availableReturnScaled",
             ]
             for item in lookups:
                 toUpload[item] = portfolioData[item]
@@ -806,27 +820,43 @@ def fetchQuickPortfolios(mode):
         try:
             datastore_client = datastore.Client('money-maker-1236')
             query = datastore_client.query(kind=lookupDB)
-            retrievedPortfolios = [{
-                "key":item.key.name,
-                "description":item["description"],
-                "benchmark":item["benchmark"],
-                "portfolioType":item["portfolioType"],
-                "algoSharpe":item["algoSharpe"],
-                "alpha":item["alpha"],
-                "beta":item["beta"],
-                "annualReturn":item["annualReturn"],
-                "annualVolatility":item["annualVolatility"],
-                "recentSharpe":item["recentSharpe"],
-                "recentReturn":item["recentReturn"],
-                "recentAlpha":item["recentAlpha"],
-                "recentBeta":item["recentBeta"],
-                "availableSharpe":item["availableSharpe"],
-                "availableReturn":item["availableReturn"],
-                "availableAlpha":item["availableAlpha"],
-                "availableBeta":item["availableBeta"],
-                "startedTrading":item["startedTrading"]
-            } for item in list(query.fetch())]
-
+            retrievedPortfolios = []
+            for item in list(query.fetch()):
+                toSave = {
+                    "key":item.key.name
+                }
+                lookups =  [
+                    "algoSharpe",
+                    "alpha",
+                    "beta",
+                    "annualReturn",
+                    "annualVolatility",
+                    "recentSharpe",
+                    "recentReturn",
+                    "recentAlpha",
+                    "recentBeta",
+                    "availableSharpe",
+                    "availableReturn",
+                    "availableAlpha",
+                    "availableBeta",
+                    "scaledReturn",
+                    "scaledSharpe",
+                    "scaledVolatility",
+                    "scaledAlpha",
+                    "scaledBeta",
+                    "scaledReturnRecent",
+                    "scaledVolatilityRecent",
+                    "scaledAlphaRecent",
+                    "scaledBetaRecent",
+                    "scaledSharpeRecent",
+                    "availableAlphaScaled",
+                    "availableBetaScaled",
+                    "availableSharpeScaled",
+                    "availableReturnScaled",
+                ]
+                for key in lookups:
+                    toSave[key] = item[key]
+                retrievedPortfolios.append(toSave)
 
             return retrievedPortfolios
 
