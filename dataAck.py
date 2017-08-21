@@ -193,16 +193,53 @@ def getModelInformationByKey(modelHashes):
 ##SERIES MANIPULATION
 
 def createPriceSeries(joinedData, ticker):
+    """
+    returns the price column of a large dataframe for a particular ticker
+    this is not much more than a simple templating function
+
+    :param joinedData: large dataframe of ticker data
+    :param ticker: ticker to consider
+
+    :returns: single column of large dataframe
+
+    """
     return joinedData["Adj_Close_" + ticker]
 
 
 def diffSeries(priceVector, diffAmount):
+    """
+    takes a pricevector series and finds the difference over some period
+
+    :param priceVector: some vector of prices (could be modified already or not)
+    :param diffAmount: amount by which to cause manipulation
+
+    :returns: modified data
+
+    """
     return (priceVector.diff(diffAmount)/priceVector).dropna()
 
 def volSeries(priceVector, lookback):
+    """
+    takes a pricevector series and finds the std over some period
+
+    :param priceVector: some vector of prices (could be modified already or not)
+    :param lookback: amount by which to cause manipulation
+
+    :returns: modified data
+
+    """
     return (priceVector.rolling(window=lookback, min_periods=lookback).std()).dropna()
 
 def rollingAvgSeries(priceVector, lookback):
+    """
+    takes a pricevector series and smooths the values over some window
+
+    :param priceVector: some vector of prices (could be modified already or not)
+    :param lookback: amount by which to cause manipulation
+
+    :returns: modified data
+
+    """
     return (priceVector.rolling(lookback, min_periods=lookback).mean()).dropna()
 
 import random
