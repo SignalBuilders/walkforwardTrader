@@ -38,6 +38,14 @@ def cycleP(runningProcesses):
     return newP
 
 def downloadTickerData(storedTickers):
+    """
+    downloads all related tickers using :meth:`dataAck.getTickerData`
+
+    :param storedTickers: list of tickers to retrieve
+
+    :returns: dictionary containing dataframes of valid tickers
+
+    """
     mpEngine = mp.get_context('fork')
     with mpEngine.Manager() as manager:
         returnDict = manager.dict()
