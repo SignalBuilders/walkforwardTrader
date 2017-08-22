@@ -891,6 +891,41 @@ def storeModel(model, trainingMetrics, oosMetrics):
             toLog[item] = str(model.describe())
     logModel("StoredModel", toLog)
 
+def storeModelCurve(model, trainingMetrics, oosMetrics):
+    toUpload = trainingMetrics
+    for k in oosMetrics:
+        toUpload["OOS_" + k] = oosMetrics[k]
+    toUpload["ticker"] = model.targetTicker
+    toUpload["predictionLength"] = model.predictionDistance
+    toUpload["lookbackDistance"] = model.lookbackDistance
+    toUpload["model"] = pickle.dumps(model)
+    toUpload["radius"] = model.radius
+    toUpload["minConfidence"] = model.minConfidence
+    toUpload["minNeighbors"] = model.minNeighbors
+    organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
+    ##UPLOAD ORGANISM OBJECT
+    while True:
+        try:
+            datastoreClient = datastore.Client('money-maker-1236')
+            #HASH DIGEST
+            key = datastoreClient.key(params.datastoreName,  organismHash) #NEED TO HASH TO ENSURE UNDER COUNT
+            organismToStore = datastore.Entity(key=key, exclude_from_indexes=["model"])
+            organismToStore.update(toUpload)
+            datastoreClient.put(organismToStore)
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    
+    ##LOG SUCCESSFUL STORE
+    toLog = {}
+    for item in toUpload:
+        if item != "model":
+            toLog[item] = toUpload[item]
+        else:
+            toLog[item] = str(model.describe())
+    logModel("StoredModel", toLog)
+
     
 def storeTrainingData(ticker, joinedData):
     storageClient = storage.Client('money-maker-1236')

@@ -1,5 +1,6 @@
 import dataAck
 import portfolio
+import CurvePredictor
 allTickers = dataAck.getAllTickersPlain()
 while True:
     import random
@@ -52,53 +53,41 @@ while True:
             s = sManager.createSeries()
             
 
-        try:
-            for defaultWindowSize in [22, 44, 5, 10]:
-                for trees in [100, 150, 25, 50, 300]:
-                    for predictionLength in [5, 7, 10, 15]:
-                        for standardizing in [True, False]:
-                            for lowVolMove in [None, 10, 25, 50]:
-                                if random.uniform(0,1) < 0.8: ##RANDOMLY SKIP
-                                    continue
-                                b = dataAck.algoBlob(s, defaultWindowSize, trees, predictionLength, standardizing, lowVolMove, tickerToTrade)
-                                algoReturn, factorReturn, predictions, slippageAdjustedReturn =  b.makePredictions(portfolio.prepareDataForModel(b, joinedData), daysToCheck = None, earlyStop = True)
-                                if algoReturn is None:
-                                    toLog = factorReturn
-                                    if np.isnan(toLog["sharpe"]) == True:
-                                        raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
-                                        
-                                    toLog["modelDescription"] = str(b.describe())
-                                    dataAck.logModel("Model Stopped Early", toLog)
-                                    print("Model Stopped Early", toLog)
-                                    continue
-                                metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
-                                mlMetrics = dataAck.vizMLResults(factorReturn[:-252], predictions[:-252])
-                                for k in mlMetrics:
-                                    metrics[k] = mlMetrics[k]
-                                print("TRAIN:", metrics)
-                                if np.isnan(metrics["SHARPE"]) == True:
-                                    raise ValueError('SHARPE IS NAN SO FAULTY SERIES')
-                                if metrics["ACTIVITY"] > 0.7 and metrics["BETA"] < 0.6\
-                                     and metrics["SHARPE DIFFERENCE SLIPPAGE"] > 0.0:
-                                    ##STORE
-                                    testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
-                                    mlMetrics = dataAck.vizMLResults(factorReturn[-252:], predictions[-252:])
-                                    for k in mlMetrics:
-                                        testMetrics[k] = mlMetrics[k]
-                                    print("TEST:", testMetrics)
-                                    print("TODAY:", b.makeTodayPrediction(portfolio.prepareDataForModel(b, joinedData)))
-                                    dataAck.storeModelData(b, algoReturn, predictions, slippageAdjustedReturn)
-                                    dataAck.storeModel(b, metrics, testMetrics)
-                                else:
-                                    toLog = {"modelDescription":str(b.describe())}
-                                    for k in metrics:
-                                        toLog[k] = metrics[k]
-                                    dataAck.logModel("Model Skipped", toLog)
-        except:
-            print("FAILED", s.describe())
-            dataAck.logModel("Series Failed", {
-                "seriesDescription":str(s.describe())
-            })
+        # try:
+        for lookback in [5, 10, 22, 44]:
+            for prediction in [5, 7, 10, 15]:
+                for radius in [0.3, 0.5, 0.7, 1.0]:
+                    for minConfidence in [0.01, 0.1, 0.2]:
+                        for minNeighbors in [1, 10, 30]:
+                            if random.uniform(0,1) < 0.8: ##RANDOMLY SKIP
+                                continue
+                            cPre = CurvePredictor.CurvePredictor(s, tickerToTrade, lookback, prediction, radius, minConfidence, minNeighbors)
+                            algoReturn, factorReturn, predictions, slippageAdjustedReturn = cPre.runModelsChunksSkipMP(joinedData)
+                            if algoReturn is None:
+                                toLog = factorReturn
+                                toLog["modelDescription"] = str(cPre.describe())
+                                dataAck.logModel("Model Stopped Early", toLog)
+                                print("Model Stopped Early", toLog)
+                                continue
+                            metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
+                            print("TRAIN:", metrics)
+                            if metrics["BETA"] < 0.6\
+                                 and metrics["SHARPE DIFFERENCE"] > 0.0 and metrics["ACTIVITY"] > 0.2:
+                                ##STORE
+                                testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
+                                print("TEST:", testMetrics)
+                                dataAck.storeModelData(cPre, algoReturn, predictions, slippageAdjustedReturn)
+                                dataAck.storeModelCurve(cPre, metrics, testMetrics)
+                            else:
+                                toLog = {"modelDescription":str(cPre.describe())}
+                                for k in metrics:
+                                    toLog[k] = metrics[k]
+                                dataAck.logModel("Model Skipped", toLog)
+        # except:
+        #     print("FAILED", s.describe())
+        #     dataAck.logModel("Series Failed", {
+        #         "seriesDescription":str(s.describe())
+        #     })
 
         runsSeen += 1
 
