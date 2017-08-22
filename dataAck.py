@@ -408,7 +408,7 @@ import multiprocessing as mp
 
 
 def computePosition(predictionsArr):
-    print(predictionsArr)
+    print(len(predictionsArr))
     netPos = 0.0
     for item in predictionsArr:
         if item > 0.51:
