@@ -1,3 +1,9 @@
+import params
+from google.cloud import datastore, storage, logging
+import time
+import pickle
+import hashlib
+import sys
 
 
 ##USED TO STORE DESCRIPTION INFO
@@ -30,7 +36,7 @@ def storeModel(db, model, uploadInformation, trainingMetrics, oosMetrics):
             toLog[item] = toUpload[item]
         else:
             toLog[item] = str(model.describe())
-    logModel("StoredModel"+"_" + db, toLog)
+    dataAck.logModel("StoredModel"+"_" + db, toLog)
 
 def getModels(db, ticker = None, returnEntireObject = False):
     while True:
