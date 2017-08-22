@@ -567,7 +567,7 @@ class endToEnd:
                     actuals.append(yVals[int(i) + 44])
                     days.append(yIndex[int(i) + 44])
 
-                print("LOSS", log_loss(endToEnd.transformTargetArr(np.array(actuals), self.threshold), np.array(preds)))
+                print("LOSS", log_loss(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
                     
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
