@@ -427,7 +427,7 @@ def getDailyFactorReturn(ticker, joinedData):
     dailyFactorReturn.columns = ["Factor Return"]
     return dailyFactorReturn
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 import empyrical
 
 class endToEnd:
@@ -461,15 +461,18 @@ class endToEnd:
         
         
     def runDay(self, xVals, yVals, xTarget, identifier=None, sharedDict=None):
-        scaler = StandardScaler()
-        realArr = []
+        
+        xSlice = []
         for item in xVals:
-            realArr.append((item[:-3])[-1])  ## because ticker values
-        scaler.fit(realArr)
+            scaler = MinMaxScaler()
+            thisTransform = scaler.fit_transform(item[:-3]).tolist()  ## because ticker values
+            thisTransform += item[-3:].tolist()
+            xSlice.append(np.array(thisTransform))
 
-        xSlice = [np.array(scaler.transform(item[:-3]).tolist() + item[-3:].tolist()) for item in xVals]
-
-        xTarget = np.array(scaler.transform(xTarget[:-3]).tolist() + xTarget[-3:].tolist())
+        xSlice = np.array(xSlice)
+        scaler = MinMaxScaler()
+        xTarget = np.array(scaler.fit_transform(xTarget[:-3]).tolist() + xTarget[-3:].tolist())
+        print(xTarget)
 
         totalModel = ExtraTreesClassifier(self.treeSize, n_jobs=1, 
                                           class_weight="balanced_subsample", 
