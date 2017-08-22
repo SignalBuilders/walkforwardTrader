@@ -322,7 +322,7 @@ class seriesManager:
         return self.tickers
 
 
-
+import empyrical
 import numpy as np
 class walkforwardInputSeries:
     def __init__(self, series, windowSize, predictionLength, targetTicker):
@@ -333,16 +333,33 @@ class walkforwardInputSeries:
         print(self.describe())
     
     def generateWindows(self, dataOfInterest):
+        ##LOOKBACK ON BASED ON WINDOW day performance of ticker to combine with input arr
+            #Return
+            #Sharpe Ratio
+            #Up Count (how directional is movement)
+
         transformedData = self.series.transformJoinedData(dataOfInterest)
         xVals = []
         yVals = []
         yIndex = []
         for i in range(len(transformedData) - self.windowSize - self.predictionPeriod):
             inputSeries = transformedData[i:i+self.windowSize]
+            lookbackTargetDays = transformedData[i:i+self.windowSize]
+            lookbackData = dataOfInterest[lookbackTargetDays.index]
+
+            lookbackDataDaily = getDailyFactorReturn(self.targetTicker, lookbackData)
+            factorSR = empyrical.sharpe_ratio(lookbackDataDaily)
+            factorVol = empyrical.annual_volatility(lookbackDataDaily)
+
+            ##HOW MUCH TRENDING
+            upCount = np.array(lookbackDataDaily.values)
+            upCount = len(upCount[upCount > 0])/float(len(upCount))
+            print([factorSR, factorVol, upCount])
+
             targetDays = transformedData[i+self.windowSize:i+self.windowSize+self.predictionPeriod]
             targetSeries = dataOfInterest["Adj_Close_" + self.targetTicker][targetDays.index]
             transformedTarget = targetSeries.apply(lambda x:(x - targetSeries[0])/targetSeries[0])
-            xVals.append(np.array(inputSeries))
+            xVals.append(np.array(inputSeries + [factorSR, factorVol, upCount])) ##Last 3 Reserverd
             yVals.append(transformedTarget[-1])
             yIndex.append(targetDays.index[0])
         return xVals, yVals, yIndex, transformedData[-self.windowSize:]
@@ -367,7 +384,26 @@ def computePosition(predictionsArr):
     return netPos/len(predictionsArr)
 
 def applyBinary(predictionsArr):
+    """
+    applies a simple binary conversion to predictions
+
+    :param predictionsArr: some series of predictions
+
+    :returns: binarized predictions
+
+    """
     return [1.0 if item > 0.0 else -1.0 for item in predictionsArr]
+
+def applyConfidence(predictionsArr):
+    """
+    applies a scaling position esimate based on confidence
+
+    :param predictionsArr: some series of predictions
+
+    :returns: scaled predictions
+
+    """
+    return [(item - 0.5) * 2 for item in predictionsArr]
 
 
 def getDailyFactorReturn(ticker, joinedData):
@@ -412,12 +448,12 @@ class endToEnd:
         scaler = StandardScaler()
         realArr = []
         for item in xVals:
-            realArr.append(item[-1])
+            realArr.append((item[:-3])[-1])  ## because ticker values
         scaler.fit(realArr)
 
-        xSlice = [scaler.transform(item) for item in xVals]
+        xSlice = [scaler.transform(item[:-3]) + item[-3:] for item in xVals]
 
-        xTarget = scaler.transform(xTarget)
+        xTarget = scaler.transform(xTarget[:-3]) + xTarget[-3:]
 
         totalModel = ExtraTreesClassifier(self.treeSize, n_jobs=1, 
                                           class_weight="balanced_subsample", 
@@ -460,7 +496,7 @@ class endToEnd:
             
             identifiersToCheck = []
             
-            for i in range(len(xVals) - 44): ##44 is lag 
+            for i in range(len(xVals) - 44): ##44 is lag...should not overlap with any other predictions or will ruin validity of walkforward optimization
                 if i < 600:
                     ##MIN TRAINING
                     continue
