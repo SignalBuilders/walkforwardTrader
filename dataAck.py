@@ -344,7 +344,7 @@ class walkforwardInputSeries:
         yIndex = []
         for i in range(len(transformedData) - self.windowSize - self.predictionPeriod):
             inputSeries = transformedData[i:i+self.windowSize]
-            lookbackTargetDays = transformedData[i:i+self.windowSize]
+            lookbackTargetDays = transformedData[i:i+self.windowSize + 1] ##DON'T INCLUDE LAST INDEX SO DO + 1
             lookbackData = dataOfInterest[lookbackTargetDays.index[0]:lookbackTargetDays.index[-1]]
 
             lookbackDataDaily = getDailyFactorReturn(self.targetTicker, lookbackData)
@@ -354,7 +354,7 @@ class walkforwardInputSeries:
             ##HOW MUCH TRENDING
             upCount = np.array(lookbackDataDaily.values)
             upCount = len(upCount[upCount > 0])/float(len(upCount))
-            print([factorSR, factorVol, upCount])
+            # print([factorSR, factorVol, upCount])
 
             targetDays = transformedData[i+self.windowSize:i+self.windowSize+self.predictionPeriod]
             targetSeries = dataOfInterest["Adj_Close_" + self.targetTicker][targetDays.index]
@@ -362,7 +362,20 @@ class walkforwardInputSeries:
             xVals.append(np.array(inputSeries.tolist() + [factorSR, factorVol, upCount])) ##Last 3 Reserverd
             yVals.append(transformedTarget[-1])
             yIndex.append(targetDays.index[0])
-        return xVals, yVals, yIndex, transformedData[-self.windowSize:]
+        
+        xToday = transformedData[-self.windowSize:]
+        lookbackData = dataOfInterest[xToday.index[0]:]
+
+        lookbackDataDaily = getDailyFactorReturn(self.targetTicker, lookbackData)
+        factorSR = empyrical.sharpe_ratio(lookbackDataDaily)
+        factorVol = empyrical.annual_volatility(lookbackDataDaily)
+
+        ##HOW MUCH TRENDING
+        upCount = np.array(lookbackDataDaily.values)
+        upCount = len(upCount[upCount > 0])/float(len(upCount))
+
+
+        return xVals, yVals, yIndex, np.array(xToday.tolist() + [factorSR, factorVol, upCount])
     
     def describe(self):
         return (self.windowSize, self.series.describe(), self.predictionPeriod, self.targetTicker)
