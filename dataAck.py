@@ -408,7 +408,6 @@ import multiprocessing as mp
 
 
 def computePosition(predictionsArr):
-    print(len(predictionsArr))
     netPos = 0.0
     for item in predictionsArr:
         if item > 0.51:
@@ -598,6 +597,7 @@ class endToEnd:
                 loss = log_loss(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds))
                 roc_auc = roc_auc_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds))
                 accuracy = accuracy_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds).round())
+                print(loss, roc_auc, accuracy)
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
                 i = 1
@@ -608,9 +608,8 @@ class endToEnd:
                     tablesToJoin.append(thisTable)
                     i += 1
                 predsTable = predsTable.join(tablesToJoin)
-                print(predsTable.columns)
                 
-                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
+                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
                 dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
                 transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
                 returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
