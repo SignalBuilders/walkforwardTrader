@@ -384,12 +384,15 @@ class walkforwardInputSeries:
         moddedY = yVals
         moddedYIndex = yIndex
         if self.lowVolMove is not None:
+            moddedX = []
+            moddedY = []
+            moddedYIndex = []
             lowVolMove = np.percentile(np.array([abs(item)for item in yVals]), self.lowVolMove)
             print("LOW VOL MOVE", lowVolMove)
             for i in range(len(xVals)):
-                if abs(yVals[i]) < lowVolMove:
+                if abs(yVals[i]) > lowVolMove:
                     moddedX.append(xVals[i])
-                    moddedY.append(yVals[i] * -1.0) ##PUT NO EMPHASIS ON SMALL MOVES
+                    moddedY.append(yVals[i]) ##PUT NO EMPHASIS ON SMALL MOVES
                     moddedYIndex.append(yIndex[i])
 
 
