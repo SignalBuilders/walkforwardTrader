@@ -604,6 +604,7 @@ class endToEnd:
                 while i < self.walkForward.predictionPeriod:
                     predsTable = predsTable.join(predsTable.shift(i), rsuffix="_" + str(i))
                     i += 1
+                print(predsTable.columns)
                 
                 transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
                 dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
