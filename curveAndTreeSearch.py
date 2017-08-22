@@ -54,7 +54,10 @@ while True:
         s = sManager.createSeries()
         while s.checkValidity(s.transformJoinedData(joinedData[:"2016-01-01"])) == False:
             s = sManager.createSeries()
-            
+        
+        print("*********")
+        print("NEW SERIES", s.describe())
+        print("*********")
 
         # try:
         for lookback in [5, 10, 22, 44]:
