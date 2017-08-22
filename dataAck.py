@@ -325,11 +325,12 @@ class seriesManager:
 import empyrical
 import numpy as np
 class walkforwardInputSeries:
-    def __init__(self, series, windowSize, predictionLength, targetTicker):
+    def __init__(self, series, windowSize, predictionLength, targetTicker, lowVolMove):
         self.windowSize = windowSize
         self.series = series
         self.predictionPeriod = predictionLength
         self.targetTicker = targetTicker
+        self.lowVolMove = lowVolMove
         print(self.describe())
     
     def generateWindows(self, dataOfInterest):
@@ -377,16 +378,19 @@ class walkforwardInputSeries:
 
 
         ##STUFF XVALS WITH LOW MOVEMENT EVENTS
-        lowVolMove = np.percentile(np.array([abs(item)for item in yVals]), 25)
-        print("LOW VOL MOVE", lowVolMove)
+
+        
         moddedX = xVals
         moddedY = yVals
         moddedYIndex = yIndex
-        for i in range(len(xVals)):
-            if abs(yVals[i]) < lowVolMove:
-                moddedX.append(xVals[i])
-                moddedY.append(yVals[i] * -1.0) ##PUT NO EMPHASIS ON SMALL MOVES
-                moddedYIndex.append(yIndex[i])
+        if self.lowVolMove is not None:
+            lowVolMove = np.percentile(np.array([abs(item)for item in yVals]), self.lowVolMove)
+            print("LOW VOL MOVE", lowVolMove)
+            for i in range(len(xVals)):
+                if abs(yVals[i]) < lowVolMove:
+                    moddedX.append(xVals[i])
+                    moddedY.append(yVals[i] * -1.0) ##PUT NO EMPHASIS ON SMALL MOVES
+                    moddedYIndex.append(yIndex[i])
 
 
 
@@ -792,11 +796,12 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
     return metrics
 
 class algoBlob:
-    def __init__(self, inputSeries, windowSize, trees, predictionLength, standardization, targetTicker):
-        self.inputSeries = walkforwardInputSeries(inputSeries, windowSize, predictionLength, targetTicker)
+    def __init__(self, inputSeries, windowSize, trees, predictionLength, standardization, lowVolMove, targetTicker):
+        self.inputSeries = walkforwardInputSeries(inputSeries, windowSize, predictionLength, targetTicker, lowVolMove)
         self.windowSize = windowSize
         self.trees = trees
         self.standardization = standardization
+        self.lowVolMove = lowVolMove
         self.e2e = endToEnd(self.inputSeries, trees, standardization)
         print("SERIES", self.inputSeries.describe(), "WINDOW", windowSize, "TREES", trees)
     
@@ -811,7 +816,7 @@ class algoBlob:
         return self.e2e.runModelToday(dataOfInterest)
     
     def describe(self):
-        return (self.inputSeries.describe(), self.windowSize, self.trees, self.standardization)
+        return (self.inputSeries.describe(), self.windowSize, self.trees, self.standardization, self.lowVolMove)
 
 def logModel(topic, message):
     while True:
