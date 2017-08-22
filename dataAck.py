@@ -601,9 +601,13 @@ class endToEnd:
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
                 i = 1
+                tablesToJoin = []
                 while i < self.walkForward.predictionPeriod:
-                    predsTable = predsTable.join(predsTable.shift(i), rsuffix="_" + str(i))
+                    thisTable = predsTable.shift(i)
+                    thisTable.columns = ["Predictions_" + str(i)]
+                    tablesToJoin.append(thisTable)
                     i += 1
+                predsTable = predsTable.join(tablesToJoin)
                 print(predsTable.columns)
                 
                 transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
