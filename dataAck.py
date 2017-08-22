@@ -410,9 +410,9 @@ import multiprocessing as mp
 def computePosition(predictionsArr):
     netPos = 0.0
     for item in predictionsArr:
-        if item > 0.55:
+        if item > 0.6:
             netPos += 1.0
-        elif item < 0.45:
+        elif item < 0.4:
             netPos -= 1.0
     return netPos/len(predictionsArr)
 
