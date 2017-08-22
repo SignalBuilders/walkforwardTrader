@@ -638,7 +638,7 @@ class endToEnd:
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
 
-                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.7 or activity < 0.5 or loss > 0.75 or accuracy < 0.43) and shortSeen == 0:
+                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.7 or activity < 0.5 or accuracy < 0.45) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
@@ -663,7 +663,7 @@ class endToEnd:
                             "accuracy":accuracy
                     }, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6 or stability < 0.4 or loss > 0.75 or accuracy < 0.45) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6 or stability < 0.4  or accuracy < 0.45) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
