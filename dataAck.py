@@ -408,6 +408,7 @@ import multiprocessing as mp
 
 
 def computePosition(predictionsArr):
+    print(predictionsArr)
     netPos = 0.0
     for item in predictionsArr:
         if item > 0.51:
@@ -593,10 +594,10 @@ class endToEnd:
                     preds.append(returnDict[i])
                     actuals.append(yVals[int(i) + 44])
                     days.append(yIndex[int(i) + 44])
-                
-                print("LOSS", log_loss(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
-                print("ROC AUC", roc_auc_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
-                print("ACCURACY", accuracy_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds).round()))
+
+                loss = log_loss(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds))
+                roc_auc = roc_auc_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds))
+                accuracy = accuracy_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds).round())
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
                 i = 1
@@ -604,7 +605,7 @@ class endToEnd:
                     predsTable = predsTable.join(predsTable.shift(i), rsuffix="_" + str(i))
                     i += 1
                 
-                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
+                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
                 dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
                 transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
                 returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
