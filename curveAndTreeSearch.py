@@ -58,11 +58,11 @@ while True:
 
         # try:
         for lookback in [5, 10, 22, 44]:
-            for prediction in [5, 7, 10, 15]:
+            for prediction in [2, 3, 5, 7, 10, 15]:
                 for radius in [0.3, 0.5, 0.7, 1.0, 1.5, 2.0]:
                     for minConfidence in [0.01, 0.05, 0.1, 0.2]:
                         for minNeighbors in [1, 10, 30]:
-                            if random.uniform(0,1) < 0.8: ##RANDOMLY SKIP
+                            if random.uniform(0,1) < 0.9: ##RANDOMLY SKIP
                                 continue
                             cPre = CurvePredictor.CurvePredictor(s, tickerToTrade, lookback, prediction, radius, minConfidence, minNeighbors)
                             algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = cPre.runModelHistorical(joinedData, earlyStop=True)
