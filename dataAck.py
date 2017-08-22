@@ -428,6 +428,7 @@ def getDailyFactorReturn(ticker, joinedData):
     return dailyFactorReturn
 
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import log_loss
 import empyrical
 
 class endToEnd:
@@ -505,7 +506,7 @@ class endToEnd:
             if j % 30 == 0:
                 print("THREAD ", k, "PROGRESS:", j/len(identifiers))
        
-    import sklearn.metrics
+    
     def runModelsChunksSkipMP(self, dataOfInterest, daysToCheck = None):
         xVals, yVals, yIndex, xToday = self.walkForward.generateWindows(dataOfInterest)
         mpEngine = mp.get_context('fork')
@@ -566,7 +567,7 @@ class endToEnd:
                     actuals.append(yVals[int(i) + 44])
                     days.append(yIndex[int(i) + 44])
 
-                print("LOSS", sklearn.metrics.log_loss(np.array(actuals), np.array(preds)))
+                print("LOSS", log_loss(np.array(actuals), np.array(preds)))
                     
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
