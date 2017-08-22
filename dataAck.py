@@ -609,7 +609,7 @@ class endToEnd:
                     i += 1
                 predsTable = predsTable.join(tablesToJoin)
                 
-                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
+                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
                 dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
                 transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
                 returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
@@ -638,7 +638,7 @@ class endToEnd:
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
 
-                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.7 or activity < 0.5 or stability < 0.4) and shortSeen == 0:
+                if (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.7 or activity < 0.5 or loss > 0.75 or accuracy < 0.43) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "factorSharpe":empyrical.sharpe_ratio(factorReturn),
@@ -657,10 +657,13 @@ class endToEnd:
                             "sharpeDiffSlippage":sharpeDiffSlippage,
                             "relativeSharpeSlippage":relativeSharpeSlippage,
                             "rawBeta":rawBeta,
-                            "stability":stability
+                            "stability":stability,
+                            "loss":loss,
+                            "roc_auc":roc_auc,
+                            "accuracy":accuracy
                     }, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6 or stability < 0.4) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or slippageSharpe < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6 or activity < 0.6 or stability < 0.4 or loss > 0.75 or accuracy < 0.45) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
@@ -684,7 +687,10 @@ class endToEnd:
                             "sharpeDiffSlippage":sharpeDiffSlippage,
                             "relativeSharpeSlippage":relativeSharpeSlippage,
                             "rawBeta":rawBeta,
-                            "stability":stability
+                            "stability":stability,
+                            "loss":loss,
+                            "roc_auc":roc_auc,
+                            "accuracy":accuracy
                     }, None, None
                     
                 elif shortSeen < 4:
@@ -700,6 +706,17 @@ class endToEnd:
         return self.runDay(xVals, yVals, xToday, identifier=None, sharedDict=None)
         
 from scipy import stats
+
+def vizMLResults(factorReturn, predictions):
+    loss = log_loss(np.array(endToEnd.transformTargetArr(factorReturn)), np.array(predictions))
+    roc_auc = roc_auc_score(np.array(endToEnd.transformTargetArr(factorReturn)), np.array(predictions))
+    accuracy = accuracy_score(np.array(endToEnd.transformTargetArr(factorReturn)), np.array(predictions).round())
+
+    return {
+        "LOG LOSS":loss,
+        "ROC AUC":roc_auc,
+        "ACCURACY":accuracy
+    }
 
 def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = False):
     ##ENSURE EQUAL LENGTH
@@ -728,6 +745,8 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
                "SHARPE DIFFERENCE SLIPPAGE":sharpeDiffSlippage,
                "RELATIVE SHARPE SLIPPAGE":relativeSharpeSlippage,
               }
+
+
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     metrics["SHARPE SLIPPAGE DECAY"] = metrics["SHARPE DIFFERENCE SLIPPAGE"] - metrics["SHARPE DIFFERENCE"]
     
@@ -843,6 +862,8 @@ def storeModel(model, trainingMetrics, oosMetrics):
     toUpload["trees"] = model.trees
     toUpload["windowSize"] = model.windowSize
     toUpload["model"] = pickle.dumps(model)
+    toUpload["standardization"] = model.standardization
+    toUpload["lowVolMove"] = model.lowVolMove
     organismHash = hashlib.sha224(str(model.describe()).encode('utf-8')).hexdigest()
     ##UPLOAD ORGANISM OBJECT
     while True:
