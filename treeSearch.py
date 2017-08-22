@@ -59,13 +59,12 @@ while True:
         while True:
             try:
                 blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
-                tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR") 
+                tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
 
                 algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
                 metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                 print("TRAIN:", metrics)
-                if metrics["BETA"] < 0.6\
-                     and metrics["SHARPE"] > 0.75 and metrics["ACTIVITY"] > 0.2:
+                if (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["RAW BETA"] < 0.6:
                     ##STORE
                     testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                     print("TEST:", testMetrics)
