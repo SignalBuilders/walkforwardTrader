@@ -571,7 +571,7 @@ class endToEnd:
                     predsTable = predsTable.join(predsTable.shift(i), rsuffix="_" + str(i))
                     i += 1
                 
-                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
+                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
                 dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
                 transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
                 returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
