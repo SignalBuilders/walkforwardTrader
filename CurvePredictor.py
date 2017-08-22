@@ -7,6 +7,17 @@ import numpy as np
 import dataAck
 import portfolio
 from sklearn.preprocessing import MinMaxScaler
+
+
+import params
+from google.cloud import datastore, storage, logging
+import time
+import pickle
+import hashlib
+import sys
+
+
+
 class CurvePredictor:
     def __init__(self, inputSeries, targetTicker, lookbackDistance, predictionDistance, radius, minConfidence, minNeighbors):
         self.parallelism = 16
@@ -20,6 +31,24 @@ class CurvePredictor:
     
     def describe(self):
         return (self.inputSeries.describe(), self.targetTicker, self.lookbackDistance, self.predictionDistance, self.radius, self.minConfidence, self.minNeighbors)
+
+    def getHash(self):
+        return hashlib.sha224(str(self.describe()).encode('utf-8')).hexdigest()
+
+    def formUploadDictionary(self):
+        toUpload = {}
+        toUpload["ticker"] = self.targetTicker
+        toUpload["predictionLength"] = self.predictionDistance
+        toUpload["lookbackDistance"] = self.lookbackDistance
+        toUpload["radius"] = self.radius
+        toUpload["minConfidence"] = self.minConfidence
+        toUpload["minNeighbors"] = self.minNeighbors
+        return toUpload
+
+    def numberOfPredictors(self):
+        return 1
+
+
 
     @staticmethod
     def ensureNoShifts(nearestIndicies):
@@ -94,7 +123,7 @@ class CurvePredictor:
                 print("THREAD ", k, "PROGRESS:", j/len(identifiers))
         
     
-    def runModelsChunksSkipMP(self, dataOfInterest, daysToCheck = None):
+    def runModelsChunksSkipMP(self, dataOfInterest, daysToCheck = None, earlyStop=False):
         xVals, yVals, yIndex, xToday = self.generateWindows(dataOfInterest)
         mpEngine = mp.get_context('fork')
         with mpEngine.Manager() as manager:
@@ -120,6 +149,7 @@ class CurvePredictor:
             factorReturn = None
             predictions = None
             slippageAdjustedReturn = None
+            rawPredictions = None
             shortSeen = 0
             for clippedIdentifiers in identifierWindows:
                 
@@ -156,6 +186,7 @@ class CurvePredictor:
 
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
+                rawPredictions = pd.DataFrame(preds, index=days, columns=["Predictions"])
                 i = 1
                 tablesToJoin = []
                 while i < self.predictionDistance:
@@ -194,65 +225,69 @@ class CurvePredictor:
                 slippageSharpe = empyrical.sharpe_ratio(slippageAdjustedReturn)
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
-                if np.isnan(shortSharpe) == True:
-                    return None, {"sharpe":shortSharpe}, None, None
+                if earlyStop == True:
+                    if np.isnan(shortSharpe) == True:
+                        return None, {"sharpe":shortSharpe}, None, None
 
-                elif (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.7) and shortSeen == 0:
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
-                            "sharpeSlippage":slippageSharpe,
-                            "beta":abs(beta),
-                            "alpha":alpha,
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":"first 252 days",
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "sharpeDiff":sharpeDiff,
-                            "relativeSharpe":relativeSharpe,
-                            "sharpeDiffSlippage":sharpeDiffSlippage,
-                            "relativeSharpeSlippage":relativeSharpeSlippage,
-                            "rawBeta":rawBeta,
-                            "stability":stability
-                    }, None, None
-                
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
-                    periodName = "first 600 days"
-                    if shortSeen == 2:
-                        periodName = "first 900 days"
-                    elif shortSeen == 3:
-                        periodName = "first 1200 days"
-                    return None, {
-                            "sharpe":shortSharpe, ##OVERLOADED IN FAIL
-                            "factorSharpe":empyrical.sharpe_ratio(factorReturn),
-                            "sharpeSlippage":slippageSharpe,
-                            "alpha":alpha,
-                            "beta":abs(beta),
-                            "activity":activity,
-                            "treynor":treynor,
-                            "period":periodName,
-                            "algoReturn":algoAnnualReturn,
-                            "algoVol":algoVol,
-                            "factorReturn":factorAnnualReturn,
-                            "factorVol":factorVol,
-                            "sharpeDiff":sharpeDiff,
-                            "relativeSharpe":relativeSharpe,
-                            "sharpeDiffSlippage":sharpeDiffSlippage,
-                            "relativeSharpeSlippage":relativeSharpeSlippage,
-                            "rawBeta":rawBeta,
-                            "stability":stability
-                    }, None, None
+                    elif (empyrical.sharpe_ratio(returnStream) < 0.0 or abs(beta) > 0.7) and shortSeen == 0:
+                        return None, {
+                                "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                                "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                                "sharpeSlippage":slippageSharpe,
+                                "beta":abs(beta),
+                                "alpha":alpha,
+                                "activity":activity,
+                                "treynor":treynor,
+                                "period":"first 252 days",
+                                "algoReturn":algoAnnualReturn,
+                                "algoVol":algoVol,
+                                "factorReturn":factorAnnualReturn,
+                                "factorVol":factorVol,
+                                "sharpeDiff":sharpeDiff,
+                                "relativeSharpe":relativeSharpe,
+                                "sharpeDiffSlippage":sharpeDiffSlippage,
+                                "relativeSharpeSlippage":relativeSharpeSlippage,
+                                "rawBeta":rawBeta,
+                                "stability":stability
+                        }, None, None
                     
-                elif shortSeen < 4:
-                    print("CONTINUING", "SHARPE:", shortSharpe, "SHARPE DIFF:", sharpeDiff, "RAW BETA:", rawBeta, "TREYNOR:", treynor)
+                    elif (((empyrical.sharpe_ratio(returnStream) < 0.25) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.25 or sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(beta) > 0.6) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                        periodName = "first 600 days"
+                        if shortSeen == 2:
+                            periodName = "first 900 days"
+                        elif shortSeen == 3:
+                            periodName = "first 1200 days"
+                        return None, {
+                                "sharpe":shortSharpe, ##OVERLOADED IN FAIL
+                                "factorSharpe":empyrical.sharpe_ratio(factorReturn),
+                                "sharpeSlippage":slippageSharpe,
+                                "alpha":alpha,
+                                "beta":abs(beta),
+                                "activity":activity,
+                                "treynor":treynor,
+                                "period":periodName,
+                                "algoReturn":algoAnnualReturn,
+                                "algoVol":algoVol,
+                                "factorReturn":factorAnnualReturn,
+                                "factorVol":factorVol,
+                                "sharpeDiff":sharpeDiff,
+                                "relativeSharpe":relativeSharpe,
+                                "sharpeDiffSlippage":sharpeDiffSlippage,
+                                "relativeSharpeSlippage":relativeSharpeSlippage,
+                                "rawBeta":rawBeta,
+                                "stability":stability
+                        }, None, None
+                        
+                    elif shortSeen < 4:
+                        print("CONTINUING", "SHARPE:", shortSharpe, "SHARPE DIFF:", sharpeDiff, "RAW BETA:", rawBeta, "TREYNOR:", treynor)
                    
                 shortSeen += 1
 
-            return returnStream, factorReturn, predictions, slippageAdjustedReturn
+            return returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions
     
+    def runModelHistorical(self, dataOfInterest, earlyStop=False):
+        return self.runModelsChunksSkipMP(dataOfInterest, earlyStop=earlyStop)
+
 
     def runModelToday(self, dataOfInterest):
         xVals, yVals, yIndex, xToday = self.generateWindows(dataOfInterest)

@@ -29,3 +29,9 @@ TRADING_MODE = "TRADING_MODE"
 
 ##STATUS
 systemStatus = "walkforward_status"
+
+
+##CURVE AND TREE TRADING
+curveModels = "curve_models"
+treeModels = "tree_models"
+treeModelData = "treemodeldata"
