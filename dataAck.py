@@ -432,11 +432,12 @@ from sklearn.metrics import log_loss
 import empyrical
 
 class endToEnd:
-    def __init__(self, walkForward, trees):
+    def __init__(self, walkForward, trees, standardization):
         self.walkForward = walkForward
         self.parallelism = 60
         self.treeSize = trees
         self.threshold = None
+        self.standardization = standardization
         
     @staticmethod
     def transformTargetArr(targetArr, threshold= None):
@@ -465,14 +466,20 @@ class endToEnd:
         
         xSlice = []
         for item in xVals:
-            scaler = MinMaxScaler()
-            thisTransform = scaler.fit_transform(item[:-3]).tolist()  ## because ticker values
-            thisTransform += item[-3:].tolist()
+            thisTransform = None
+            if self.standardization == True:
+                scaler = MinMaxScaler()
+                thisTransform = scaler.fit_transform(item[:-3]).tolist()  ## because ticker values
+                thisTransform += item[-3:].tolist()
+            else:
+                thisTransform = item
             xSlice.append(np.array(thisTransform))
 
         xSlice = np.array(xSlice)
-        scaler = MinMaxScaler()
-        xTarget = np.array(scaler.fit_transform(xTarget[:-3]).tolist() + xTarget[-3:].tolist())
+        if self.standardization == True:
+            scaler = MinMaxScaler()
+            xTarget = np.array(scaler.fit_transform(xTarget[:-3]).tolist() + xTarget[-3:].tolist())
+
 
         totalModel = ExtraTreesClassifier(self.treeSize, n_jobs=1, 
                                           class_weight="balanced_subsample", 
@@ -768,11 +775,12 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
     return metrics
 
 class algoBlob:
-    def __init__(self, inputSeries, windowSize, trees, predictionLength, targetTicker):
+    def __init__(self, inputSeries, windowSize, trees, predictionLength, standardization, targetTicker):
         self.inputSeries = walkforwardInputSeries(inputSeries, windowSize, predictionLength, targetTicker)
         self.windowSize = windowSize
         self.trees = trees
-        self.e2e = endToEnd(self.inputSeries, trees)
+        self.standardization = standardization
+        self.e2e = endToEnd(self.inputSeries, trees, standardization)
         print("SERIES", self.inputSeries.describe(), "WINDOW", windowSize, "TREES", trees)
     
     def makePredictions(self, dataOfInterest, daysToCheck = None, earlyStop = False):
