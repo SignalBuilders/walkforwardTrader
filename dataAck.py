@@ -472,7 +472,6 @@ class endToEnd:
         xSlice = np.array(xSlice)
         scaler = MinMaxScaler()
         xTarget = np.array(scaler.fit_transform(xTarget[:-3]).tolist() + xTarget[-3:].tolist())
-        print(xTarget)
 
         totalModel = ExtraTreesClassifier(self.treeSize, n_jobs=1, 
                                           class_weight="balanced_subsample", 
@@ -506,7 +505,7 @@ class endToEnd:
             if j % 30 == 0:
                 print("THREAD ", k, "PROGRESS:", j/len(identifiers))
        
-
+    from sklearn.metrics import log_loss
     def runModelsChunksSkipMP(self, dataOfInterest, daysToCheck = None):
         xVals, yVals, yIndex, xToday = self.walkForward.generateWindows(dataOfInterest)
         mpEngine = mp.get_context('fork')
@@ -566,6 +565,8 @@ class endToEnd:
                     preds.append(returnDict[i])
                     actuals.append(yVals[int(i) + 44])
                     days.append(yIndex[int(i) + 44])
+
+                print("LOSS", log_loss(np.array(actuals), np.array(preds)))
                     
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
