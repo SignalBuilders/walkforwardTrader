@@ -345,7 +345,7 @@ class walkforwardInputSeries:
         for i in range(len(transformedData) - self.windowSize - self.predictionPeriod):
             inputSeries = transformedData[i:i+self.windowSize]
             lookbackTargetDays = transformedData[i:i+self.windowSize]
-            lookbackData = dataOfInterest.iloc[lookbackTargetDays.index]
+            lookbackData = dataOfInterest[lookbackTargetDays.index[0]:lookbackTargetDays.index[-1]]
 
             lookbackDataDaily = getDailyFactorReturn(self.targetTicker, lookbackData)
             factorSR = empyrical.sharpe_ratio(lookbackDataDaily)
