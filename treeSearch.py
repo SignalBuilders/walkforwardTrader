@@ -55,15 +55,16 @@ while True:
     ##RUN TREE SEARCH
     curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
     treeBlocks = curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
-    comboBlocks = curveBlocks + treeBlocks
-    for buildingBlocks in [curveBlocks, treeBlocks, comboBlocks]:
+    for buildingBlocks in [(curveBlocks, curveBlocks), (treeBlocks, treeBlocks), (curveBlocks, treeBlocks)]:
         runsSeen = 0
         print(buildingBlocks)
-        if len(buildingBlocks) > 5:
+        if len(buildingBlocks[0]) + len(buildingBlocks[1]) > 10:
             while True:
                 try:
-                    blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
-                    tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
+
+                    lobj = np.random.choice(buildingBlocks[0], 1, replace=False)
+                    robj = np.random.choice(buildingBlocks[1], 1, replace=False)
+                    tPre = TreePredictor.TreePredictor(lobj, robj, "OR" if random.uniform(0,1) < 0.5 else "AND") 
 
                     algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
                     metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
@@ -92,8 +93,3 @@ while True:
                         "currentTicker":tickerToTrade
                     })
                     break
-
-        
-
-
-        
