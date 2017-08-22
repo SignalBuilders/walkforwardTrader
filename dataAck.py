@@ -359,7 +359,7 @@ class walkforwardInputSeries:
             targetDays = transformedData[i+self.windowSize:i+self.windowSize+self.predictionPeriod]
             targetSeries = dataOfInterest["Adj_Close_" + self.targetTicker][targetDays.index]
             transformedTarget = targetSeries.apply(lambda x:(x - targetSeries[0])/targetSeries[0])
-            xVals.append(np.array(inputSeries + [factorSR, factorVol, upCount])) ##Last 3 Reserverd
+            xVals.append(np.array(inputSeries.tolist() + [factorSR, factorVol, upCount])) ##Last 3 Reserverd
             yVals.append(transformedTarget[-1])
             yIndex.append(targetDays.index[0])
         return xVals, yVals, yIndex, transformedData[-self.windowSize:]
