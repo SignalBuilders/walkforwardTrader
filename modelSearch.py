@@ -53,8 +53,8 @@ while True:
             
 
         try:
-            for defaultWindowSize in [5, 10, 22, 44]:
-                for trees in [25, 50, 100, 150, 300]:
+            for defaultWindowSize in [22, 44, 5, 10]:
+                for trees in [100, 150, 25, 50, 300]:
                     for predictionLength in [5, 7, 10, 15]:
                         for standardizing in [True, False]:
                             for lowVolMove in [None, 10, 25, 50]:
