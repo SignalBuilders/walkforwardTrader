@@ -24,11 +24,9 @@ class TreePredictor:
 
 
         if self.obj1.predictionDistance != self.obj2.predictionDistance:
-            print("PREDICTION DISTANCE NOT WELL DEFINED") ##RAISE ERROR IN FUTURE
-            return
+            raise ValueError("PREDICTION DISTANCE NOT WELL DEFINED") ##RAISE ERROR IN FUTURE
         if self.obj1.targetTicker != self.obj2.targetTicker:
-            print("TARGET TICKER NOT WELL DEFINED") ##RAISE ERROR IN FUTURE
-            return
+            raise ValueError("TARGET TICKER NOT WELL DEFINED") ##RAISE ERROR IN FUTURE
         self.predictionDistance = self.obj1.predictionDistance ##SHOULD BE SAME FOR BOTH OBJECTS
         self.targetTicker = self.obj1.targetTicker
         self.combiner = combiner ##AND or OR -> TREAT 0 AS SAME TYPE
