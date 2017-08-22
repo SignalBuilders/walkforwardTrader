@@ -794,7 +794,7 @@ class algoBlob:
         return self.e2e.runModelToday(dataOfInterest)
     
     def describe(self):
-        return (self.inputSeries.describe(), self.windowSize, self.trees)
+        return (self.inputSeries.describe(), self.windowSize, self.trees, self.standardization)
 
 def logModel(topic, message):
     while True:
