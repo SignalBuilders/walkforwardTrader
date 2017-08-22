@@ -43,6 +43,7 @@ class CurvePredictor:
         toUpload["radius"] = self.radius
         toUpload["minConfidence"] = self.minConfidence
         toUpload["minNeighbors"] = self.minNeighbors
+        toUpload["series"] = str(self.inputSeries.describe())
         return toUpload
 
     def numberOfPredictors(self):
