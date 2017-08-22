@@ -396,6 +396,20 @@ def computePosition(predictionsArr):
             netPos -= 1.0
     return netPos/len(predictionsArr)
 
+def computePositionConfidence(predictionsArr):
+    """
+    applies a scaling position esimate based on confidence
+
+    :param predictionsArr: some series of predictions
+
+    :returns: scaled predictions
+
+    """
+    netPos = 0.0
+    for item in predictionsArr:
+        netPos += (item - 0.5) * 2
+    return netPos/len(predictionsArr)
+
 def applyBinary(predictionsArr):
     """
     applies a simple binary conversion to predictions
@@ -406,17 +420,6 @@ def applyBinary(predictionsArr):
 
     """
     return [1.0 if item > 0.0 else -1.0 for item in predictionsArr]
-
-def applyConfidence(predictionsArr):
-    """
-    applies a scaling position esimate based on confidence
-
-    :param predictionsArr: some series of predictions
-
-    :returns: scaled predictions
-
-    """
-    return [(item - 0.5) * 2 for item in predictionsArr]
 
 
 def getDailyFactorReturn(ticker, joinedData):
@@ -568,7 +571,7 @@ class endToEnd:
                     predsTable = predsTable.join(predsTable.shift(i), rsuffix="_" + str(i))
                     i += 1
                 
-                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePosition(x), axis=1), columns=["Predictions"]).dropna()
+                transformedPreds = pd.DataFrame(predsTable.apply(lambda x:computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
                 dailyFactorReturn = getDailyFactorReturn(self.walkForward.targetTicker, dataOfInterest)
                 transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
                 returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
