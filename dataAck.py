@@ -577,7 +577,7 @@ class endToEnd:
                 print("LOSS", log_loss(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
                 print("ROC AUC", roc_auc_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
                 print(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds))
-                print("ACCURACY", accuracy_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
+                print("ACCURACY", accuracy_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds).round()))
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
                 i = 1
