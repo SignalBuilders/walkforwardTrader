@@ -375,7 +375,22 @@ class walkforwardInputSeries:
         upCount = len(upCount[upCount > 0])/float(len(upCount))
 
 
-        return xVals, yVals, yIndex, np.array(xToday.tolist() + [factorSR, factorVol, upCount])
+
+        ##STUFF XVALS WITH LOW MOVEMENT EVENTS
+        lowVolMove = np.percentile(np.array(abs(yVals)), 25)
+        moddedX = xVals
+        moddedY = yVals
+        moddedYIndex = yIndex
+        for i in range(len(xVals)):
+            if abs(yVals[i]) < lowVolMove:
+                moddedX.append(xVals[i])
+                moddedY.append(yVals[i] * -1.0) ##PUT NO EMPHASIS ON SMALL MOVES
+                moddedYIndex.append(yIndex[i])
+        
+
+
+
+        return moddedX, moddedY, moddedYIndex, np.array(xToday.tolist() + [factorSR, factorVol, upCount])
     
     def describe(self):
         return (self.windowSize, self.series.describe(), self.predictionPeriod, self.targetTicker)
