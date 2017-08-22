@@ -428,7 +428,7 @@ def getDailyFactorReturn(ticker, joinedData):
     return dailyFactorReturn
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import log_loss, roc_auc_score
+from sklearn.metrics import log_loss, roc_auc_score, accuracy_score
 import empyrical
 
 class endToEnd:
@@ -576,6 +576,7 @@ class endToEnd:
 
                 print("LOSS", log_loss(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
                 print("ROC AUC", roc_auc_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
+                print("ACCURACY", accuracy_score(np.array(endToEnd.transformTargetArr(np.array(actuals), self.threshold)), np.array(preds)))
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
                 i = 1
