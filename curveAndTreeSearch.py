@@ -74,7 +74,7 @@ while True:
                                 continue
                             metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                             print("TRAIN:", metrics)
-                            if metrics["BETA"] < 0.6\
+                            if metrics["RAW BETA"] < 0.4\
                                  and (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2:
                                 ##STORE
                                 testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
@@ -93,28 +93,28 @@ while True:
 
         
         ##RUN TREE SEARCH
-        buildingBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) + curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
-        print(buildingBlocks)
-        if len(buildingBlocks) > 5:
+        # buildingBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) + curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
+        # print(buildingBlocks)
+        # if len(buildingBlocks) > 5:
 
-            blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
-            tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR") 
+        #     blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
+        #     tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR") 
 
-            algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
-            metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
-            print("TRAIN:", metrics)
-            if metrics["BETA"] < 0.6\
-                 and metrics["SHARPE"] > 0.75 and metrics["ACTIVITY"] > 0.2:
-                ##STORE
-                testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
-                print("TEST:", testMetrics)
-                curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
-                curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
-            else:
-                toLog = {"modelDescription":str(tPre.describe())}
-                for k in metrics:
-                    toLog[k] = metrics[k]
-                dataAck.logModel("Model Tree Skipped", toLog)
+        #     algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
+        #     metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
+        #     print("TRAIN:", metrics)
+        #     if metrics["BETA"] < 0.6\
+        #          and metrics["SHARPE"] > 0.75 and metrics["ACTIVITY"] > 0.2:
+        #         ##STORE
+        #         testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
+        #         print("TEST:", testMetrics)
+        #         curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
+        #         curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
+        #     else:
+        #         toLog = {"modelDescription":str(tPre.describe())}
+        #         for k in metrics:
+        #             toLog[k] = metrics[k]
+        #         dataAck.logModel("Model Tree Skipped", toLog)
 
 
 
