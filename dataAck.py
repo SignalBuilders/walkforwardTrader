@@ -464,9 +464,9 @@ class endToEnd:
             realArr.append((item[:-3])[-1])  ## because ticker values
         scaler.fit(realArr)
 
-        xSlice = [scaler.transform(item[:-3]) + item[-3:] for item in xVals]
+        xSlice = [np.array(scaler.transform(item[:-3]).tolist() + item[-3:]) for item in xVals]
 
-        xTarget = scaler.transform(xTarget[:-3]) + xTarget[-3:]
+        xTarget = np.array(scaler.transform(xTarget[:-3]).tolist() + xTarget[-3:])
 
         totalModel = ExtraTreesClassifier(self.treeSize, n_jobs=1, 
                                           class_weight="balanced_subsample", 
