@@ -377,7 +377,8 @@ class walkforwardInputSeries:
 
 
         ##STUFF XVALS WITH LOW MOVEMENT EVENTS
-        lowVolMove = np.percentile(np.array(abs(yVals)), 25)
+        lowVolMove = np.percentile(np.array([abs(item)for item in yVals]), 25)
+        print("LOW VOL MOVE", lowVolMove)
         moddedX = xVals
         moddedY = yVals
         moddedYIndex = yIndex
@@ -386,7 +387,7 @@ class walkforwardInputSeries:
                 moddedX.append(xVals[i])
                 moddedY.append(yVals[i] * -1.0) ##PUT NO EMPHASIS ON SMALL MOVES
                 moddedYIndex.append(yIndex[i])
-        
+
 
 
 
