@@ -21,8 +21,8 @@ class TreePredictor:
     def __init__(self, obj1, obj2, combiner):
         self.obj1 = obj1
         self.obj2 = obj2
-
-
+        if str(self.obj1.describe()) == str(self.obj2.describe()):
+            raise ValueError("INPUT MODELS IDENTICAL") ##RAISE ERROR IN FUTURE
         if self.obj1.predictionDistance != self.obj2.predictionDistance:
             raise ValueError("PREDICTION DISTANCE NOT WELL DEFINED") ##RAISE ERROR IN FUTURE
         if self.obj1.targetTicker != self.obj2.targetTicker:
