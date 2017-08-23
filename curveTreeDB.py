@@ -101,7 +101,7 @@ def storeModelPrediction(model, pred, lastDataDayUsed, shouldReturn = False):
         try:
             datastoreClient = datastore.Client('money-maker-1236')
             #HASH DIGEST
-            predictionHash = hashlib.sha224(model.getHash() + " " + str(toUpload["lastDataDayUsed"])).encode('utf-8')).hexdigest()
+            predictionHash = hashlib.sha224((model.getHash() + " " + str(toUpload["lastDataDayUsed"])).encode('utf-8')).hexdigest()
             key = datastoreClient.key(params.predictionsName, predictionHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
             organismToStore = datastore.Entity(key=key)
             organismToStore.update(toUpload)
@@ -153,13 +153,13 @@ def storeAggregateModelPrediction(model, pred, predictionDay, shouldReturn = Fal
     toUpload["ticker"] = model.inputSeries.targetTicker
     toUpload["aggregatePrediction"] = pred
     toUpload["predictionDay"] = predictionDay
-    toUpload["modelHash"] = hashlib.sha224((str(model.describe())).encode('utf-8')).hexdigest()
+    toUpload["modelHash"] = model.getHash()
     ##UPLOAD ORGANISM OBJECT
     while True:
         try:
             datastoreClient = datastore.Client('money-maker-1236')
             #HASH DIGEST
-            predictionHash = hashlib.sha224((str(model.describe()) + " " + str(toUpload["predictionDay"])).encode('utf-8')).hexdigest()
+            predictionHash = hashlib.sha224((model.getHash() + " " + str(toUpload["predictionDay"])).encode('utf-8')).hexdigest()
             key = datastoreClient.key(params.aggregatePrediction, predictionHash) #NEED TO HASH TO ENSURE NON-OVERLAPPING PREDICTIONS
             organismToStore = datastore.Entity(key=key)
             organismToStore.update(toUpload)
