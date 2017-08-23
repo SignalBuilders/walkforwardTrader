@@ -52,7 +52,7 @@ class TreePredictor:
         return self.obj1.returnAllTickersInvolved() + self.obj2.returnAllTickersInvolved()
 
     def runModelToday(self, dataOfInterest):
-        return self.combinePredictions([self.obj1.runModelToday(dataOfInterest), self.obj2.runModelToday(dataOfInterest)])
+        return self.combinePredictions([dataAck.computePosition([self.obj1.runModelToday(dataOfInterest)]), dataAck.computePosition([self.obj2.runModelToday(dataOfInterest)])])
 
     def combinePredictions(self, predictionArr):
         if self.combiner == "AND":
