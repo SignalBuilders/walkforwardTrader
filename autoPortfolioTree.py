@@ -293,6 +293,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
         p = mpEngine.Process(target=performPortfolioPerformanceEstimation, args=(cleanedPredictions[selectedAlgorithms], cleanedReturns[selectedAlgorithms], hashToModel, joinedData, ))
         p.start()
         runningP.append(p)
+        break ##MUST REMOVE TO DO FULL AUTO
         
 import json
 import empyrical

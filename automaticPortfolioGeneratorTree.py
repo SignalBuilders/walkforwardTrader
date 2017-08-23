@@ -56,6 +56,8 @@ for item in allModels:
 
 # In[ ]:
 print("STARTING GENERATION")
+
+##REMOVE BREAK TO DO FULL AUTO
 autoPortfolioTree.createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=0)
 
 
