@@ -6,6 +6,7 @@ import curveTreeDB
 import portfolioGeneration
 import dataAck
 import multiprocessing as mp
+import pandas as pd
 
 def generateAllReturnsFromCache(allModels):
     aggregateReturns = None
