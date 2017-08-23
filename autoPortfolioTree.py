@@ -141,6 +141,7 @@ def runBackfillMP(mod, joinedData, threadsToUse, backfillDays = 30):
     mpEngine = mp.get_context('fork')
     i = mod.predictionDistance - 1 + backfillDays
     runningP = []
+    itemsLoaded = 0
     while i > 0:
         while len(runningP) > threadsToUse:
             runningP = dataAck.cycleP(runningP)
@@ -148,6 +149,7 @@ def runBackfillMP(mod, joinedData, threadsToUse, backfillDays = 30):
         p = mpEngine.Process(target=runModPredictionBackfill, args=(mod, joinedData[:-i], backfillDays, ))
         p.start()
         runningP.append(p)
+        itemsLoaded += 1
         i -= 1
     
     while len(runningP) > 0:
@@ -157,7 +159,10 @@ def runBackfillMP(mod, joinedData, threadsToUse, backfillDays = 30):
     ##STORE AGGREGATE PREDICTIONS
     i = mod.predictionDistance - 1 + backfillDays
     allPreds = curveTreeDB.getPredictionsByModel(mod)
-    print(allPreds)
+    while len(allPreds) != itemsLoaded:
+        allPreds = curveTreeDB.getPredictionsByModel(mod)
+        print("LENGHT MISMATCH", len(allPreds), itemsLoaded)
+        time.sleep(5)
     while i > 0:
         lastDay = joinedData[:-i].index[-1]
         todayPredictions = []
