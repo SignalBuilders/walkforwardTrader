@@ -58,7 +58,7 @@ while True:
     for buildingBlocks in [curveBlocks, treeBlocks]:
         runsSeen = 0
         print(buildingBlocks)
-        if len(buildingBlocks) > 5:
+        if len(buildingBlocks) > 10:
             while True:
                 try:
                     blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
@@ -91,9 +91,9 @@ while True:
                         "currentTicker":tickerToTrade
                     })
                     break
-
+    # RUN TREE SEARCH WITH COMBOS
     runsSeen = 0
-    if len(curveBlocks) > 5 and len(treeBlocks) > 5:
+    if len(curveBlocks) > 10 and len(treeBlocks) > 10:
         while True:
             try:
                 blocksToUse = [np.random.choice(curveBlocks, 1, replace=False)[0], np.random.choice(treeBlocks, 1, replace=False)[0]]
@@ -126,8 +126,3 @@ while True:
                     "currentTicker":tickerToTrade
                 })
                 break
-
-        
-
-
-        
