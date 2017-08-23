@@ -78,7 +78,7 @@ def checkAggregatePredictionsStored(model):
             
 def runModPredictionBackfill(mod, dataToUse, backfillDays = 30):
     ##ENSURE POPULATED FOR CORRECT PREDICTION STYLE
-    pred = dataAck.computePosition([mod.runModelToday(dataToUse)])
+    pred = mod.runModelToday(dataToUse)
     print(mod.describe(), pred, dataToUse.index[-1])
     curveTreeDB.storeModelPrediction(mod, pred, dataToUse.index[-1])
     
