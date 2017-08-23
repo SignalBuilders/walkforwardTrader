@@ -7,7 +7,7 @@ import params
 allTickers = dataAck.getAllTickersPlain()
 while True:
     import random
-    tickerToTrade = "AGG" #allTickers[random.randint(0, len(allTickers)) - 1]
+    tickerToTrade = "EEM" #allTickers[random.randint(0, len(allTickers)) - 1]
     print(tickerToTrade)
     
     tData = dataAck.getTrainingData(tickerToTrade)
