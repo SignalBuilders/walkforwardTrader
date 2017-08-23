@@ -56,7 +56,7 @@ for item in allModels:
 
 # In[ ]:
 print("STARTING GENERATION")
-autoPortfolioTree.createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=16)
+autoPortfolioTree.createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=1)
 
 
 # In[ ]:

@@ -184,7 +184,7 @@ def storeHistoricalAllocations(portfolioKey, modelsInPortfolio, historicalWeight
             netPosition[model.targetTicker] += weights[model.getHash()] * aggregatePredictions.loc[historicalWeights.index[i]][model.getHash()]
             transformedAlgoPrediction[model.getHash()] = weights[model.getHash()] * aggregatePredictions.loc[historicalWeights.index[i]][model.getHash()]
         allocationsToStore.append(portfolioGeneration.storePortfolioAllocation(portfolioKey, historicalWeights.index[i], weights.to_dict(), netPosition, transformedAlgoPrediction, shouldReturn=True))
-    storeManyItems(allocationsToStore)
+    curveTreeDB.storeManyItems(allocationsToStore)
 
 
 def performPortfolioPerformanceEstimation(thisPredictions, thisReturns, hashToModel, joinedData):
