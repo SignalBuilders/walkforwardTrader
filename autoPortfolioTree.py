@@ -116,7 +116,7 @@ def storePortfolio(models, description, benchmark, portfolioType):
                 "description":description,
                 "benchmark":benchmark,
                 "portfolioType":portfolioType,
-                "startedTrading":getToday()
+                "startedTrading":curveTreeDB.getToday()
             }
             datastoreClient = datastore.Client('money-maker-1236')
             #HASH DIGEST
