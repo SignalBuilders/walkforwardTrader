@@ -184,7 +184,7 @@ def getModelPrediction(ticker = None):
 def storeAggregateModelPrediction(model, pred, predictionDay, shouldReturn = False):
     ##STORES AGGREGATE PREDICTION MADE ON A GIVEN DAY
     toUpload = {}
-    toUpload["ticker"] = model.inputSeries.targetTicker
+    toUpload["ticker"] = model.targetTicker
     toUpload["aggregatePrediction"] = pred
     toUpload["predictionDay"] = predictionDay
     toUpload["modelHash"] = model.getHash()
