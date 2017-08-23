@@ -90,7 +90,7 @@ modelsInPortfolio = {}
 portfolioTypes = {}
 for portfolioInfo in allPortfolios:
     print(portfolioInfo)
-    models = curveTreeDB.getModelsByKey(portfolio.getPortfolioModels(portfolioInfo["key"]))
+    models = autoPortfolioTree.getModelsByKey(portfolio.getPortfolioModels(portfolioInfo["key"]))
     modelsInPortfolio[portfolioInfo["key"]] = models
     portfolioTypes[portfolioInfo["key"]] = portfolioInfo["portfolioType"]
     

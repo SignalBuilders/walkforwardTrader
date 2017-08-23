@@ -535,7 +535,7 @@ def generateRawPredictionsMP(allModels, joinedData, threadsToUse):
         curveTreeDB.storeModelPrediction(mod, pred, joinedData.index[-1])
 
         ##ENSURE POPULATED FOR CORRECT PREDICTION STYLE
-        i = mod.inputSeries.predictionPeriod - 1
+        i = mod.predictionDistance - 1
         while i > 0:
             pred = mod.runModelToday(joinedData[:-i])
             print(mod.describe(), pred, joinedData[:-i].index[-1])
