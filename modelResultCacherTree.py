@@ -22,7 +22,7 @@ import curveTreeDB
 ## GET ALL MODELS
 
 
-allModels = [item["model"] for item in curveTreeDB.getModels(ticker=None, returnEntireObject=True)]
+allModels = [item["model"] for item in curveTreeDB.getModels(params.treeModels, ticker=None, returnEntireObject=True)]
 
 for i in range(len(allModels)):
     model = allModels[i]
