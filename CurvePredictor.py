@@ -156,7 +156,7 @@ class CurvePredictor:
             predictions = None
             slippageAdjustedReturn = None
             rawPredictions = None
-            shortSeen = 0
+            shortSeen = 0 if earlyStop == True else -1
             for clippedIdentifiers in identifierWindows:
                 
                 splitIdentifiers = np.array_split(np.array(clippedIdentifiers), 16)
