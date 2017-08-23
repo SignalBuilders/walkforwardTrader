@@ -49,6 +49,9 @@ class CurvePredictor:
     def numberOfPredictors(self):
         return 1
 
+    def returnAllTickersInvolved(self):
+        return [self.targetTicker, self.inputSeries.ticker]
+
 
 
     @staticmethod

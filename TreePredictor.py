@@ -48,6 +48,9 @@ class TreePredictor:
     def numberOfPredictors(self):
         return self.obj1.numberOfPredictors() + self.obj2.numberOfPredictors()
 
+    def returnAllTickersInvolved(self):
+        return self.obj1.returnAllTickersInvolved() + self.obj2.returnAllTickersInvolved()
+
     def runModelToday(self, dataOfInterest):
         return self.combinePredictions([self.obj1.runModelToday(dataOfInterest), self.obj2.runModelToday(dataOfInterest)])
 
