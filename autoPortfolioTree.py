@@ -41,6 +41,9 @@ def computeReturnsForUniqueModelsCache(uniqueModels, factorToTrade):
         for ticker in mod.returnAllTickersInvolved():
             if ticker not in tickersRequired:
                 tickersRequired.append(ticker)
+
+    if factorToTrade not in tickersRequired:
+        tickersRequired.append(factorToTrade)
             
     
     pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
