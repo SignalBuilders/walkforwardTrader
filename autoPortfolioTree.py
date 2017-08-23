@@ -252,7 +252,7 @@ def performPortfolioPerformanceEstimation(thisPredictions, thisReturns, hashToMo
     for modelHash in thisPredictions.columns:
         thisModel = hashToModel[modelHash]
         modelsUsed.append(thisModel)
-        print(thisModel.describe())
+        print(thisModel.describe(), thisModel.getHash())
         if thisModel.targetTicker not in tickersSeen:
             tickersSeen[thisModel.targetTicker] = 0
         tickersSeen[thisModel.targetTicker] += 1
