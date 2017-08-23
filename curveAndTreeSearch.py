@@ -5,9 +5,9 @@ import TreePredictor
 import curveTreeDB
 import params
 from google.cloud import error_reporting
-client = error_reporting.Client('money-maker-1236')
+
+client = error_reporting.Client('money-maker-1236', service="Curve and Tree Search", version=params.curveAndTreeVersion)
 try:
-    import jajaja
     allTickers = dataAck.getAllTickersPlain()
     while True:
         import random
