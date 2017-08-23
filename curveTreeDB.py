@@ -240,7 +240,7 @@ def storeManyItems(items):
 
 def getPertinentDataForModels(allModels):
     tickersRequired = []
-    for mod in uniqueModels:
+    for mod in allModels:
 
         print(mod.describe())
         for ticker in mod.returnAllTickersInvolved():
