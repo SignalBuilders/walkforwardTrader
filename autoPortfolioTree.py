@@ -317,7 +317,9 @@ def getModelsByKey(modelHashes):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
 def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartDate):
-    models = getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
+    modelHashes = portfolio.getPortfolioModels(portfolioKey)
+    print("MODEL HASHES", modelHashes)
+    models = getModelsByKey(modelHashes)
     print("MODELS FOR PORTFOLIO", models)
     for model in models:
         print(model.describe())
