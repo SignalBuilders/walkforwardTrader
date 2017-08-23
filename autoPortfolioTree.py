@@ -296,6 +296,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
         
 import json
 import empyrical
+import pickle
 
 def getModelsByKey(modelHashes):
     while True:
