@@ -164,6 +164,28 @@ def returnSelectAlgos(algoColumns):
 import time
 import random
 
+def storeHistoricalAllocations(portfolioKey, modelsInPortfolio, historicalWeights, aggregatePredictions):
+
+    aggregatePredictions = aggregatePredictions.dropna()
+    allocationsToStore = []
+    ##ITERATE THROUGH DAYS TO CALCULATE NET POSITION
+    for i in range(len(historicalWeights)):
+        netPosition = {}
+        weights = historicalWeights.iloc[i]
+        transformedAlgoPrediction = {}
+        for model in modelsInPortfolio:
+            if model.targetTicker not in netPosition:
+                netPosition[model.targetTicker] = 0.0
+            try:
+                aggregatePredictions.loc[historicalWeights.index[i]]
+            except:
+                continue
+            
+            netPosition[model.targetTicker] += weights[model.getHash()] * aggregatePredictions.loc[historicalWeights.index[i]][model.getHash()]
+            transformedAlgoPrediction[model.getHash()] = weights[model.getHash()] * aggregatePredictions.loc[historicalWeights.index[i]][model.getHash()]
+        allocationsToStore.append(portfolioGeneration.storePortfolioAllocation(portfolioKey, historicalWeights.index[i], weights.to_dict(), netPosition, transformedAlgoPrediction, shouldReturn=True))
+    storeManyItems(allocationsToStore)
+
 
 def performPortfolioPerformanceEstimation(thisPredictions, thisReturns, hashToModel, joinedData):
     hrpReturns, historicalWeights = portfolioGeneration.\
@@ -179,15 +201,15 @@ def performPortfolioPerformanceEstimation(thisPredictions, thisReturns, hashToMo
         thisModel = hashToModel[modelHash]
         modelsUsed.append(thisModel)
         print(thisModel.describe())
-        if thisModel.inputSeries.targetTicker not in tickersSeen:
-            tickersSeen[thisModel.inputSeries.targetTicker] = 0
-        tickersSeen[thisModel.inputSeries.targetTicker] += 1
+        if thisModel.targetTicker not in tickersSeen:
+            tickersSeen[thisModel.targetTicker] = 0
+        tickersSeen[thisModel.targetTicker] += 1
     
     ##STORE MODEL
     portfolioHash = portfolioGeneration.storePortfolio(modelsUsed,\
             description=str(tickersSeen), benchmark="SPY", portfolioType="HRP FULL")
     
-    portfolioGeneration.storeHistoricalAllocations(portfolioHash, \
+    storeHistoricalAllocations(portfolioHash, \
                     modelsUsed, historicalWeights, thisPredictions)
     
     portfolioInfo = portfolio.getPortfolioByKey(portfolioHash)
