@@ -23,7 +23,7 @@ def generateAllReturnsFromCache(allModels):
 
         algoReturn.columns = [str(mod.describe())]
         algoPredictions.columns = [str(mod.describe())]
-        print(algoPredictions)
+        # print(algoPredictions)
         algoSlippageAdjustedReturn.columns =  [str(mod.describe())]
         if aggregateReturns is None:
             aggregateReturns = algoReturn
