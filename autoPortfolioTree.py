@@ -77,7 +77,58 @@ def checkAggregatePredictionsStored(model):
             
             
             
-            
+def storePortfolio(models, description, benchmark, portfolioType):
+    allHashes = []
+    for model in models:
+        organismHash = hashlib.sha224(model.getHash().encode('utf-8')).hexdigest()
+        allHashes.append(organismHash)
+    
+    allHashes.sort()
+    portfolioString = str(allHashes) + description + benchmark + portfolioType
+    portfolioHash = hashlib.sha224(portfolioString.encode('utf-8')).hexdigest()
+    print("PORTFOLIO HASH:", portfolioHash)
+    for hashing in allHashes:
+        print(hashing)
+        
+    
+        ##UPLOAD ORGANISM OBJECT
+        while True:
+            try:
+                toUpload = {
+                    "portfolio":portfolioHash,
+                    "model":hashing
+                }
+                datastoreClient = datastore.Client('money-maker-1236')
+                #HASH DIGEST
+                key = datastoreClient.key(params.portfolioDB, hashlib.sha224(str(hashing + portfolioHash).encode('utf-8')).hexdigest()) #NEED TO HASH TO ENSURE UNDER COUNT
+                organismToStore = datastore.Entity(key=key)
+                organismToStore.update(toUpload)
+                datastoreClient.put(organismToStore)
+                break
+            except:
+                print("UPLOAD ERROR:", str(sys.exc_info()))
+                time.sleep(10)
+    
+    ##STORE PORTFOLIO OBJECT
+    while True:
+        try:
+            toUpload = {
+                "description":description,
+                "benchmark":benchmark,
+                "portfolioType":portfolioType,
+                "startedTrading":getToday()
+            }
+            datastoreClient = datastore.Client('money-maker-1236')
+            #HASH DIGEST
+            key = datastoreClient.key(params.portfolioLookup, portfolioHash) #NEED TO HASH TO ENSURE UNDER COUNT
+            organismToStore = datastore.Entity(key=key)
+            organismToStore.update(toUpload)
+            datastoreClient.put(organismToStore)
+            return portfolioHash
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)    
             
 def runModPredictionBackfill(mod, dataToUse, backfillDays = 30):
     ##ENSURE POPULATED FOR CORRECT PREDICTION STYLE
@@ -207,7 +258,7 @@ def performPortfolioPerformanceEstimation(thisPredictions, thisReturns, hashToMo
         tickersSeen[thisModel.targetTicker] += 1
     
     ##STORE MODEL
-    portfolioHash = portfolioGeneration.storePortfolio(modelsUsed,\
+    portfolioHash = storePortfolio(modelsUsed,\
             description=str(tickersSeen), benchmark="SPY", portfolioType="HRP FULL")
     
     storeHistoricalAllocations(portfolioHash, \
