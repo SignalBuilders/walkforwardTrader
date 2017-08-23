@@ -121,7 +121,7 @@ def runBackfillMP(mod, joinedData, threadsToUse, backfillDays = 30):
     
     
 def returnSelectAlgos(algoColumns):
-    return np.random.choice(algoColumns, size=random.randint(7, len(algoColumns)), replace= False)
+    return np.random.choice(algoColumns, size=random.randint(2, len(algoColumns)), replace= False)
 
 # import matplotlib.pyplot as plt
 import time
