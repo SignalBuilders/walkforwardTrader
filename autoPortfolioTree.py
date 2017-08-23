@@ -291,11 +291,11 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     tickerAllocationsTable = tickerAllocationsTable.sort_index().fillna(0)
     scaledTickerAllocationsTable = scaledTickerAllocationsTable.sort_index().fillna(0)
     
-    rawTickerPerformance = calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
+    rawTickerPerformance = portfolioGeneration.calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
     
     rawAlgoPerformance = pd.DataFrame(rawTickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
     
-    tickerPerformance, algoPerformance, algoTransactionCost =  calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
+    tickerPerformance, algoPerformance, algoTransactionCost =  portfolioGeneration.calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
     
     benchmark = portfolio.getPortfolioByKey(portfolioKey)["benchmark"]
     factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
@@ -312,11 +312,11 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         
         
     ##GET SCALED PERFORMANCE [FULL CAPITAL USED EACH DAY]
-    rawTickerPerformanceScaled = calculatePerformanceForTable(scaledTickerAllocationsTable, scaledTickerAllocationsTable.columns, joinedData)
+    rawTickerPerformanceScaled = portfolioGeneration.calculatePerformanceForTable(scaledTickerAllocationsTable, scaledTickerAllocationsTable.columns, joinedData)
     
     rawAlgoPerformanceScaled = pd.DataFrame(rawTickerPerformanceScaled.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
     
-    unused, algoPerformanceScaled, algoTransactionCostScaled =  calculatePerformanceForAllocations(scaledTickerAllocationsTable, joinedData)
+    unused, algoPerformanceScaled, algoTransactionCostScaled =  portfolioGeneration.calculatePerformanceForAllocations(scaledTickerAllocationsTable, joinedData)
     
 
     algoPerformanceScaled.columns = ["Algo Return"]
@@ -330,32 +330,32 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     for model in models:
         hashToTicker[model.getHash()] = model.inputSeries.targetTicker
 
-    individualAlgoPerformance = calculatePerformanceForTable(predsTable,[hashToTicker[modelHash] for modelHash in predsTable.columns], joinedData)
+    individualAlgoPerformance = portfolioGeneration.calculatePerformanceForTable(predsTable,[hashToTicker[modelHash] for modelHash in predsTable.columns], joinedData)
     
     ##CONVERT TO USABLE OBJECTS
-    tickerCols, tickerRows = convertTableToJSON(empyrical.cum_returns(tickerPerformance))
-    tickerAllocationsCols, tickerAllocationsRows = convertTableToJSON(tickerAllocationsTable[-10:])
-    algoCols, algoRows = convertTableToJSON(empyrical.cum_returns(algoPerformance))
-    algoVsBenchmarkCols, algoVsBenchmarkRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark))
-    individualAlgoPerformanceCols, individualAlgoPerformanceRows = convertTableToJSON(empyrical.cum_returns(individualAlgoPerformance))
-    scaledAllocationCols, scaledAllocationRows = convertTableToJSON(scaledTickerAllocationsTable)
-    weightsCols, weightsRows = convertTableToJSON(weightsTable)
+    tickerCols, tickerRows = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(tickerPerformance))
+    tickerAllocationsCols, tickerAllocationsRows = portfolioGeneration.convertTableToJSON(tickerAllocationsTable[-10:])
+    algoCols, algoRows = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(algoPerformance))
+    algoVsBenchmarkCols, algoVsBenchmarkRows = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(algoVsBenchmark))
+    individualAlgoPerformanceCols, individualAlgoPerformanceRows = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(individualAlgoPerformance))
+    scaledAllocationCols, scaledAllocationRows = portfolioGeneration.convertTableToJSON(scaledTickerAllocationsTable)
+    weightsCols, weightsRows = portfolioGeneration.convertTableToJSON(weightsTable)
     alpha, beta = empyrical.alpha_beta(algoPerformance, factorReturn)
     recentAlpha, recentBeta = empyrical.alpha_beta(algoPerformance[-100:], factorReturn[-100:])
     recentSharpe = empyrical.sharpe_ratio(algoPerformance[-100:])
     recentReturn = empyrical.cum_returns(algoPerformance[-100:]).values[-1][0] * 100
-    algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
-    commissionCols, commissionRows = convertTableToJSON(algoTransactionCost)
+    algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
+    commissionCols, commissionRows = portfolioGeneration.convertTableToJSON(algoTransactionCost)
     
-    algoVsBenchmarkScaledCols, algoVsBenchmarkScaledRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled))
-    commissionScaledCols, commissionScaledRows = convertTableToJSON(algoTransactionCostScaled)
+    algoVsBenchmarkScaledCols, algoVsBenchmarkScaledRows = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled))
+    commissionScaledCols, commissionScaledRows = portfolioGeneration.convertTableToJSON(algoTransactionCostScaled)
     scaledSharpe = empyrical.sharpe_ratio(algoPerformanceScaled)
     scaledReturn = empyrical.annual_return(algoPerformanceScaled)[0] * 100
     scaledVolatility = empyrical.annual_volatility(algoPerformanceScaled) * 100
     scaledAlpha, scaledBeta = empyrical.alpha_beta(algoPerformanceScaled, factorReturn)
     
     
-    algoVsBenchmarkScaledColsRecent, algoVsBenchmarkScaledRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[-100:]))
+    algoVsBenchmarkScaledColsRecent, algoVsBenchmarkScaledRowsRecent = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[-100:]))
     scaledSharpeRecent = empyrical.sharpe_ratio(algoPerformanceScaled[-100:])
     scaledReturnRecent = empyrical.annual_return(algoPerformanceScaled[-100:])[0] * 100
     scaledVolatilityRecent = empyrical.annual_volatility(algoPerformanceScaled[-100:]) * 100
@@ -370,14 +370,14 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         availableAlpha = availableAlpha * 100
         availableSharpe = empyrical.sharpe_ratio(algoPerformance[availableStartDate:])
         availableReturn = empyrical.cum_returns(algoPerformance[availableStartDate:]).values[-1][0] * 100
-        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[availableStartDate:]))
+        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[availableStartDate:]))
         
         ##SCALED
         availableAlphaScaled, availableBetaScaled = empyrical.alpha_beta(algoPerformanceScaled[availableStartDate:], factorReturn[availableStartDate:])
         availableAlphaScaled = availableAlphaScaled * 100
         availableSharpeScaled = empyrical.sharpe_ratio(algoPerformanceScaled[availableStartDate:])
         availableReturnScaled = empyrical.cum_returns(algoPerformanceScaled[availableStartDate:]).values[-1][0] * 100
-        algoVsBenchmarkColsAvailableScaled, algoVsBenchmarkRowsAvailableScaled = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[availableStartDate:]))
+        algoVsBenchmarkColsAvailableScaled, algoVsBenchmarkRowsAvailableScaled = portfolioGeneration.convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[availableStartDate:]))
     else:
         #NORMAL
         availableAlpha, availableBeta = ("NaN", "NaN")
