@@ -32,6 +32,7 @@ allModels = [item["model"] for item in curveTreeDB.getModels(params.treeModels, 
 for i in range(len(allModels)):
     model = allModels[i]
     print(model.describe())
+    print(model.getHash())
 
 
 # In[17]:
