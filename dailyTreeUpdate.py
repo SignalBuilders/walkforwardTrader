@@ -122,10 +122,10 @@ for portfolioKey in modelsInPortfolio:
     historicalWeights = None
     if portfolioTypes[portfolioKey] == "HRP FULL":
         print("HRP FULL")
-        hrpReturns, historicalWeights = autoPortfolioTree.produceHRPPredictions(aggregateReturns[[model.getHash() for model in modelsInPortfolio[portfolioKey]]], 126, startIndex=3, maxWindowSize=False)
+        hrpReturns, historicalWeights = portfolioGeneration.produceHRPPredictions(aggregateReturns[[model.getHash() for model in modelsInPortfolio[portfolioKey]]], 126, startIndex=3, maxWindowSize=False)
     elif portfolioTypes[portfolioKey] == "HRP WINDOW":
         print("HRP WINDOW")
-        hrpReturns, historicalWeights = autoPortfolioTree.produceHRPPredictions(aggregateReturns[[model.getHash() for model in modelsInPortfolio[portfolioKey]]], 126, startIndex=3, maxWindowSize=True)
+        hrpReturns, historicalWeights = portfolioGeneration.produceHRPPredictions(aggregateReturns[[model.getHash() for model in modelsInPortfolio[portfolioKey]]], 126, startIndex=3, maxWindowSize=True)
     elif portfolioTypes[portfolioKey] == "EW":
         print("EW")
         thisReturns = aggregateReturns[[model.getHash() for model in modelsInPortfolio[portfolioKey]]]
