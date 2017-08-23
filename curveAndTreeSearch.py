@@ -11,7 +11,7 @@ try:
     allTickers = dataAck.getAllTickersPlain()
     while True:
         import random
-        tickerToTrade = "EEM"#allTickers[random.randint(0, len(allTickers)) - 1]
+        tickerToTrade = allTickers[random.randint(0, len(allTickers)) - 1]
         print(tickerToTrade)
         
         tData = dataAck.getTrainingData(tickerToTrade)
@@ -144,11 +144,7 @@ try:
                     
 
                     if runsSeen > 10:
-                        ##START NEW TICKER
-                        dataAck.logModel("Search Update", {
-                            "message":"restarting search with different ticker",
-                            "currentTicker":tickerToTrade
-                        })
+                        
                         break
         # RUN TREE SEARCH WITH COMBOS
         runsSeen = 0
@@ -179,11 +175,6 @@ try:
                 
 
                 if runsSeen > 10:
-                    ##START NEW TICKER
-                    dataAck.logModel("Search Update", {
-                        "message":"restarting search with different ticker",
-                        "currentTicker":tickerToTrade
-                    })
                     break
 except:
     client.report_exception()
