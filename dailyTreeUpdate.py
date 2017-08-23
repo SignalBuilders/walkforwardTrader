@@ -29,7 +29,7 @@ modelHashes = curveTreeDB.getAllPortfolioModels()
 
 # In[27]:
 
-allModels = curveTreeDB.getModelsByKey(modelHashes)
+allModels = autoPortfolioTree.getModelsByKey(modelHashes)
 modelsSeen = len(allModels)
 
 
