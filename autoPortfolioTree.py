@@ -20,8 +20,10 @@ def generateAllReturnsFromCache(allModels):
         # try:
         algoReturn, algoPredictions, algoSlippageAdjustedReturn = curveTreeDB.getModelData(params.treeModelData, mod)
         print(mod.describe())
+
         algoReturn.columns = [str(mod.describe())]
         algoPredictions.columns = [str(mod.describe())]
+        print(algoPredictions)
         algoSlippageAdjustedReturn.columns =  [str(mod.describe())]
         if aggregateReturns is None:
             aggregateReturns = algoReturn

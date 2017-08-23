@@ -123,9 +123,9 @@ class TreePredictor:
         transformedPreds = pd.DataFrame(predsTable.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions"]).dropna()
         dailyFactorReturn = dataAck.getDailyFactorReturn(self.targetTicker, dataOfInterest)
         transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
-        returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
-        factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]]) if factorReturn is None else pd.concat([factorReturn, pd.DataFrame(transformedPreds[["Factor Return"]])])
-        predictions = pd.DataFrame(transformedPreds[["Predictions"]]) if predictions is None else pd.concat([predictions, pd.DataFrame(transformedPreds[["Predictions"]])])
+        returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])
+        factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]])
+        predictions = pd.DataFrame(transformedPreds[["Predictions"]])
         estimatedSlippageLoss = portfolioGeneration.estimateTransactionCost(predictions)
         estimatedSlippageLoss.columns = returnStream.columns
         slippageAdjustedReturn = (returnStream - estimatedSlippageLoss).dropna()

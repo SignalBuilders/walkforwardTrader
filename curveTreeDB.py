@@ -129,6 +129,7 @@ def getAllPortfolioModels():
 
 def storePastPredictions(allModels, modelPredictions):
     ##THESE ARE SUMMED PREDICTIONS...DIFFERENT THAN PREDICTIONS MADE DAILY
+    print("LENGTH OF PREDICTIONS TO STORE", len(modelPredictions))
     lastDayUsedPredictions = modelPredictions.dropna()
     allStoredModels = getAllPortfolioModels()
     print(allStoredModels)

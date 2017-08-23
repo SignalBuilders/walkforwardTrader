@@ -32,7 +32,7 @@ for i in range(len(allModels)):
 # In[17]:
 
 factorToTrade = "SPY"
-uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData =    autoPortfolioTree.computeReturnsForUniqueModelsCache(allModels, factorToTrade)
+uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData = autoPortfolioTree.computeReturnsForUniqueModelsCache(allModels, factorToTrade)
 
 
 # # ENSURE ALL MODELS HAVE PREDICTIONS IN SYSTEM AND BACKFILLED
