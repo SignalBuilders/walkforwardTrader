@@ -525,6 +525,38 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
         "algoVsBenchmarkColsAvailableScaled":json.dumps(algoVsBenchmarkColsAvailableScaled),
         "algoVsBenchmarkRowsAvailableScaled":json.dumps(algoVsBenchmarkRowsAvailableScaled), 
     }
+
+def generateRawPredictionsMP(allModels, joinedData, threadsToUse):
+    mpEngine = mp.get_context('fork')
+        
+    def runMod(mod, joinedData):
+        pred = mod.runModelToday(joinedData)
+        print(mod.describe(), pred, joinedData.index[-1])
+        curveTreeDB.storeModelPrediction(mod, pred, joinedData.index[-1])
+
+        ##ENSURE POPULATED FOR CORRECT PREDICTION STYLE
+        i = mod.inputSeries.predictionPeriod - 1
+        while i > 0:
+            pred = mod.runModelToday(joinedData[:-i])
+            print(mod.describe(), pred, joinedData[:-i].index[-1])
+            curveTreeDB.storeModelPrediction(mod, pred, joinedData[:-i].index[-1])
+            i -= 1
+        
+    runningP = []
+    for mod in allModels:
+        
+        while len(runningP) > threadsToUse:
+            runningP = dataAck.cycleP(runningP)
+        
+        p = mpEngine.Process(target=runMod, args=(mod, joinedData, ))
+        p.start()
+        runningP.append(p)
+
+
+    while len(runningP) > 0:
+            runningP = dataAck.cycleP(runningP)
+    
+    return True
     
     
     

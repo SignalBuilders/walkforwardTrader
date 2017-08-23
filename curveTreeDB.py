@@ -238,4 +238,18 @@ def storeManyItems(items):
                 time.sleep(10)
         i += 300
 
+def getPertinentDataForModels(allModels):
+    tickersRequired = []
+    for mod in uniqueModels:
+
+        print(mod.describe())
+        for ticker in mod.returnAllTickersInvolved():
+            if ticker not in tickersRequired:
+                tickersRequired.append(ticker)
+        
+
+    pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)
+
+    joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
+    return joinedData
 
