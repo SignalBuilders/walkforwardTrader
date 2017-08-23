@@ -230,11 +230,11 @@ def storeManyItems(items):
         while True:
             try:
                 datastoreClient = datastore.Client('money-maker-1236')
-                datastoreClient.put_multi(items[i:i+200])
+                datastoreClient.put_multi(items[i:i+300])
                 break
             except:
                 print("UPLOAD ERROR:", str(sys.exc_info()))
                 time.sleep(10)
-        i += 200
+        i += 300
 
 
