@@ -285,6 +285,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
     runningP = []
     while True:
         selectedAlgorithms = returnSelectAlgos(cleanedReturns.columns)
+        print("SELECTED ALGOS",selectedAlgorithms)
         
         while len(runningP) > threadsToUse:
             runningP = dataAck.cycleP(runningP)
