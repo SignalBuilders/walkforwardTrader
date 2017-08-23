@@ -296,8 +296,28 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
 import json
 import empyrical
 
+def getModelsByKey(modelHashes):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            ##form keys
+            keys = []
+            for hashing in modelHashes:
+                key = datastore_client.key(params.treeModels, hashing)
+                keys.append(key)
+                
+            retrievedModels = datastore_client.get_multi(keys)
+            toReturn = []
+            for source in retrievedModels:
+                toReturn.append(pickle.loads(source["model"]))
+            return toReturn
+            
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
 def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartDate):
-    models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
+    models = getModelsByKey(portfolio.getPortfolioModels(portfolioKey)
 
     for model in models:
         print(model.describe())
