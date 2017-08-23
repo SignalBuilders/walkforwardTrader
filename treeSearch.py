@@ -53,8 +53,8 @@ while True:
 
         
     ##RUN TREE SEARCH
-    # curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
-    # treeBlocks = curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
+    curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
+    treeBlocks = curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
     # for buildingBlocks in [curveBlocks, treeBlocks]:
     #     runsSeen = 0
     #     print(buildingBlocks)
