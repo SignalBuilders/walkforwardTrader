@@ -13,23 +13,23 @@ def generateAllReturnsFromCache(allModels):
     cleanedModels = []
     for mod in allModels:
         
-        try:
-            algoReturn, algoPredictions, algoSlippageAdjustedReturn = getModelData(params.treeModelData, mod)
-            print(mod.describe())
-            algoReturn.columns = [str(mod.describe())]
-            algoPredictions.columns = [str(mod.describe())]
-            algoSlippageAdjustedReturn.columns =  [str(mod.describe())]
-            if aggregateReturns is None:
-                aggregateReturns = algoReturn
-                aggregatePredictions = algoPredictions
-                aggregateSlippageReturns = algoSlippageAdjustedReturn
-            else:
-                aggregateReturns = aggregateReturns.join(algoReturn)
-                aggregatePredictions = aggregatePredictions.join(algoPredictions)
-                aggregateSlippageReturns = aggregateSlippageReturns.join(algoSlippageAdjustedReturn)
-            cleanedModels.append(mod)
-        except:
-            print("SKIPPING", mod.describe())
+        # try:
+        algoReturn, algoPredictions, algoSlippageAdjustedReturn = curveTreeDB.getModelData(params.treeModelData, mod)
+        print(mod.describe())
+        algoReturn.columns = [str(mod.describe())]
+        algoPredictions.columns = [str(mod.describe())]
+        algoSlippageAdjustedReturn.columns =  [str(mod.describe())]
+        if aggregateReturns is None:
+            aggregateReturns = algoReturn
+            aggregatePredictions = algoPredictions
+            aggregateSlippageReturns = algoSlippageAdjustedReturn
+        else:
+            aggregateReturns = aggregateReturns.join(algoReturn)
+            aggregatePredictions = aggregatePredictions.join(algoPredictions)
+            aggregateSlippageReturns = aggregateSlippageReturns.join(algoSlippageAdjustedReturn)
+        cleanedModels.append(mod)
+        # except:
+        #     print("SKIPPING", mod.describe())
     return aggregateReturns, aggregatePredictions, aggregateSlippageReturns, cleanedModels
 
 
