@@ -80,7 +80,7 @@ def checkAggregatePredictionsStored(model):
 def storePortfolio(models, description, benchmark, portfolioType):
     allHashes = []
     for model in models:
-        organismHash = hashlib.sha224(model.getHash().encode('utf-8')).hexdigest()
+        organismHash = model.getHash()
         allHashes.append(organismHash)
     
     allHashes.sort()
