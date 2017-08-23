@@ -72,7 +72,7 @@ while True:
                                 if algoReturn is None:
                                     toLog = factorReturn
                                     toLog["modelDescription"] = str(cPre.describe())
-                                    dataAck.logModel("Model Curve Stopped Early", toLog)
+                                    # dataAck.logModel("Model Curve Stopped Early", toLog)
                                     print("Model Curve Stopped Early", toLog)
                                     continue
                                 metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
