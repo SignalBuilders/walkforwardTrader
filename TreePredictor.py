@@ -21,12 +21,20 @@ class TreePredictor:
     def __init__(self, obj1, obj2, combiner):
         self.obj1 = obj1
         self.obj2 = obj2
-        if str(self.obj1.describe()) == str(self.obj2.describe()):
-            raise ValueError("INPUT MODELS IDENTICAL") ##RAISE ERROR IN FUTURE
+
+        ##CHECK SIMPLE TESTS
         if self.obj1.predictionDistance != self.obj2.predictionDistance:
-            raise ValueError("PREDICTION DISTANCE NOT WELL DEFINED") ##RAISE ERROR IN FUTURE
+            raise ValueError("PREDICTION DISTANCE NOT WELL DEFINED") 
         if self.obj1.targetTicker != self.obj2.targetTicker:
-            raise ValueError("TARGET TICKER NOT WELL DEFINED") ##RAISE ERROR IN FUTURE
+            raise ValueError("TARGET TICKER NOT WELL DEFINED") 
+
+        ##CHECK NO OVERLAP
+        obj1Hashes = self.obj1.getAllHashes()
+        obj2Hashes = self.obj2.getAllHashes()
+        for possibleHash in obj1Hashes:
+            if possibleHash in obj2Hashes:
+                raise ValueError("OVERLAP OF MODELS")
+        
         self.predictionDistance = self.obj1.predictionDistance ##SHOULD BE SAME FOR BOTH OBJECTS
         self.targetTicker = self.obj1.targetTicker
         self.combiner = combiner ##AND or OR -> TREAT 0 AS SAME TYPE
@@ -36,6 +44,13 @@ class TreePredictor:
 
     def getHash(self):
         return hashlib.sha224(str(self.describe()).encode('utf-8')).hexdigest()
+
+    def getReverseHash(self):
+        return hashlib.sha224(str((self.obj2.describe(), self.obj1.describe(), self.predictionDistance, self.combiner)).encode('utf-8')).hexdigest()
+
+    def getAllHashes(self):
+        ##RETURN ALL HASHES INCLUDING REVERSED
+        return self.obj1.getAllHashes() + self.obj2.getAllHashes() + [self.getHash(), self.getReverseHash()] 
 
     def formUploadDictionary(self):
         toUpload = {}

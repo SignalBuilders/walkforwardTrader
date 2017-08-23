@@ -35,6 +35,12 @@ class CurvePredictor:
     def getHash(self):
         return hashlib.sha224(str(self.describe()).encode('utf-8')).hexdigest()
 
+    def getReverseHash(self):
+        return self.getHash()
+
+    def getAllHashes(self):
+        return [self.getHash()]
+
     def formUploadDictionary(self):
         toUpload = {}
         toUpload["ticker"] = self.targetTicker
