@@ -289,3 +289,35 @@ def getModelCounts(db):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
             time.sleep(10)
 
+# params.curveModels
+# params.treeModels
+def getModelPerformance(db):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = None
+            query = datastore_client.query(kind=db, projection=["ticker", "IS_SHARPE DIFFERENCE", "IS_SHARPE DIFFERENCE SLIPPAGE"])
+            retrievedModels = list(query.fetch())
+            sharpeDifference = {}
+            sharpeDifferenceSlippage = {}
+            for source in retrievedModels:
+                if source["ticker"] not in sharpeDifference:
+                    sharpeDifference[source["ticker"]] = {">=0":0, "<0":0}
+                    sharpeDifferenceSlippage[source["ticker"]] = {">=0":0, "<0":0}
+                if source["IS_SHARPE DIFFERENCE"] < 0:
+                    sharpeDifference[source["ticker"]]["<0"] += 1
+                else:
+                    sharpeDifference[source["ticker"]][">=0"] += 1
+
+                if source["IS_SHARPE DIFFERENCE SLIPPAGE"] < 0:
+                    sharpeDifferenceSlippage[source["ticker"]]["<0"] += 1
+                else:
+                    sharpeDifferenceSlippage[source["ticker"]][">=0"] += 1
+
+            return sharpeDifference, sharpeDifferenceSlippage
+        except:
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+
+
+
