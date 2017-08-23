@@ -231,7 +231,7 @@ class CurvePredictor:
                     if np.isnan(shortSharpe) == True:
                         return None, {"sharpe":shortSharpe}, None, None, None
 
-                    elif (empyrical.sharpe_ratio(returnStream) < 0.0  or activity < 0.3) and shortSeen == 0:
+                    elif (empyrical.sharpe_ratio(returnStream) < 0.0  or activity < 0.3 or abs(rawBeta) > 0.6) and shortSeen == 0:
                         return None, {
                                 "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                                 "activity":activity,
