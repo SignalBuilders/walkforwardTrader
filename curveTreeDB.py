@@ -114,6 +114,40 @@ def storeModelPrediction(model, pred, lastDataDayUsed, shouldReturn = False):
             print("UPLOAD ERROR:", str(sys.exc_info()))
             time.sleep(10)
 
+def getAllPortfolioModels():
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.portfolioDB)
+            
+            retrievedModels = [item["model"] for item in list(query.fetch())]
+            return list(set(retrievedModels))
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+def storePastPredictions(allModels, modelPredictions):
+    ##THESE ARE SUMMED PREDICTIONS...DIFFERENT THAN PREDICTIONS MADE DAILY
+    lastDayUsedPredictions = modelPredictions.dropna()
+    allStoredModels = getAllPortfolioModels()
+    print(allStoredModels)
+    for i in range(len(lastDayUsedPredictions.columns)):
+        ##CHECK IF ALREADY STORED
+        
+        thisModel = allModels[i]
+        if thisModel.getHash() in allStoredModels:
+            print("SKIPPING", thisModel.describe())
+            continue
+        
+        print(thisModel.describe())
+        thisDF = lastDayUsedPredictions[[lastDayUsedPredictions.columns[i]]]
+        predictionsToStore = []
+        for j in range(len(thisDF.values)):
+#             print(thisDF.index[i], thisDF.values[i][0])
+            predictionsToStore.append(storeAggregateModelPrediction(thisModel, thisDF.values[j][0], thisDF.index[j], shouldReturn=True))
+        print("NEED TO STORE", len(predictionsToStore))
+        storeManyItems(predictionsToStore)
+
 def getPredictionsByModel(model):
     while True:
         try:
