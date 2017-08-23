@@ -102,7 +102,7 @@ try:
 
             runsSeen += 1
 
-            if runsSeen > 40:
+            if runsSeen > 20:
                 ##START NEW TICKER
                 dataAck.logModel("Search Update", {
                     "message":"restarting search with different ticker",
@@ -145,7 +145,8 @@ try:
                     attempts += 1
 
                     if runsSeen > 10 or attempts > 30:
-                        
+                        dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
+
                         break
 
         # RUN TREE SEARCH WITH COMBOS
@@ -178,6 +179,9 @@ try:
                 
                 attempts += 1
                 if runsSeen > 10 or attempts > 30:
+                    if runsSeen < 10:
+                        dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
+
                     break
 except:
     client.report_exception()
