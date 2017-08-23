@@ -286,7 +286,6 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
     runningP = []
     while True:
         selectedAlgorithms = returnSelectAlgos(cleanedReturns.columns)
-        print("SELECTED ALGOS",selectedAlgorithms)
         
         while len(runningP) > threadsToUse:
             runningP = dataAck.cycleP(runningP)
@@ -321,9 +320,7 @@ def getModelsByKey(modelHashes):
 
 def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartDate):
     modelHashes = portfolio.getPortfolioModels(portfolioKey)
-    print("MODEL HASHES", modelHashes)
     models = getModelsByKey(modelHashes)
-    print("MODELS FOR PORTFOLIO", models)
     for model in models:
         print(model.describe())
     ##GENERATE RETURNS FOR PORTFOLIO

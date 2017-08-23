@@ -31,8 +31,7 @@ allModels = [item["model"] for item in curveTreeDB.getModels(params.treeModels, 
 
 for i in range(len(allModels)):
     model = allModels[i]
-    print(model.describe())
-    print(model.getHash())
+    print(model.describe(), model.getHash())
 
 
 # In[17]:
@@ -52,8 +51,6 @@ cleanedPredictions = aggregatePredictions.dropna()
 hashToModel = {}
 for item in allModels:
     hashToModel[item.getHash()] = item
-
-print("HASHES SEEN:", hashToModel)
 
 
 
