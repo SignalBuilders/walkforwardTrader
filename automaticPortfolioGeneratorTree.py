@@ -53,6 +53,8 @@ hashToModel = {}
 for item in allModels:
     hashToModel[item.getHash()] = item
 
+print("HASHES SEEN:", hashToModel)
+
 
 
 # In[ ]:
