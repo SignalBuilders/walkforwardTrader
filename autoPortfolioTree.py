@@ -376,7 +376,7 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
     factorReturn.columns = ["Factor Return (" + benchmark + ")"]
     algoPerformance.columns = ["Algo Return"]
-    algoVsBenchmark = algoPerformance.join(factorReturn).dropna()
+    algoVsBenchmark = factorReturn.join(algoPerformance).fillna(0)
     algoVsBenchmark = algoVsBenchmark.join(rawAlgoPerformance).dropna()
 
     tickerAlphaBetas = []
@@ -395,7 +395,7 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     
 
     algoPerformanceScaled.columns = ["Algo Return"]
-    algoVsBenchmarkScaled = algoPerformanceScaled.join(factorReturn).dropna()
+    algoVsBenchmarkScaled = factorReturn.join(algoPerformanceScaled).fillna(0)
     algoVsBenchmarkScaled = algoVsBenchmarkScaled.join(rawAlgoPerformanceScaled).dropna()
     
     
