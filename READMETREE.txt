@@ -16,7 +16,7 @@ Saves and backfills aggregate model predictions
 	Automatically creates random portfolios of algorithms
 
 
--> [Once Required] ##TODO Upgrade Portfolio to Trading Portfolios.ipynb
+-> [Once Required] TODO Upgrade Portfolio to Trading Portfolios Tree.ipynb
 
 Move a discovered portfolio to paper trading or real trading
 
