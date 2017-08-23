@@ -11,7 +11,24 @@ try:
     allTickers = dataAck.getAllTickersPlain()
     while True:
         import random
-        tickerToTrade = allTickers[random.randint(0, len(allTickers)) - 1]
+        ##ADVANCED TICKER TO TRADE SELECTION
+        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.curveModels)
+
+        validTickersToTrade = []
+
+        for ticker in allTickers:
+            if ticker not in modelSplitByTicker:
+                validTickersToTrade.append(ticker)
+
+        if len(validTickersToTrade) == 0:
+            ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
+            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:15]:
+                validTickersToTrade.append(ticker)
+                print(ticker, modelSplitByTicker[ticker])
+
+
+
+        tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
         print(tickerToTrade)
         
         tData = dataAck.getTrainingData(tickerToTrade)

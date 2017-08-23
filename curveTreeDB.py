@@ -253,3 +253,39 @@ def getPertinentDataForModels(allModels):
     joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
     return joinedData
 
+
+# params.curveModels
+# params.treeModels
+def getModelCounts(db):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = None
+            if db == params.treeModels:
+                query = datastore_client.query(kind=db, projection=["ticker", "predictionLength", "numberOfPredictors"])
+            else:
+                query = datastore_client.query(kind=db, projection=["ticker", "predictionLength"])
+            retrievedModels = list(query.fetch())
+            tickerCount = {}
+            predictionCount = {}
+            numPredictors = {}
+            for source in retrievedModels:
+                if source["ticker"] not in tickerCount:
+                    tickerCount[source["ticker"]] = 0
+                    predictionCount[source["ticker"]] = {}
+                    if db == params.treeModels:
+                        numPredictors[source["ticker"]] = {}
+                if source["predictionLength"] not in predictionCount[source["ticker"]]:
+                    predictionCount[source["ticker"]][source["predictionLength"]] = 0
+                if db == params.treeModels:
+                    if source["numberOfPredictors"] not in numPredictors[source["ticker"]]:
+                        numPredictors[source["ticker"]][source["numberOfPredictors"]] = 0
+                tickerCount[source["ticker"]] += 1
+                predictionCount[source["ticker"]][source["predictionLength"]] += 1
+                if db == params.treeModels:
+                    numPredictors[source["ticker"]][source["numberOfPredictors"]] += 1
+            return len(retrievedModels), tickerCount, predictionCount, numPredictors
+        except:
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+
