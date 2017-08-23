@@ -7,6 +7,7 @@ import portfolioGeneration
 import dataAck
 import multiprocessing as mp
 import pandas as pd
+import numpy as np
 
 def generateAllReturnsFromCache(allModels):
     aggregateReturns = None
