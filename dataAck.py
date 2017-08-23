@@ -265,7 +265,7 @@ class dataSeries:
         if random.uniform(0,1) < 0.3:
             self.volDays = random.randint(5, 22)
            
-        self.smoothingDays = random.randint(1, 3)
+        self.smoothingDays = random.randint(1, 5)
         
         
     def transformJoinedData(self, joinedData):
