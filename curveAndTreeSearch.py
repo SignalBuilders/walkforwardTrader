@@ -102,7 +102,7 @@ try:
 
             runsSeen += 1
 
-            if runsSeen > 20:
+            if runsSeen > 40:
                 ##START NEW TICKER
                 dataAck.logModel("Search Update", {
                     "message":"restarting search with different ticker",
