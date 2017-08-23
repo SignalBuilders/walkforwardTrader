@@ -35,6 +35,7 @@ class TreePredictor:
         return (self.obj1.describe(), self.obj2.describe(), self.predictionDistance, self.combiner)
 
     def getHash(self):
+        print("HASH STRING", self.describe())
         return hashlib.sha224(str(self.describe()).encode('utf-8')).hexdigest()
 
     def formUploadDictionary(self):
