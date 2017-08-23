@@ -379,7 +379,8 @@ def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartD
     ##FORM HASH TO TICKER
     hashToTicker = {}
     for model in models:
-        hashToTicker[model.getHash()] = model.inputSeries.targetTicker
+        hashToTicker[model.getHash()] = model.targetTicker
+    print(hashToTicker)
 
     individualAlgoPerformance = portfolioGeneration.calculatePerformanceForTable(predsTable,[hashToTicker[modelHash] for modelHash in predsTable.columns], joinedData)
     
