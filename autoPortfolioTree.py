@@ -222,7 +222,7 @@ def performPortfolioPerformanceEstimation(thisPredictions, thisReturns, hashToMo
         "startedTrading":portfolioInfo["startedTrading"]
     }
     print(portfolioInfo)
-    portfolioData = portfolioGeneration.getDataForPortfolio(portfolioHash, portfolioInfo["benchmark"], joinedData, portfolioInfo["startedTrading"])
+    portfolioData = getDataForPortfolio(portfolioHash, portfolioInfo["benchmark"], joinedData, portfolioInfo["startedTrading"])
     portfolioGeneration.cachePortfolio(portfolioInfo, portfolioData, params.AVAILABLE_MODE)
 
     
@@ -242,6 +242,215 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
         p.start()
         runningP.append(p)
         
+import json
+import empyrical
+
+def getDataForPortfolio(portfolioKey, factorToTrade, joinedData, availableStartDate):
+    models = portfolio.getModelsByKey(portfolio.getPortfolioModels(portfolioKey))
+
+    for model in models:
+        print(model.describe())
+    ##GENERATE RETURNS FOR PORTFOLIO
+    portfolioAllocations = portfolio.getPortfolioAllocations(portfolioKey)
+    
+    predsTable = pd.DataFrame([])
+    weightsTable = pd.DataFrame([])
+    tickerAllocationsTable = pd.DataFrame([])
+    scaledTickerAllocationsTable = pd.DataFrame([])
+    for allocation in portfolioAllocations:
+        colsAlgo = []
+        valsAlgo = []
+        colsAlgoWeight = []
+        valsAlgoWeight = []
+        colsTicker = []
+        valsTicker = []
+        colsTickerScaled = []
+        valsTickerScaled = []
+
+        for key in allocation:
+            if key.startswith("ticker_"):
+                colsTicker.append(key[len("ticker_"):])
+                valsTicker.append(allocation[key])
+            if key.startswith("scaled_ticker_"):
+                colsTickerScaled.append(key[len("scaled_ticker_"):])
+                valsTickerScaled.append(abs(allocation[key]) if np.isnan(allocation[key]) == False else 0.0)
+            if key.startswith("algo_") and not key.startswith("algo_weight_"):
+                colsAlgo.append(key[len("algo_"):])
+                valsAlgo.append(allocation[key])
+            if key.startswith("algo_weight_"):
+                colsAlgoWeight.append(key[len("algo_weight_"):])
+                valsAlgoWeight.append(allocation[key])
+
+        predsTable = pd.concat([predsTable, pd.DataFrame([valsAlgo], index = [allocation["predictionDay"]], columns=colsAlgo).tz_localize(None)])
+        weightsTable = pd.concat([weightsTable, pd.DataFrame([valsAlgoWeight], index = [allocation["predictionDay"]], columns=colsAlgoWeight).tz_localize(None)])
+        tickerAllocationsTable = pd.concat([tickerAllocationsTable, pd.DataFrame([valsTicker], index = [allocation["predictionDay"]], columns=colsTicker).tz_localize(None)])
+        scaledTickerAllocationsTable = pd.concat([scaledTickerAllocationsTable, pd.DataFrame([valsTickerScaled], index = [allocation["predictionDay"]], columns=colsTickerScaled).tz_localize(None)])
+    
+    predsTable = predsTable.sort_index()
+    weightsTable = weightsTable.sort_index().fillna(0)
+    tickerAllocationsTable = tickerAllocationsTable.sort_index().fillna(0)
+    scaledTickerAllocationsTable = scaledTickerAllocationsTable.sort_index().fillna(0)
+    
+    rawTickerPerformance = calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
+    
+    rawAlgoPerformance = pd.DataFrame(rawTickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
+    
+    tickerPerformance, algoPerformance, algoTransactionCost =  calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
+    
+    benchmark = portfolio.getPortfolioByKey(portfolioKey)["benchmark"]
+    factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
+    factorReturn.columns = ["Factor Return (" + benchmark + ")"]
+    algoPerformance.columns = ["Algo Return"]
+    algoVsBenchmark = algoPerformance.join(factorReturn).dropna()
+    algoVsBenchmark = algoVsBenchmark.join(rawAlgoPerformance).dropna()
+
+    tickerAlphaBetas = []
+    for ticker in tickerAllocationsTable.columns.values:
+        thisFactorReturn = dataAck.getDailyFactorReturn(ticker, joinedData)
+        alpha, beta = empyrical.alpha_beta(algoPerformance, thisFactorReturn)
+        tickerAlphaBetas.append({"ticker":ticker, "alpha":alpha * 100, "beta":beta})
+        
+        
+    ##GET SCALED PERFORMANCE [FULL CAPITAL USED EACH DAY]
+    rawTickerPerformanceScaled = calculatePerformanceForTable(scaledTickerAllocationsTable, scaledTickerAllocationsTable.columns, joinedData)
+    
+    rawAlgoPerformanceScaled = pd.DataFrame(rawTickerPerformanceScaled.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
+    
+    unused, algoPerformanceScaled, algoTransactionCostScaled =  calculatePerformanceForAllocations(scaledTickerAllocationsTable, joinedData)
+    
+
+    algoPerformanceScaled.columns = ["Algo Return"]
+    algoVsBenchmarkScaled = algoPerformanceScaled.join(factorReturn).dropna()
+    algoVsBenchmarkScaled = algoVsBenchmarkScaled.join(rawAlgoPerformanceScaled).dropna()
+    
+    
+    
+    ##FORM HASH TO TICKER
+    hashToTicker = {}
+    for model in models:
+        hashToTicker[model.getHash()] = model.inputSeries.targetTicker
+
+    individualAlgoPerformance = calculatePerformanceForTable(predsTable,[hashToTicker[modelHash] for modelHash in predsTable.columns], joinedData)
+    
+    ##CONVERT TO USABLE OBJECTS
+    tickerCols, tickerRows = convertTableToJSON(empyrical.cum_returns(tickerPerformance))
+    tickerAllocationsCols, tickerAllocationsRows = convertTableToJSON(tickerAllocationsTable[-10:])
+    algoCols, algoRows = convertTableToJSON(empyrical.cum_returns(algoPerformance))
+    algoVsBenchmarkCols, algoVsBenchmarkRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark))
+    individualAlgoPerformanceCols, individualAlgoPerformanceRows = convertTableToJSON(empyrical.cum_returns(individualAlgoPerformance))
+    scaledAllocationCols, scaledAllocationRows = convertTableToJSON(scaledTickerAllocationsTable)
+    weightsCols, weightsRows = convertTableToJSON(weightsTable)
+    alpha, beta = empyrical.alpha_beta(algoPerformance, factorReturn)
+    recentAlpha, recentBeta = empyrical.alpha_beta(algoPerformance[-100:], factorReturn[-100:])
+    recentSharpe = empyrical.sharpe_ratio(algoPerformance[-100:])
+    recentReturn = empyrical.cum_returns(algoPerformance[-100:]).values[-1][0] * 100
+    algoVsBenchmarkColsRecent, algoVsBenchmarkRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[-100:]))
+    commissionCols, commissionRows = convertTableToJSON(algoTransactionCost)
+    
+    algoVsBenchmarkScaledCols, algoVsBenchmarkScaledRows = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled))
+    commissionScaledCols, commissionScaledRows = convertTableToJSON(algoTransactionCostScaled)
+    scaledSharpe = empyrical.sharpe_ratio(algoPerformanceScaled)
+    scaledReturn = empyrical.annual_return(algoPerformanceScaled)[0] * 100
+    scaledVolatility = empyrical.annual_volatility(algoPerformanceScaled) * 100
+    scaledAlpha, scaledBeta = empyrical.alpha_beta(algoPerformanceScaled, factorReturn)
+    
+    
+    algoVsBenchmarkScaledColsRecent, algoVsBenchmarkScaledRowsRecent = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[-100:]))
+    scaledSharpeRecent = empyrical.sharpe_ratio(algoPerformanceScaled[-100:])
+    scaledReturnRecent = empyrical.annual_return(algoPerformanceScaled[-100:])[0] * 100
+    scaledVolatilityRecent = empyrical.annual_volatility(algoPerformanceScaled[-100:]) * 100
+    scaledAlphaRecent, scaledBetaRecent = empyrical.alpha_beta(algoPerformanceScaled[-100:], factorReturn[-100:])
+    
+    
+    
+    
+    if len(algoPerformance[availableStartDate:]) > 0:
+        ##NORMAL
+        availableAlpha, availableBeta = empyrical.alpha_beta(algoPerformance[availableStartDate:], factorReturn[availableStartDate:])
+        availableAlpha = availableAlpha * 100
+        availableSharpe = empyrical.sharpe_ratio(algoPerformance[availableStartDate:])
+        availableReturn = empyrical.cum_returns(algoPerformance[availableStartDate:]).values[-1][0] * 100
+        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = convertTableToJSON(empyrical.cum_returns(algoVsBenchmark[availableStartDate:]))
+        
+        ##SCALED
+        availableAlphaScaled, availableBetaScaled = empyrical.alpha_beta(algoPerformanceScaled[availableStartDate:], factorReturn[availableStartDate:])
+        availableAlphaScaled = availableAlphaScaled * 100
+        availableSharpeScaled = empyrical.sharpe_ratio(algoPerformanceScaled[availableStartDate:])
+        availableReturnScaled = empyrical.cum_returns(algoPerformanceScaled[availableStartDate:]).values[-1][0] * 100
+        algoVsBenchmarkColsAvailableScaled, algoVsBenchmarkRowsAvailableScaled = convertTableToJSON(empyrical.cum_returns(algoVsBenchmarkScaled[availableStartDate:]))
+    else:
+        #NORMAL
+        availableAlpha, availableBeta = ("NaN", "NaN")
+        availableSharpe = "NaN"
+        availableReturn = "NaN"
+        algoVsBenchmarkColsAvailable, algoVsBenchmarkRowsAvailable = ([], [])
+        
+        #SCALED
+        availableAlphaScaled, availableBetaScaled = ("NaN", "NaN")
+        availableSharpeScaled = "NaN"
+        availableReturnScaled = "NaN"
+        algoVsBenchmarkColsAvailableScaled, algoVsBenchmarkRowsAvailableScaled = ([], [])
+
+    return {
+        "tickerCols":json.dumps(tickerCols),
+        "tickerRows":json.dumps(tickerRows),
+        "tickerAllocationsCols":json.dumps(tickerAllocationsCols),
+        "tickerAllocationsRows":json.dumps(tickerAllocationsRows),
+        "algoCols":json.dumps(algoCols),
+        "algoRows":json.dumps(algoRows),
+        "tickerCols":json.dumps(tickerCols),
+        "tickerRows":json.dumps(tickerRows),
+        "algoVsBenchmarkCols":json.dumps(algoVsBenchmarkCols),
+        "algoVsBenchmarkRows":json.dumps(algoVsBenchmarkRows),
+        "individualAlgoPerformanceCols":json.dumps(individualAlgoPerformanceCols),
+        "individualAlgoPerformanceRows":json.dumps(individualAlgoPerformanceRows),
+        "scaledAllocationCols":json.dumps(scaledAllocationCols),
+        "scaledAllocationRows":json.dumps(scaledAllocationRows),
+        "weightsCols":json.dumps(weightsCols),
+        "weightsRows":json.dumps(weightsRows),
+        "algoSharpe":empyrical.sharpe_ratio(algoPerformance),
+        "alpha":alpha * 100,
+        "beta":beta,
+        "annualReturn":empyrical.annual_return(algoPerformance)[0] * 100,
+        "annualVolatility":empyrical.annual_volatility(algoPerformance) * 100,
+        "recentSharpe":recentSharpe,
+        "recentReturn":recentReturn,
+        "recentAlpha":recentAlpha * 100,
+        "recentBeta":recentBeta,
+        "algoVsBenchmarkColsRecent":json.dumps(algoVsBenchmarkColsRecent),
+        "algoVsBenchmarkRowsRecent":json.dumps(algoVsBenchmarkRowsRecent),
+        "commissionCols":json.dumps(commissionCols),
+        "commissionRows":json.dumps(commissionRows),
+        "tickerAlphaBetas":tickerAlphaBetas,
+        "availableAlpha":availableAlpha,
+        "availableBeta":availableBeta,
+        "availableSharpe":availableSharpe,
+        "availableReturn":availableReturn,
+        "algoVsBenchmarkColsAvailable":json.dumps(algoVsBenchmarkColsAvailable),
+        "algoVsBenchmarkRowsAvailable":json.dumps(algoVsBenchmarkRowsAvailable),
+        "algoVsBenchmarkScaledCols":json.dumps(algoVsBenchmarkScaledCols), 
+        "algoVsBenchmarkScaledRows":json.dumps(algoVsBenchmarkScaledRows),
+        "commissionScaledCols":json.dumps(commissionScaledCols), 
+        "commissionScaledRows":json.dumps(commissionScaledRows),
+        "scaledReturn":scaledReturn,
+        "scaledSharpe":scaledSharpe,
+        "scaledVolatility":scaledVolatility,
+        "scaledAlpha":scaledAlpha * 100,
+        "scaledBeta":scaledBeta,
+        "algoVsBenchmarkScaledColsRecent":json.dumps(algoVsBenchmarkScaledColsRecent),
+        "algoVsBenchmarkScaledRowsRecent":json.dumps(algoVsBenchmarkScaledRowsRecent),
+        "scaledReturnRecent":scaledReturnRecent,
+        "scaledVolatilityRecent":scaledVolatilityRecent,
+        "scaledAlphaRecent":scaledAlphaRecent * 100,
+        "scaledBetaRecent":scaledBetaRecent,
+        "scaledSharpeRecent":scaledSharpeRecent,
+        "availableAlphaScaled":availableAlphaScaled,
+        "availableBetaScaled":availableBetaScaled,
+        "availableSharpeScaled":availableSharpeScaled,
+        "availableReturnScaled":availableReturnScaled,
+        "algoVsBenchmarkColsAvailableScaled":json.dumps(algoVsBenchmarkColsAvailableScaled),
+        "algoVsBenchmarkRowsAvailableScaled":json.dumps(algoVsBenchmarkRowsAvailableScaled), 
+    }
     
     
     
