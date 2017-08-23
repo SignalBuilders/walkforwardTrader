@@ -118,7 +118,7 @@ try:
             runsSeen = 0
             attempts = 0
             print(buildingBlocks)
-            if len(buildingBlocks) > 10:
+            if len(buildingBlocks) > 20:
                 while True:
                     try:
                         blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
@@ -144,15 +144,15 @@ try:
 
                     attempts += 1
 
-                    if runsSeen > 10 or attempts > 30:
-                        dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
+                    if runsSeen > 50 or attempts > 100:
+                        # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
 
                         break
 
         # RUN TREE SEARCH WITH COMBOS
         runsSeen = 0
         attempts = 0
-        if len(curveBlocks) > 10 and len(treeBlocks) > 10:
+        if len(curveBlocks) > 20 and len(treeBlocks) > 20:
             while True:
                 try:
                     blocksToUse = [np.random.choice(curveBlocks, 1, replace=False)[0], np.random.choice(treeBlocks, 1, replace=False)[0]]
@@ -178,9 +178,9 @@ try:
 
                 
                 attempts += 1
-                if runsSeen > 10 or attempts > 30:
-                    if runsSeen < 10:
-                        dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
+                if runsSeen > 50 or attempts > 100:
+                    # if runsSeen < 10:
+                        # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
 
                     break
 except:
