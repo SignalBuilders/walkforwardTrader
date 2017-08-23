@@ -117,7 +117,42 @@ def runBackfillMP(mod, joinedData, threadsToUse, backfillDays = 30):
             print(mod.describe(), todayPredictions, pred)
             curveTreeDB.storeAggregateModelPrediction(mod, pred, lastDay)
         i -= 1
-    
+
+def downloadAggregatePredictions(model):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=params.aggregatePrediction)
+            
+            query.add_filter('modelHash', '=', model.getHash())
+            retrievedPredictions = list(query.fetch())
+            days = []
+            predictions = []
+            for pred in retrievedPredictions:
+                days.append(pred["predictionDay"])
+                predictions.append(pred["aggregatePrediction"])
+            
+            return pd.DataFrame(predictions, index=days, columns=[str(model.describe())]).sort_index()
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+def generateAggregateReturnsPredictions(allModels, joinedData):
+    aggregateReturns = None
+    aggregatePredictions = None
+    for model in allModels:
+        preds = downloadAggregatePredictions(model).tz_localize(None)
+        dailyFactorReturn = dataAck.getDailyFactorReturn(model.targetTicker, joinedData)
+        transformedPreds = preds.join(dailyFactorReturn).dropna()
+        returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=[model.getHash()])
+        preds.columns = [model.getHash()]
+        if aggregateReturns is None:
+            aggregateReturns = returnStream
+            aggregatePredictions = preds
+        else:
+            aggregateReturns = aggregateReturns.join(returnStream)
+            aggregatePredictions = aggregatePredictions.join(preds)
+    return aggregateReturns, aggregatePredictions
     
     
 def returnSelectAlgos(algoColumns):

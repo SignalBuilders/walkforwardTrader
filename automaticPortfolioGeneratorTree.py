@@ -45,12 +45,12 @@ uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturns
 
 # In[19]:
 
-aggregateReturns, aggregatePredictions = portfolioGeneration.generateAggregateReturnsPredictions(allModels, joinedData)
+aggregateReturns, aggregatePredictions = autoPortfolioTree.generateAggregateReturnsPredictions(allModels, joinedData)
 cleanedReturns = aggregateReturns.dropna()
 cleanedPredictions = aggregatePredictions.dropna()
 hashToModel = {}
 for item in allModels:
-    hashToModel[portfolio.getModelHash(item)] = item
+    hashToModel[item.getHash()] = item
 
 
 
