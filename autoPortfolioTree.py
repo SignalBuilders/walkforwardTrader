@@ -157,6 +157,7 @@ def runBackfillMP(mod, joinedData, threadsToUse, backfillDays = 30):
     ##STORE AGGREGATE PREDICTIONS
     i = mod.predictionDistance - 1 + backfillDays
     allPreds = curveTreeDB.getPredictionsByModel(mod)
+    print(allPreds)
     while i > 0:
         lastDay = joinedData[:-i].index[-1]
         todayPredictions = []
