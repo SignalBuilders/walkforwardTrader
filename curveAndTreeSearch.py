@@ -116,6 +116,7 @@ try:
         treeBlocks = curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
         for buildingBlocks in [curveBlocks, treeBlocks]:
             runsSeen = 0
+            attempts = 0
             print(buildingBlocks)
             if len(buildingBlocks) > 10:
                 while True:
@@ -141,13 +142,15 @@ try:
                     except:
                         print("COMBO FAILED")
 
-                    
+                    attempts += 1
 
-                    if runsSeen > 10:
+                    if runsSeen > 10 or attempts > 30:
                         
                         break
+
         # RUN TREE SEARCH WITH COMBOS
         runsSeen = 0
+        attempts = 0
         if len(curveBlocks) > 10 and len(treeBlocks) > 10:
             while True:
                 try:
@@ -173,8 +176,8 @@ try:
                     print("COMBO FAILED")
 
                 
-
-                if runsSeen > 10:
+                attempts += 1
+                if runsSeen > 10 or attempts > 30:
                     break
 except:
     client.report_exception()
