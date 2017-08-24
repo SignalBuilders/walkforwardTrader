@@ -355,15 +355,6 @@ def logModelAttempted(model):
         except:
             print("UPLOAD ERROR:", str(sys.exc_info()))
             time.sleep(10)
-    
-    ##LOG SUCCESSFUL STORE
-    toLog = {}
-    for item in toUpload:
-        if item != "model":
-            toLog[item] = toUpload[item]
-        else:
-            toLog[item] = str(model.describe())
-    dataAck.logModel("StoredModel"+"_" + db, toLog)
 
 
 def modelExists(db, modelHash):

@@ -106,8 +106,8 @@ try:
                             toLog[k] = metrics[k]
                         dataAck.logModel("Model Tree Skipped", toLog)
                     runsSeen += 1
-                except:
-                    print("COMBO FAILED")
+                except Exception as e:
+                    print("COMBO FAILED", e)
 
                 attempts += 1
 
