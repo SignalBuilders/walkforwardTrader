@@ -763,7 +763,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     metrics["SHARPE SLIPPAGE DECAY"] = metrics["SHARPE DIFFERENCE SLIPPAGE"] - metrics["SHARPE DIFFERENCE"]
     ##MEASURES BINARY STABILITY OF PREDICTIONS
-    metrics["EXTREME STABILITY ROLLING 600"] = (returnStream.rolling(600, min_periods=600).apply(lambda x:empyrical.stability_of_timeseries(applyBinarySkipZero(x))).dropna()).min().values[0]
+    metrics["EXTREME STABILITY ROLLING 600"] = (returnStream.rolling(600, min_periods=600).apply(lambda x:empyrical.stability_of_timeseries(applyBinarySkipZero(x)) * (-1 if x[-1] - x[0] < 0 else 1)).dropna()).min().values[0]
     metrics["EXTREME STABILITY"] = empyrical.stability_of_timeseries(applyBinarySkipZero(returnStream.values))
     rollingPeriod = 252
 
