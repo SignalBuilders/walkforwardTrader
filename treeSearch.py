@@ -23,7 +23,7 @@ try:
 
         if len(validTickersToTrade) == 0:
             ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
-            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:15]:
+            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:40]:
                 validTickersToTrade.append(ticker)
                 print(ticker, modelSplitByTicker[ticker])
 
