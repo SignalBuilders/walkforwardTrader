@@ -41,14 +41,13 @@ def generateAllReturnsFromCache(allModels):
 def computeReturnsForUniqueModelsCache(uniqueModels, factorToTrade):
     tickersRequired = []
     for mod in uniqueModels:
-
-        print(mod.describe())
-        for ticker in mod.returnAllTickersInvolved():
-            if ticker not in tickersRequired:
-                tickersRequired.append(ticker)
+        if mod.targetTicker not in tickersRequired:
+            tickersRequired.append(mod.targetTicker)
 
     if factorToTrade not in tickersRequired:
         tickersRequired.append(factorToTrade)
+
+    print(tickersRequired)
             
     
     pulledData, validTickers = dataAck.downloadTickerData(tickersRequired)

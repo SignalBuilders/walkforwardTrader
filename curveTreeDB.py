@@ -60,6 +60,25 @@ def getModels(db, ticker = None, returnEntireObject = False):
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
+def getValidModels(db, returnEntireObject = False):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=db)
+            query.add_filter("IS_SHARPE DIFFERENCE SLIPPAGE", '>', 0.0)
+            retrievedModels = list(query.fetch())
+            toReturn = []
+            for source in retrievedModels:
+                if returnEntireObject == False:
+                    toReturn.append(pickle.loads(source["model"]))
+                else:
+                    source["model"] = pickle.loads(source["model"])
+                    toReturn.append(source)
+            return toReturn
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
 
 ##USED TO STORE PREDICTIONS -> USEFUL FOR PORTFOLIO CONSTRUCTION...ONLY DO FOR TREE PREDICTOR
 def storeModelData(db, model, algoReturns, algoPredictions, algoReturnsSlippage):
