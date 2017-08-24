@@ -77,43 +77,40 @@ try:
         ##RUN TREE SEARCH
         curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
         treeBlocks = curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
-        blocksToTest = [curveBlocks, treeBlocks]
-        if len(treeBlocks) > 50:
-            blocksToTest = [treeBlocks]
-        for buildingBlocks in blocksToTest:
-            runsSeen = 0
-            attempts = 0
-            print(buildingBlocks)
-            if len(buildingBlocks) > 20:
-                while True:
-                    try:
-                        blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
-                        tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
+        buildingBlocks = treeBlocks
+        runsSeen = 0
+        attempts = 0
+        print(buildingBlocks)
+        if len(buildingBlocks) > 20:
+            while True:
+                try:
+                    blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
+                    tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
 
-                        algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
-                        metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
-                        print("TRAIN:", metrics)
-                        if (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["RAW BETA"] < 0.6:
-                            ##STORE
-                            testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
-                            print("TEST:", testMetrics)
-                            curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
-                            curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
-                        else:
-                            toLog = {"modelDescription":str(tPre.describe())}
-                            for k in metrics:
-                                toLog[k] = metrics[k]
-                            dataAck.logModel("Model Tree Skipped", toLog)
-                        runsSeen += 1
-                    except:
-                        print("COMBO FAILED")
+                    algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
+                    metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
+                    print("TRAIN:", metrics)
+                    if (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["RAW BETA"] < 0.6:
+                        ##STORE
+                        testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
+                        print("TEST:", testMetrics)
+                        curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
+                        curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
+                    else:
+                        toLog = {"modelDescription":str(tPre.describe())}
+                        for k in metrics:
+                            toLog[k] = metrics[k]
+                        dataAck.logModel("Model Tree Skipped", toLog)
+                    runsSeen += 1
+                except:
+                    print("COMBO FAILED")
 
-                    attempts += 1
+                attempts += 1
 
-                    if runsSeen > 50 or attempts > 100:
-                        # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
+                if runsSeen > 50 or attempts > 100:
+                    # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
 
-                        break
+                    break
 
         # RUN TREE SEARCH WITH COMBOS
         runsSeen = 0
