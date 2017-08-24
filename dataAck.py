@@ -444,6 +444,16 @@ def applyBinary(predictionsArr):
     """
     return [1.0 if item > 0.0 else -1.0 for item in predictionsArr]
 
+def applyBinarySkipZero(returnArr):
+    binaryDailyReturnSeries = []
+    for item in returnArr:
+        if item > 0.0:
+            binaryDailyReturnSeries.append(0.01)
+        elif item < 0.0:
+            binaryDailyReturnSeries.append(-0.01)
+
+    return np.array(binaryDailyReturnSeries)
+
 
 def getDailyFactorReturn(ticker, joinedData):
     dailyFactorReturn = joinedData[["Adj_Close_" + ticker]].pct_change(1).shift(-1).dropna()
@@ -752,8 +762,9 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
 
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     metrics["SHARPE SLIPPAGE DECAY"] = metrics["SHARPE DIFFERENCE SLIPPAGE"] - metrics["SHARPE DIFFERENCE"]
-    
-
+    ##MEASURES BINARY STABILITY OF PREDICTIONS
+    metrics["EXTREME STABILITY ROLLING 600"] = (returnStream.rolling(600, min_periods=600).apply(lambda x:empyrical.stability_of_timeseries(applyBinarySkipZero(x))).dropna()).min().values[0]
+    metrics["EXTREME STABILITY"] = empyrical.stability_of_timeseries(applyBinarySkipZero(returnStream.values))
     rollingPeriod = 252
 
 
