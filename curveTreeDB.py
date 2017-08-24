@@ -338,5 +338,31 @@ def getModelPerformance(db):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
             time.sleep(10)
 
+def modelExists(db, modelHash):
+    """
+    returns model infromation stored after model passes screening metrics
+
+    :param modelHashes: all hashes sought to examine
+
+    :returns: entities of modelHashes
+
+    """
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            ##form keys
+            key = datastore_client.key(db, modelHash)
+                
+            retrievedModel = datastore_client.get(key)
+            if retrievedModel is None:
+                return False
+            else:
+                return True
+            
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+
 
 
