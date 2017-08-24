@@ -43,14 +43,13 @@ class TreePredictor:
         return (self.obj1.describe(), self.obj2.describe(), self.predictionDistance, self.combiner)
 
     def getHash(self):
-        return hashlib.sha224(str(self.describe()).encode('utf-8')).hexdigest()
-
-    def getReverseHash(self):
-        return hashlib.sha224(str((self.obj2.describe(), self.obj1.describe(), self.predictionDistance, self.combiner)).encode('utf-8')).hexdigest()
+        hash1 = hashlib.sha224(str((self.obj1.describe(), self.obj2.describe(), self.predictionDistance, self.combiner)).encode('utf-8')).hexdigest()
+        hash2 = hashlib.sha224(str((self.obj2.describe(), self.obj1.describe(), self.predictionDistance, self.combiner)).encode('utf-8')).hexdigest()
+        return hashlib.sha224((hash1 + hash2).encode('utf-8')).hexdigest() if hash1 < hash2 else hashlib.sha224((hash2 + hash1).encode('utf-8')).hexdigest()
 
     def getAllHashes(self):
         ##RETURN ALL HASHES INCLUDING REVERSED
-        return self.obj1.getAllHashes() + self.obj2.getAllHashes() + [self.getHash(), self.getReverseHash()] 
+        return self.obj1.getAllHashes() + self.obj2.getAllHashes() + [self.getHash()] 
 
     def formUploadDictionary(self):
         toUpload = {}
