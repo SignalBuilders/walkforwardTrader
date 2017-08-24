@@ -338,6 +338,34 @@ def getModelPerformance(db):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
             time.sleep(10)
 
+def logModelAttempted(model):
+    ##USED TO STORE DESCRIPTION INFO
+    toUpload = {"dayAttempted":getToday()}
+    organismHash = model.getHash()
+    ##UPLOAD ORGANISM OBJECT
+    while True:
+        try:
+            datastoreClient = datastore.Client('money-maker-1236')
+            #HASH DIGEST
+            key = datastoreClient.key(params.attemptedModels,  organismHash) #NEED TO HASH TO ENSURE UNDER COUNT
+            organismToStore = datastore.Entity(key=key)
+            organismToStore.update(toUpload)
+            datastoreClient.put(organismToStore)
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    
+    ##LOG SUCCESSFUL STORE
+    toLog = {}
+    for item in toUpload:
+        if item != "model":
+            toLog[item] = toUpload[item]
+        else:
+            toLog[item] = str(model.describe())
+    dataAck.logModel("StoredModel"+"_" + db, toLog)
+
+
 def modelExists(db, modelHash):
     """
     returns model infromation stored after model passes screening metrics
@@ -352,10 +380,14 @@ def modelExists(db, modelHash):
             datastore_client = datastore.Client('money-maker-1236')
             ##form keys
             key = datastore_client.key(db, modelHash)
-                
             retrievedModel = datastore_client.get(key)
             if retrievedModel is None:
-                return False
+                key = datastore_client.key(params.attemptedModels, modelHash)
+                retrievedModelAttempted = datastore_client.get(key)
+                if retrievedModelAttempted is None:
+                    return False
+                else:
+                    return True
             else:
                 return True
             

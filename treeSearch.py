@@ -86,9 +86,11 @@ try:
                 try:
                     blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
                     tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
+                    
                     if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
                         dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
                         raise ValueError("Tree Model Already Exists") 
+                    curveTreeDB.logModelAttempted(tPre)
                     algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
                     metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                     print("TRAIN:", metrics)
@@ -125,6 +127,7 @@ try:
                     if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
                         dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
                         raise ValueError("Tree Model Already Exists") 
+                    curveTreeDB.logModelAttempted(tPre)
                     algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
                     metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                     print("TRAIN:", metrics)

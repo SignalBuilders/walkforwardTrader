@@ -32,6 +32,7 @@ systemStatus = "walkforward_status"
 
 
 ##CURVE AND TREE TRADING
+attemptedModels = "attemptedModels"
 curveModels = "curve_models"
 treeModels = "tree_models"
 treeModelData = "treemodeldata"

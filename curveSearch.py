@@ -142,6 +142,7 @@ try:
                     if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
                         dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
                         raise ValueError("Tree Model Already Exists") 
+                    curveTreeDB.logModelAttempted(tPre)
                     algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
                     metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                     print("TRAIN:", metrics)
