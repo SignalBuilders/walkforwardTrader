@@ -23,8 +23,7 @@ class TreePredictor:
         self.obj2 = obj2
 
         ##CHECK SIMPLE TESTS
-        if self.obj1.predictionDistance != self.obj2.predictionDistance:
-            raise ValueError("PREDICTION DISTANCE NOT WELL DEFINED") 
+        
         if self.obj1.targetTicker != self.obj2.targetTicker:
             raise ValueError("TARGET TICKER NOT WELL DEFINED") 
 
@@ -35,7 +34,10 @@ class TreePredictor:
             if possibleHash in obj2Hashes:
                 raise ValueError("OVERLAP OF MODELS")
         
-        self.predictionDistance = self.obj1.predictionDistance ##SHOULD BE SAME FOR BOTH OBJECTS
+        if self.obj1.predictionDistance != self.obj2.predictionDistance:
+            print("WARNING", "PREDICTION DISTANCE NOT WELL DEFINED", self.obj1.predictionDistance, self.obj2.predictionDistance) 
+        
+        self.predictionDistance = max(self.obj1.predictionDistance, self.obj2.predictionDistance) ##SHOULD BE SAME FOR BOTH OBJECTS
         self.targetTicker = self.obj1.targetTicker
         self.combiner = combiner ##AND or OR -> TREAT 0 AS SAME TYPE
 
