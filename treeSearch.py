@@ -77,7 +77,10 @@ try:
         ##RUN TREE SEARCH
         curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
         treeBlocks = curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
-        for buildingBlocks in [curveBlocks, treeBlocks]:
+        blocksToTest = [curveBlocks, treeBlocks]
+        if len(treeBlocks) > 50:
+            blocksToTest = [treeBlocks]
+        for buildingBlocks in blocksToTest:
             runsSeen = 0
             attempts = 0
             print(buildingBlocks)
