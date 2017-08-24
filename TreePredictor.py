@@ -148,11 +148,3 @@ class TreePredictor:
 
         return returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions
 
-
-
-
-
-
-
-
-

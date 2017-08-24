@@ -12,24 +12,27 @@ try:
     while True:
         import random
         ##ADVANCED TICKER TO TRADE SELECTION
-        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
+        # modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
 
-        validTickersToTrade = []
+        # validTickersToTrade = []
 
-        for ticker in allTickers:
-            if ticker not in modelSplitByTicker:
-                validTickersToTrade.append(ticker)
-                print("NOT PRESENT", ticker)
+        # for ticker in allTickers:
+        #     if ticker not in modelSplitByTicker:
+        #         validTickersToTrade.append(ticker)
+        #         print("NOT PRESENT", ticker)
 
-        if len(validTickersToTrade) == 0:
-            ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
-            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:40]:
-                validTickersToTrade.append(ticker)
-                print(ticker, modelSplitByTicker[ticker])
+        # if len(validTickersToTrade) == 0:
+        #     ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
+        #     for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:40]:
+        #         validTickersToTrade.append(ticker)
+        #         print(ticker, modelSplitByTicker[ticker])
 
 
 
-        tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
+        # tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
+        # print(tickerToTrade)
+
+        tickerToTrade = "XLY"
         print(tickerToTrade)
         
         tData = dataAck.getTrainingData(tickerToTrade)
@@ -94,7 +97,7 @@ try:
                     algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
                     metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                     print("TRAIN:", metrics)
-                    if (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["RAW BETA"] < 0.7:
+                    if (metrics["SHARPE"] > 0.75 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["RAW BETA"] < 0.7:
                         ##STORE
                         testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                         print("TEST:", testMetrics)
@@ -131,7 +134,7 @@ try:
                     algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
                     metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                     print("TRAIN:", metrics)
-                    if (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["RAW BETA"] < 0.7:
+                    if (metrics["SHARPE"] > 0.75 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["RAW BETA"] < 0.7:
                         ##STORE
                         testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                         print("TEST:", testMetrics)
@@ -143,8 +146,8 @@ try:
                             toLog[k] = metrics[k]
                         dataAck.logModel("Model Tree Skipped", toLog)
                     runsSeen += 1
-                except:
-                    print("COMBO FAILED")
+                except Exception as e:
+                    print("COMBO FAILED", e)
 
                 
                 attempts += 1
