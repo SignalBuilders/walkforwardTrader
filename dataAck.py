@@ -759,7 +759,8 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
                "RELATIVE SHARPE SLIPPAGE":relativeSharpeSlippage,
               }
 
-
+    metrics["PROFITABILITY"] = len((returnStream.values)[returnStream.values > 0])/len(returnStream.values)
+    metrics["PROFITABILITY SLIPPAGE"] = len((slippageAdjustedReturn.values)[slippageAdjustedReturn.values > 0])/len(slippageAdjustedReturn.values)
     metrics["TOTAL DAYS SEEN"] = len(returnStream)
     metrics["SHARPE SLIPPAGE DECAY"] = metrics["SHARPE DIFFERENCE SLIPPAGE"] - metrics["SHARPE DIFFERENCE"]
     ##MEASURES BINARY STABILITY OF PREDICTIONS
