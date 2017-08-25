@@ -338,6 +338,90 @@ def getModelPerformance(db):
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
             time.sleep(10)
 
+def getModelProfitability(db):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = None
+            query = datastore_client.query(kind=db, projection=["ticker", "IS_PROFITABILITY", "IS_PROFITABILITY SLIPPAGE"])
+            retrievedModels = list(query.fetch())
+            profitability = {}
+            profitabilitySlippage = {}
+            for source in retrievedModels:
+                if source["ticker"] not in profitability:
+                    profitability[source["ticker"]] = {
+                                    "<0.45":0,
+                                    "0.45-0.48":0,
+                                    "0.48-0.49":0,
+                                    "0.49-0.5":0,
+                                    "0.5-0.51":0,
+                                    "0.51-0.52":0,
+                                    "0.52-0.53":0,
+                                    "0.53-0.54":0,
+                                    "0.54-0.55":0,
+                                    ">0.55":0
+                    }
+                    profitabilitySlippage[source["ticker"]] = {
+                                    "<0.45":0,
+                                    "0.45-0.48":0,
+                                    "0.48-0.49":0,
+                                    "0.49-0.5":0,
+                                    "0.5-0.51":0,
+                                    "0.51-0.52":0,
+                                    "0.52-0.53":0,
+                                    "0.53-0.54":0,
+                                    "0.54-0.55":0,
+                                    ">0.55":0
+                    }
+
+
+                if source["IS_PROFITABILITY"] < 0.45:
+                    profitability[source["ticker"]]["<0.45"] += 1
+                elif source["IS_PROFITABILITY"] < 0.48:
+                    profitability[source["ticker"]]["0.45-0.48"] += 1
+                elif source["IS_PROFITABILITY"] < 0.49:
+                    profitability[source["ticker"]]["0.48-0.49"] += 1 
+                elif source["IS_PROFITABILITY"] < 0.5:
+                    profitability[source["ticker"]]["0.49-0.5"] += 1
+                elif source["IS_PROFITABILITY"] < 0.51:
+                    profitability[source["ticker"]]["0.5-0.51"] += 1
+                elif source["IS_PROFITABILITY"] < 0.52:
+                    profitability[source["ticker"]]["0.51-0.52"] += 1
+                elif source["IS_PROFITABILITY"] < 0.53:
+                    profitability[source["ticker"]]["0.52-0.53"] += 1 
+                elif source["IS_PROFITABILITY"] < 0.54:
+                    profitability[source["ticker"]]["0.53-0.54"] += 1
+                elif source["IS_PROFITABILITY"] < 0.55:
+                    profitability[source["ticker"]]["0.54-0.55"] += 1 
+                else:
+                    profitability[source["ticker"]][">0.55"] += 1  
+
+                if source["IS_PROFITABILITY SLIPPAGE"] < 0.45:
+                    profitabilitySlippage[source["ticker"]]["<0.45"] += 1
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.48:
+                    profitabilitySlippage[source["ticker"]]["0.45-0.48"] += 1
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.49:
+                    profitabilitySlippage[source["ticker"]]["0.48-0.49"] += 1 
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.5:
+                    profitabilitySlippage[source["ticker"]]["0.49-0.5"] += 1
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.51:
+                    profitabilitySlippage[source["ticker"]]["0.5-0.51"] += 1
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.52:
+                    profitabilitySlippage[source["ticker"]]["0.51-0.52"] += 1
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.53:
+                    profitabilitySlippage[source["ticker"]]["0.52-0.53"] += 1 
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.54:
+                    profitabilitySlippage[source["ticker"]]["0.53-0.54"] += 1
+                elif source["IS_PROFITABILITY SLIPPAGE"] < 0.55:
+                    profitabilitySlippage[source["ticker"]]["0.54-0.55"] += 1 
+                else:
+                    profitabilitySlippage[source["ticker"]][">0.55"] += 1 
+
+            return profitability, profitabilitySlippage
+        except:
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+
 def logModelAttempted(model):
     ##USED TO STORE DESCRIPTION INFO
     toUpload = {"dayAttempted":getToday()}

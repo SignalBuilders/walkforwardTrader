@@ -34,6 +34,19 @@ indexes:
   - name: IS_SHARPE DIFFERENCE SLIPPAGE
     direction: desc
 
+- kind: curve_models
+  properties:
+  - name: ticker
+  - name: IS_PROFITABILITY
+  - name: IS_PROFITABILITY SLIPPAGE
+    direction: desc
+
+- kind: tree_models
+  properties:
+  - name: ticker
+  - name: IS_PROFITABILITY
+  - name: IS_PROFITABILITY SLIPPAGE
+    direction: desc
 
     
 
