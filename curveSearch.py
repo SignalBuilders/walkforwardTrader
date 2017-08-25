@@ -23,7 +23,7 @@ try:
 
         if len(validTickersToTrade) == 0:
             ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
-            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:15]:
+            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:40]:
                 validTickersToTrade.append(ticker)
                 print(ticker, modelSplitByTicker[ticker])
 
@@ -134,7 +134,7 @@ try:
         runsSeen = 0
         attempts = 0
         print(buildingBlocks)
-        if len(buildingBlocks) > 20:
+        if len(buildingBlocks) > 150:
             while True:
                 try:
                     blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
@@ -163,7 +163,7 @@ try:
 
                 attempts += 1
 
-                if runsSeen > 10 or attempts > 30:
+                if runsSeen > 30 or attempts > 50:
                     # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
 
                     break
