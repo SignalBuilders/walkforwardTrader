@@ -5,6 +5,7 @@ import TreePredictor
 import curveTreeDB
 import params
 from google.cloud import error_reporting
+import datetime 
 
 client = error_reporting.Client('money-maker-1236', service="Tree Search", version=params.curveAndTreeVersion)
 try:
@@ -14,6 +15,7 @@ try:
     joinedData = tData[0]
     validTickers = tData[1]
     while True:
+        startTime = datetime.datetime.now()
         import random
         ##ADVANCED TICKER TO TRADE SELECTION
         modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
@@ -155,5 +157,10 @@ try:
                         # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
 
                     break
+        dataAck.logModel("Search Update", {
+                        "message":"finished tree search in tree search",
+                        "currentTicker":tickerToTrade,
+                        "elapsedTime":str(datetime.datetime.now() - startTime)
+        })
 except:
     client.report_exception()
