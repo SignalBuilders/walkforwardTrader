@@ -32,6 +32,7 @@ systemStatus = "walkforward_status"
 
 
 ##CURVE AND TREE TRADING
+tickerDataLookup = "ALL_TICKERS"
 attemptedModels = "attemptedModels"
 curveModels = "curve_models"
 treeModels = "tree_models"

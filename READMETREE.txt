@@ -2,6 +2,12 @@
 
 ##ORDER OF COMPUTATION
 
+-> prepareTickerData
+
+store all data in cloud bucket so don't need to hit quandl endpoint
+
+prior to this strategy change, only tickers with a beta lower than 0.5 could influence [normal beta, not binary...so very volatile tickers could use anything and non-volatile had 4 or 5 possible sources]
+
 -> curveAndTreeSearch.py
 
 Model search iterates through different series and different learning combinations and stores results for both

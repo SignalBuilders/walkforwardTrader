@@ -33,35 +33,36 @@ try:
         print(tickerToTrade)
 
         
-        tData = dataAck.getTrainingData(tickerToTrade)
+        ##SHOULD BE INITIALIZED PRIOR
+        tData = dataAck.getTrainingData(params.tickerDataLookup)
         joinedData = None
         validTickers = None
 
         
         
-        if tData is None:
-            dataAck.logModel("Cache", {
-                "type":"miss",
-                "ticker":tickerToTrade,
-                "day":str(portfolio.getToday())
-            })
+        # if tData is None:
+        #     dataAck.logModel("Cache", {
+        #         "type":"miss",
+        #         "ticker":tickerToTrade,
+        #         "day":str(portfolio.getToday())
+        #     })
 
-            tickersToPull = dataAck.getDataSourcesForTicker(tickerToTrade)
-            print(tickersToPull)
+        #     tickersToPull = dataAck.getDataSourcesForTicker(tickerToTrade)
+        #     print(tickersToPull)
 
-            pulledData, validTickers = dataAck.downloadTickerData(tickersToPull)
+        #     pulledData, validTickers = dataAck.downloadTickerData(tickersToPull)
 
-            joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
+        #     joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
             
-            dataAck.storeTrainingData(tickerToTrade, (joinedData, validTickers))
-        else:
-            joinedData = tData[0]
-            validTickers = tData[1]
-            dataAck.logModel("Cache", {
-                "type":"hit",
-                "ticker":tickerToTrade,
-                "day":str(portfolio.getToday())
-            })
+        #     dataAck.storeTrainingData(tickerToTrade, (joinedData, validTickers))
+        # else:
+        joinedData = tData[0]
+        validTickers = tData[1]
+        # dataAck.logModel("Cache", {
+        #     "type":"hit",
+        #     "ticker":tickerToTrade,
+        #     "day":str(portfolio.getToday())
+        # })
             
         
         sManager = dataAck.seriesManager(validTickers)
