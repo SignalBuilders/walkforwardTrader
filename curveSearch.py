@@ -138,53 +138,53 @@ try:
                 break
 
         ##BASIC TREE SEARCH
-        startTime = datetime.datetime.now()
-        curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
-        buildingBlocks = curveBlocks
-        runsSeen = 0
-        attempts = 0
-        print(buildingBlocks)
-        if len(buildingBlocks) > 30:
-            while True:
-                try:
-                    blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
-                    tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
-                    if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
-                        dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
-                        raise ValueError("Tree Model Already Exists") 
-                    curveTreeDB.logModelAttempted(tPre)
-                    algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
-                    metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
-                    print("TRAIN:", metrics)
-                    if (metrics["SHARPE"] > 0.75 or metrics["SHARPE DIFFERENCE"] > 0.0)\
-                         and metrics["ACTIVITY"] > 0.4 and metrics["RAW BETA"] < 0.6\
-                         and metrics["STABILITY"] > 0.6 and metrics["TOTAL DAYS SEEN"] >= 1700:
-                        ##STORE
-                        testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
-                        print("TEST:", testMetrics)
-                        curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
-                        curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
-                    else:
-                        toLog = {"modelDescription":str(tPre.describe())}
-                        for k in metrics:
-                            toLog[k] = metrics[k]
-                        dataAck.logModel("Model Tree Skipped", toLog)
-                    runsSeen += 1
-                except Exception as e:
-                    print("COMBO FAILED", e)
+        # startTime = datetime.datetime.now()
+        # curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
+        # buildingBlocks = curveBlocks
+        # runsSeen = 0
+        # attempts = 0
+        # print(buildingBlocks)
+        # if len(buildingBlocks) > 30:
+        #     while True:
+        #         try:
+        #             blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
+        #             tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
+        #             if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
+        #                 dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
+        #                 raise ValueError("Tree Model Already Exists") 
+        #             curveTreeDB.logModelAttempted(tPre)
+        #             algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = tPre.runModelHistorical(joinedData)
+        #             metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
+        #             print("TRAIN:", metrics)
+        #             if (metrics["SHARPE"] > 0.75 or metrics["SHARPE DIFFERENCE"] > 0.0)\
+        #                  and metrics["ACTIVITY"] > 0.4 and metrics["RAW BETA"] < 0.6\
+        #                  and metrics["STABILITY"] > 0.6 and metrics["TOTAL DAYS SEEN"] >= 1700:
+        #                 ##STORE
+        #                 testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
+        #                 print("TEST:", testMetrics)
+        #                 curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
+        #                 curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
+        #             else:
+        #                 toLog = {"modelDescription":str(tPre.describe())}
+        #                 for k in metrics:
+        #                     toLog[k] = metrics[k]
+        #                 dataAck.logModel("Model Tree Skipped", toLog)
+        #             runsSeen += 1
+        #         except Exception as e:
+        #             print("COMBO FAILED", e)
 
-                attempts += 1
+        #         attempts += 1
 
-                if runsSeen > 10 or attempts > 30:
-                    dataAck.logModel("Search Update", {
-                        "message":"finished tree search in curve",
-                        "runsSeen":runsSeen, 
-                        "attempts":attempts,
-                        "currentTicker":tickerToTrade,
-                        "elapsedTime":str(datetime.datetime.now() - startTime)
-                        })
+        #         if runsSeen > 10 or attempts > 30:
+        #             dataAck.logModel("Search Update", {
+        #                 "message":"finished tree search in curve",
+        #                 "runsSeen":runsSeen, 
+        #                 "attempts":attempts,
+        #                 "currentTicker":tickerToTrade,
+        #                 "elapsedTime":str(datetime.datetime.now() - startTime)
+        #                 })
 
-                    break
+        #             break
 
 except:
     client.report_exception()
