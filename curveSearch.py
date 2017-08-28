@@ -4,12 +4,19 @@ import CurvePredictor
 import TreePredictor
 import curveTreeDB
 import params
+import datetime 
 from google.cloud import error_reporting
 
 client = error_reporting.Client('money-maker-1236', service="Curve Search", version=params.curveAndTreeVersion)
 try:
     allTickers = dataAck.getAllTickersPlain()
+
+    ##SHOULD BE PRE-INITIALIZED
+    tData = dataAck.getTrainingData(params.tickerDataLookup)
+    joinedData = tData[0]
+    validTickers = tData[1]
     while True:
+        startTime = datetime.datetime.now()
         import random
         ##ADVANCED TICKER TO TRADE SELECTION
         modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.curveModels)
@@ -32,11 +39,9 @@ try:
         tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
         print(tickerToTrade)
 
-        ##SHOULD BE PRE-INITIALIZED
         
-        tData = dataAck.getTrainingData(params.tickerDataLookup)
-        joinedData = None
-        validTickers = None
+        
+        
 
         
         
@@ -56,8 +61,7 @@ try:
             
         #     dataAck.storeTrainingData(tickerToTrade, (joinedData, validTickers))
         # else:
-        joinedData = tData[0]
-        validTickers = tData[1]
+        
             # dataAck.logModel("Cache", {
             #     "type":"hit",
             #     "ticker":tickerToTrade,
@@ -127,11 +131,13 @@ try:
                 ##START NEW TICKER
                 dataAck.logModel("Search Update", {
                     "message":"restarting search with different ticker",
-                    "currentTicker":tickerToTrade
+                    "currentTicker":tickerToTrade,
+                    "elapsedTime":str(datetime.datetime.now() - startTime)
                 })
                 break
 
         ##BASIC TREE SEARCH
+        startTime = datetime.datetime.now()
         curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
         buildingBlocks = curveBlocks
         runsSeen = 0
@@ -169,7 +175,13 @@ try:
                 attempts += 1
 
                 if runsSeen > 10 or attempts > 30:
-                    # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
+                    dataAck.logModel("Search Update", {
+                        "message":"finished tree search in curve",
+                        "runsSeen":runsSeen, 
+                        "attempts":attempts,
+                        "currentTicker":tickerToTrade,
+                        "elapsedTime":str(datetime.datetime.now() - startTime)
+                        })
 
                     break
 

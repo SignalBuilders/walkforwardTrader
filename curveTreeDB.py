@@ -109,6 +109,32 @@ def getModelData(db, model):
             return None
     pass
 
+def storeCurveHistorical(curveModelHash, returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions):
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.curveModelData)
+            blob = storage.Blob(curveModelHash, bucket)
+            blob.upload_from_string(pickle.dumps((returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions)))
+            print("STORING", curveModelHash)
+            break
+        except:
+            print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    pass
+
+def getCurveHistorical(curveModelHash):
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.curveModelData)
+            print("ATTEMPTING PULL", curveModelHash)
+            blob = storage.Blob(curveModelHash, bucket)
+            return pickle.loads(blob.download_as_string())
+        except:
+            return None
+    pass
+
 def storeModelPrediction(model, pred, lastDataDayUsed, shouldReturn = False):
     toUpload = {}
     toUpload["ticker"] = model.targetTicker

@@ -9,6 +9,10 @@ from google.cloud import error_reporting
 client = error_reporting.Client('money-maker-1236', service="Tree Search", version=params.curveAndTreeVersion)
 try:
     allTickers = dataAck.getAllTickersPlain()
+    ##SHOULD BE INITIALIZED PRIOR
+    tData = dataAck.getTrainingData(params.tickerDataLookup)
+    joinedData = tData[0]
+    validTickers = tData[1]
     while True:
         import random
         ##ADVANCED TICKER TO TRADE SELECTION
@@ -33,10 +37,7 @@ try:
         print(tickerToTrade)
 
         
-        ##SHOULD BE INITIALIZED PRIOR
-        tData = dataAck.getTrainingData(params.tickerDataLookup)
-        joinedData = None
-        validTickers = None
+
 
         
         
@@ -56,8 +57,7 @@ try:
             
         #     dataAck.storeTrainingData(tickerToTrade, (joinedData, validTickers))
         # else:
-        joinedData = tData[0]
-        validTickers = tData[1]
+        
         # dataAck.logModel("Cache", {
         #     "type":"hit",
         #     "ticker":tickerToTrade,

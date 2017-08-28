@@ -15,6 +15,7 @@ import time
 import pickle
 import hashlib
 import sys
+import curveTreeDB
 
 
 
@@ -301,8 +302,17 @@ class CurvePredictor:
             return returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions
     
     def runModelHistorical(self, dataOfInterest, earlyStop=False):
-        return self.runModelsChunksSkipMP(dataOfInterest, earlyStop=earlyStop)
-
+        ##CHECK TO SEE IF ALREADY CACHED
+        try:
+            returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = curveTreeDB.getCurveHistorical(self.getHash())
+            print("GOT CURVE MODEL", self.getHash())
+            return returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions
+        except: ##IF NOT CACHED, SAVE RESULTS
+            print("FAILED RETRIEVAL", self.getHash())
+            returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = self.runModelsChunksSkipMP(dataOfInterest, earlyStop=earlyStop)
+            if returnStream is not None:  ## NOT STOPPED EARLY
+                curveTreeDB.storeCurveHistorical(self.getHash(), returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions)
+            return returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions
 
     def runModelToday(self, dataOfInterest):
         xVals, yVals, yIndex, xToday = self.generateWindows(dataOfInterest)
