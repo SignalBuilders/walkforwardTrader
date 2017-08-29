@@ -365,7 +365,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True), columns=returnWindow.columns.values)
             
         
-        
+        print(weightsSeen)
         if historicalWeights is None:
             historicalWeights = weightsSeen
         else:
