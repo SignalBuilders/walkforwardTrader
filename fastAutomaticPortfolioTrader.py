@@ -399,7 +399,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             weightsSeen = produceEWPredictions(returnWindow, startIndex=max(startIndex, 126))
         elif portfolioType == "EW By Ticker":
             weights = getWeightingForAlgos(allModels, returnWindow.columns)
-            produceEWByTickerPredictions(aggregateReturns, startIndex=max(startIndex, 126), weights)
+            produceEWByTickerPredictions(aggregateReturns, startIndex=max(startIndex, 126), weights=weights)
             
         
         if historicalWeights is None:
