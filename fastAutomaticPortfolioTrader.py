@@ -181,7 +181,6 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 #         alpha, beta = empyrical.alpha_beta(algoPerformance, thisFactorReturn)
 #         print(ticker, beta)
     
-    print(algoPerformance)
     alpha, beta = empyrical.alpha_beta(algoPerformance, factorReturn)
     sharpe_difference = empyrical.sharpe_ratio(algoPerformance) - empyrical.sharpe_ratio(factorReturn)
     annualizedReturn = empyrical.annual_return(algoPerformance)[0]
@@ -251,6 +250,20 @@ def produceEWPredictions(aggregateReturns, startIndex):
     while i < len(aggregateReturns):
         todayReturn = aggregateReturns[i:i+1]
         thisWeights = pd.DataFrame([[1.0/len(columns) for item in columns]], index=todayReturn.index, columns=columns.tolist())
+        historicalWeights = pd.concat([historicalWeights, thisWeights])
+        i += 1
+    return historicalWeights
+
+def produceEWByTickerPredictions(aggregateReturns, startIndex, weights):
+
+    historicalWeights = pd.DataFrame([])
+    i = 0
+    if startIndex is not None:
+        i = startIndex
+    columns = aggregateReturns.columns
+    while i < len(aggregateReturns):
+        todayReturn = aggregateReturns[i:i+1]
+        thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=todayReturn.index, columns=weights.index.tolist())
         historicalWeights = pd.concat([historicalWeights, thisWeights])
         i += 1
     return historicalWeights
@@ -342,8 +355,12 @@ def getWeightingForAlgos(allModels, columns):
     weightsToSend = []
     for col in columns:
         weightsToSend.append(1.0/countPerTicker[hashes[col]])
-        
-    return [item/sum(weightsToSend) for item in weightsToSend]
+    
+    weightDF = {}
+    for i in range(len(columns)):
+        weightDF[hashes[columns[i]]] = weightsToSend[i]/sum(weightsToSend)
+
+    return pd.DataFrame(weightDF)
 
 
 # In[ ]:
@@ -381,9 +398,8 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
         elif portfolioType == "EW":
             weightsSeen = produceEWPredictions(returnWindow, startIndex=max(startIndex, 126))
         elif portfolioType == "EW By Ticker":
-            weightArray = getWeightingForAlgos(allModels, returnWindow.columns)
-            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True),\
-             columns=returnWindow.columns.values, index=returnWindow.index)
+            weights = getWeightingForAlgos(allModels, returnWindow.columns)
+            produceEWByTickerPredictions(aggregateReturns, startIndex=max(startIndex, 126), weights)
             
         
         if historicalWeights is None:
@@ -420,7 +436,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types = ["EW"]#, "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types = ["EW By Ticker"]#, "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
