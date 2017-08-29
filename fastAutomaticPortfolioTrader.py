@@ -158,11 +158,16 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     tickerAllocationsTable = scaledTickerAllocationsTable
     tickerAllocationsTable = tickerAllocationsTable.fillna(0)
     rawTickerPerformance = portfolioGeneration.calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
-    print(rawTickerPerformance)
+    
+    rawTickerPerformance = rawTickerPerformance[~rawTickerPerformance.index.duplicated(keep='first')]
+    
+
     rawAlgoPerformance = pd.DataFrame(rawTickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
 
+    print(rawAlgoPerformance)
     tickerPerformance, algoPerformance, algoTransactionCost =  portfolioGeneration.calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
 
+    print(algoPerformance)
     benchmark = factorToTrade
     factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
     factorReturn.columns = ["Factor Return (" + benchmark + ")"]
