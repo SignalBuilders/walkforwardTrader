@@ -119,7 +119,17 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     sharpe_difference = empyrical.sharpe_ratio(algoPerformance) - empyrical.sharpe_ratio(factorReturn)
     annualizedReturn = empyrical.annual_return(algoPerformance)[0]
     annualizedVolatility = empyrical.annual_volatility(algoPerformance)
+    stability = empyrical.stability_of_timeseries(algoPerformance)
+    profitability = len((algoPerformance.values)[algoPerformance.values > 0])/len(algoPerformance.values)
     
+
+
+    rollingSharpe = algoPerformance.rolling(252, min_periods=252).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
+    rollingSharpe.columns = ["252 Day Rolling Sharpe"]
+
+    rollingSharpeError = rollingSharpe["252 Day Rolling Sharpe"].std()
+    rollingSharpeMinimum = np.percentile(rollingSharpe["252 Day Rolling Sharpe"].values, 1)
+
     ##AUTOMATICALLY TAKES SLIPPAGE INTO ACCOUNT
     return {
         "benchmark":factorToTrade,
@@ -129,8 +139,12 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
         "annualizedReturn":annualizedReturn,
         "annualizedVolatility":annualizedVolatility,
         "sharpe":empyrical.sharpe_ratio(algoPerformance),
-        "free return":annualizedReturn - annualizedVolatility
-    }
+        "free return":annualizedReturn - annualizedVolatility,
+        "stability":stability,
+        "profitability":profitability,
+        "rollingSharpeError":rollingSharpeError,
+        "rollingSharpeMinimum":rollingSharpeMinimum
+    }, tickerAllocationsTable
     
 
 
@@ -353,16 +367,19 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             thisModel = hashToModel[modelHash]
             modelsUsed.append(thisModel)
         if startIndex == 0:
-            scaledStats = getLimitedDataForPortfolio(historicalWeights,\
+            scaledStats, unused = getLimitedDataForPortfolio(historicalWeights,\
                         historicalPredictions, modelsUsed, factorToTrade, joinedData)
             print(scaledStats)
             if scaledStats["sharpe difference"] < 0.0 or scaledStats["annualizedReturn"] < scaledStats["annualizedVolatility"]:
                 return None, None
     
-    trainStats = getLimitedDataForPortfolio(historicalWeights[:-252], \
+    trainStats, tickerAllocationsTableTrain = getLimitedDataForPortfolio(historicalWeights[:-252], \
         historicalPredictions, modelsUsed, factorToTrade, joinedData)
-    testStats = getLimitedDataForPortfolio(historicalWeights[-252:], \
+    testStats, tickerAllocationsTableTest = getLimitedDataForPortfolio(historicalWeights[-252:], \
         historicalPredictions, modelsUsed, factorToTrade, joinedData)
+
+    tickerAllocationsTable = pd.concat([tickerAllocationsTableTrain, tickerAllocationsTableTest])
+    print(tickerAllocationsTable)
     
     if trainStats["sharpe difference"] > 0.0 and trainStats["annualizedReturn"] > trainStats["annualizedVolatility"]:
         print("ACCEPTED", trainStats, testStats)
@@ -374,7 +391,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types =  ["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["EW"]#["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
