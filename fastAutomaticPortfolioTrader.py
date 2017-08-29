@@ -360,7 +360,7 @@ def getWeightingForAlgos(allModels, columns):
     for i in range(len(columns)):
         weightDF[hashes[columns[i]]] = weightsToSend[i]/sum(weightsToSend)
 
-    return pd.DataFrame(weightDF)
+    return pd.DataFrame(weightDF, index=list(weightDF.keys()))
 
 
 # In[ ]:
