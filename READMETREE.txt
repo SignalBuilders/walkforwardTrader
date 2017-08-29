@@ -17,11 +17,13 @@ generated curves and trees
 
 Saves and backfills aggregate model predictions
 
-	-> cacheValidModels...saves a lot of database calls
+	-> fastAutomaticPortfolioDataCache.py
 
-	-> automaticPortfolioGeneratorTree.py
+	saves a lot of database calls and stores in one file to download at start of portfolio search
 
-	Automatically creates random portfolios of algorithms
+	-> fastAutomaticPortfolioTrader.py
+
+	Automatically creates random portfolios of algorithms and stores in a database for review
 
 
 -> [Once Required] TODO Upgrade Portfolio to Trading Portfolios Tree.ipynb

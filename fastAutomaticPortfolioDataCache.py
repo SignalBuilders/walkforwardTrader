@@ -88,7 +88,7 @@ def storePortfolioInputData(cleanedReturns, cleanedPredictions, hashToModel, joi
             bucket = storageClient.get_bucket(params.validModelsCache)
             blob = storage.Blob(params.validModelsLookup, bucket)
             blob.upload_from_string(pickle.dumps((cleanedReturns, cleanedPredictions, hashToModel, joinedData)))
-            print("STORING", organismHash)
+            print("STORING", params.validModelsLookup)
             break
         except:
             print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
