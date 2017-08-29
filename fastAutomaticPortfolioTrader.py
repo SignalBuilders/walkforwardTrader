@@ -359,13 +359,12 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
         elif portfolioType == "HRP WINDOW":
             hrpReturns, weightsSeen = produceHRPPredictions(returnWindow,                    126, startIndex=max(startIndex, 126), maxWindowSize=True)
         elif portfolioType == "EW":
-            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: [1.0/len(x) for item in x], axis=1, raw=True), columns=returnWindow.columns.values)
+            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: [1.0/len(x) for item in x], axis=1, raw=True), columns=returnWindow.columns.values, index=returnWindow.index)
         elif portfolioType == "EW By Ticker":
             weightArray = getWeightingForAlgos(allModels, returnWindow.columns)
-            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True), columns=returnWindow.columns.values)
+            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True), columns=returnWindow.columns.values, index=returnWindow.index)
             
         
-        print(weightsSeen)
         if historicalWeights is None:
             historicalWeights = weightsSeen
         else:
