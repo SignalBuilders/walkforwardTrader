@@ -263,7 +263,7 @@ def produceEWByTickerPredictions(aggregateReturns, startIndex, weights):
     columns = aggregateReturns.columns
     while i < len(aggregateReturns):
         todayReturn = aggregateReturns[i:i+1]
-        thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=todayReturn.index, columns=weights.index.tolist())
+        thisWeights = pd.DataFrame([[weights[item] for item in list(weights.keys())]], index=todayReturn.index, columns=list(weights.keys()))
         historicalWeights = pd.concat([historicalWeights, thisWeights])
         i += 1
     return historicalWeights
@@ -360,7 +360,7 @@ def getWeightingForAlgos(allModels, columns):
     for i in range(len(columns)):
         weightDF[hashes[columns[i]]] = weightsToSend[i]/sum(weightsToSend)
 
-    return pd.DataFrame(weightDF, index=list(weightDF.keys()))
+    return weightDF
 
 
 # In[ ]:
@@ -399,7 +399,6 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             weightsSeen = produceEWPredictions(returnWindow, startIndex=max(startIndex, 126))
         elif portfolioType == "EW By Ticker":
             weights = getWeightingForAlgos(allModels, returnWindow.columns)
-            print(weights)
             produceEWByTickerPredictions(returnWindow, startIndex=max(startIndex, 126), weights=weights)
             
         
