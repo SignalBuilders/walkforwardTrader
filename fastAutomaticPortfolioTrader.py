@@ -319,7 +319,7 @@ def binarizeReturns(returnArr):
 def performPortfolioPerformanceEstimation(historicalPredictions, historicalReturns, factorToTrade, portfolioType, hashToModel, joinedData):
     returnWindows = [(0, historicalReturns[:450]), (450, historicalReturns)]
     historicalWeights = None
-    allModels = [hashToModel[item] for item in returnWindow.columns]
+    allModels = [hashToModel[item] for item in historicalPredictions.columns]
     for selectedReturns in returnWindows:
         startIndex = selectedReturns[0]
         returnWindow = selectedReturns[1]
