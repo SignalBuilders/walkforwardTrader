@@ -151,7 +151,7 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 # In[ ]:
 
 def returnSelectAlgos(algoColumns):
-    return np.random.choice(algoColumns, size=random.randint(15, 200), replace= False)
+    return np.random.choice(algoColumns, size=random.randint(15, len(algoColumns)), replace= False)
 
 
 # In[ ]:
