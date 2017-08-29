@@ -170,7 +170,8 @@ def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSiz
             thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
             historicalWeights = pd.concat([historicalWeights, thisWeights])
         except:
-            print("FAILED:",i)
+            # print("FAILED:",i)
+            pass
         i += 1
     return hrpReturns, historicalWeights
 
