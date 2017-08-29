@@ -26,7 +26,26 @@ import portfolio
 # In[ ]:
 print("STARTING OBJECT DOWNLOAD")
 
-dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
+def getValidTradingModels(db, returnEntireObject = False):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            query = datastore_client.query(kind=db)
+            query.add_filter("IS_SHARPE DIFFERENCE SLIPPAGE", '>', 0.0)
+            retrievedModels = list(query.fetch(limit=200))
+            toReturn = []
+            for source in retrievedModels:
+                if returnEntireObject == False:
+                    toReturn.append(pickle.loads(source["model"]))
+                else:
+                    source["model"] = pickle.loads(source["model"])
+                    toReturn.append(source)
+            return toReturn
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+dataObjs = getValidTradingModels(params.treeModels, returnEntireObject=True)
 
 
 # In[ ]:
@@ -180,7 +199,7 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 # In[ ]:
 
 def returnSelectAlgos(algoColumns):
-    return np.random.choice(algoColumns, size=random.randint(15, 30), replace= False)
+    return np.random.choice(algoColumns, size=random.randint(15, len(algoColumns)), replace= False)
 
 
 # In[ ]:
