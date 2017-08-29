@@ -27,7 +27,7 @@ import portfolio
 print("STARTING OBJECT DOWNLOAD")
 
 
-dataObjs = dataAck.getValidModels(params.treeModels, returnEntireObject=True)
+dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
 
 
 # In[ ]:
