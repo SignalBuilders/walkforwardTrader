@@ -176,7 +176,8 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 #         thisFactorReturn.columns = ["Factor Return (" + ticker + ")"]
 #         alpha, beta = empyrical.alpha_beta(algoPerformance, thisFactorReturn)
 #         print(ticker, beta)
-
+    
+    print(algoPerformance)
     alpha, beta = empyrical.alpha_beta(algoPerformance, factorReturn)
     sharpe_difference = empyrical.sharpe_ratio(algoPerformance) - empyrical.sharpe_ratio(factorReturn)
     annualizedReturn = empyrical.annual_return(algoPerformance)[0]
