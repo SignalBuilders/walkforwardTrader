@@ -21,7 +21,8 @@ import multiprocessing as mp
 import autoPortfolioTree
 import curveTreeDB
 import portfolio
-
+import random
+factorToTrade = "VTI"
 
 # In[ ]:
 print("STARTING OBJECT DOWNLOAD")
