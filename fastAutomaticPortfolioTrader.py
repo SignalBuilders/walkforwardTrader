@@ -242,6 +242,19 @@ def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSiz
     return hrpReturns, historicalWeights
 
 
+def produceEWPredictions(aggregateReturns, startIndex):
+    historicalWeights = pd.DataFrame([])
+    i = 0
+    if startIndex is not None:
+        i = startIndex
+    columns = aggregateReturns.columns
+    while i < len(aggregateReturns):
+        todayReturn = aggregateReturns[i:i+1]
+        thisWeights = pd.DataFrame([[1.0/len(columns) for item in columns]], index=todayReturn.index, columns=columns.tolist())
+        historicalWeights = pd.concat([historicalWeights, thisWeights])
+        i += 1
+    return historicalWeights
+
 # In[ ]:
 
 def storeDiscoveredPortfolio(models, portfolioType, benchmark, IS_DATA, OOS_DATA):
@@ -366,8 +379,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             hrpReturns, weightsSeen = produceHRPPredictions(returnWindow, \
                 126, startIndex=max(startIndex, 126), maxWindowSize=True)
         elif portfolioType == "EW":
-            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: [1.0/len(x) for item in x], axis=1, raw=True),\
-             columns=returnWindow.columns.values, index=returnWindow.index)
+            weightsSeen = produceEWPredictions(returnWindow, startIndex=max(startIndex, 126))
         elif portfolioType == "EW By Ticker":
             weightArray = getWeightingForAlgos(allModels, returnWindow.columns)
             weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True),\

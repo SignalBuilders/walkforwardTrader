@@ -462,8 +462,7 @@ def calculatePerformanceForTable(table, tickerOrder, joinedData):
             aggregatePerformance = thisPerformance
         else:
             aggregatePerformance = aggregatePerformance.join(thisPerformance)
-    aggPerf = aggregatePerformance.dropna()
-    return aggPerf[~aggPerf.index.duplicated(keep='first')]
+    return aggregatePerformance.dropna()
 
 import time
 def convertTableToJSON(table):
