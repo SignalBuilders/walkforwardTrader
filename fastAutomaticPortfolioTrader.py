@@ -124,7 +124,7 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     return {
         "benchmark":factorToTrade,
         "alpha":alpha,
-        "beta":beta,
+        "beta":abs(beta),
         "sharpe difference":sharpe_difference,
         "annualizedReturn":annualizedReturn,
         "annualizedVolatility":annualizedVolatility,
@@ -373,7 +373,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types =  ["EW", "EW By Ticker"]#["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
