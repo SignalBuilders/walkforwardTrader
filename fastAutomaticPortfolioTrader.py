@@ -32,7 +32,7 @@ def getValidTradingModels(db, returnEntireObject = False):
             datastore_client = datastore.Client('money-maker-1236')
             query = datastore_client.query(kind=db)
             query.add_filter("IS_SHARPE DIFFERENCE SLIPPAGE", '>', 0.0)
-            retrievedModels = list(query.fetch(limit=200))
+            retrievedModels = list(query.fetch(limit=5000))
             toReturn = []
             for source in retrievedModels:
                 if returnEntireObject == False:
