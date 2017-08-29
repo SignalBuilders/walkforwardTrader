@@ -379,6 +379,7 @@ types =  ["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 # In[ ]:
 
 ## MP RUN  
+import time
 
 def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse):
     mpEngine = mp.get_context('fork')
@@ -390,6 +391,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
         
         while len(runningP) > threadsToUse:
             runningP = dataAck.cycleP(runningP)
+            time.sleep(3)
             
         portfolioType = types[random.randint(0, len(types) - 1)]
         print(factorToTrade, len(selectedAlgorithms), portfolioType)
@@ -406,7 +408,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
 print("STARTING GENERATION")
 
 ##REMOVE BREAK TO DO FULL AUTO
-createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=3)
+createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=1)
 
 
 # In[ ]:
