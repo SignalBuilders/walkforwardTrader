@@ -17,6 +17,8 @@ generated curves and trees
 
 Saves and backfills aggregate model predictions
 
+	-> cacheValidModels...saves a lot of database calls
+
 	-> automaticPortfolioGeneratorTree.py
 
 	Automatically creates random portfolios of algorithms

@@ -27,68 +27,19 @@ import portfolio
 print("STARTING OBJECT DOWNLOAD")
 
 
-dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
+def getPortfolioInputData():
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.validModelsCache)
+            print("ATTEMPTING PULL", params.validModelsLookup)
+            blob = storage.Blob(params.validModelsLookup, bucket)
+            return pickle.loads(blob.download_as_string())
+        except:
+            return None
+    pass
 
-
-# In[ ]:
-
-allModels = []
-tickersSeen = []
-for item in dataObjs:
-    try:
-        if item["IS_PROFITABILITY SLIPPAGE"] > 0.51 and item["IS_ANNUALIZED RETURN"] > 0.10:
-            model = item["model"]
-            print(model.targetTicker, model.getHash(), item["IS_SHARPE SLIPPAGE"], item["IS_SHARPE DIFFERENCE SLIPPAGE"], item["IS_BETA"])
-            allModels.append(model)
-            if model.targetTicker not in tickersSeen:
-                tickersSeen.append(model.targetTicker)
-    except:
-        continue
-        
-
-
-# In[ ]:
-
-# len(allModels)
-
-
-# In[ ]:
-
-# len(tickersSeen)
-
-
-# In[ ]:
-
-import random
-factorToTrade = "VTI"#tickersSeen[random.randint(0, len(tickersSeen) - 1)]
-# factorToTrade
-
-
-# In[ ]:
-
-import importlib
-importlib.reload(dataAck)
-uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData = autoPortfolioTree.computeReturnsForUniqueModelsCache(allModels, factorToTrade)
-
-
-# In[ ]:
-
-cleanedReturns = modelReturns.fillna(0)
-cleanedReturns.columns = [item.getHash() for item in uniqueModels]
-
-cleanedPredictions = modelPredictions.fillna(0)
-cleanedPredictions.columns = [item.getHash() for item in uniqueModels]
-hashToModel = {}
-for item in uniqueModels:
-    hashToModel[item.getHash()] = item
-
-
-# In[ ]:
-
-# cleanedReturns
-
-
-# In[ ]:
+cleanedReturns, cleanedPredictions, hashToModel, joinedData = getPortfolioInputData()
 
 def historicalWeightsToTickerAllocations(historicalWeights, algorithmPredictions, modelsInPortfolio):
     aggregatePredictions = algorithmPredictions.dropna()

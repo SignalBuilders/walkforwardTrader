@@ -32,6 +32,8 @@ systemStatus = "walkforward_status"
 
 
 ##CURVE AND TREE TRADING
+validModelsCache = "validmodelscache"
+validModelsLookup = "validModels"
 tickerDataLookup = "ALL_TICKERS"
 attemptedModels = "attemptedModels"
 curveModels = "curve_models"
