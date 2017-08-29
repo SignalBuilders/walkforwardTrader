@@ -199,7 +199,7 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 # In[ ]:
 
 def returnSelectAlgos(algoColumns):
-    return np.random.choice(algoColumns, size=random.randint(15, len(algoColumns)), replace= False)
+    return np.random.choice(algoColumns, size=random.randint(5, 6), replace= False)
 
 
 # In[ ]:
@@ -397,7 +397,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types = ["EW", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types = ["EW"]#, "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
