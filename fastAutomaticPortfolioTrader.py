@@ -157,9 +157,8 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     
     tickerAllocationsTable = scaledTickerAllocationsTable
     tickerAllocationsTable = tickerAllocationsTable.fillna(0)
-    print(tickerAllocationsTable)
     rawTickerPerformance = portfolioGeneration.calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
-
+    print(rawTickerPerformance)
     rawAlgoPerformance = pd.DataFrame(rawTickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
 
     tickerPerformance, algoPerformance, algoTransactionCost =  portfolioGeneration.calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
