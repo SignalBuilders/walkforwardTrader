@@ -156,6 +156,8 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     normalTickerAllocationsTable, scaledTickerAllocationsTable = historicalWeightsToTickerAllocations(historicalWeights, historicalPredictions, modelsUsed)
     
     tickerAllocationsTable = scaledTickerAllocationsTable
+
+    print(scaledTickerAllocationsTable)
     rawTickerPerformance = portfolioGeneration.calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
 
     rawAlgoPerformance = pd.DataFrame(rawTickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
@@ -353,16 +355,21 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
         returnWindow = selectedReturns[1]
         weightsSeen = None
         if portfolioType == "HRP FULL":
-            hrpReturns, weightsSeen = produceHRPPredictions(returnWindow,                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
+            hrpReturns, weightsSeen = produceHRPPredictions(returnWindow, \
+                126, startIndex=max(startIndex, 126), maxWindowSize=False)
         elif portfolioType == "HRP BINARY":
-            hrpReturns, weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x), axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
+            hrpReturns, weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
+             axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
         elif portfolioType == "HRP WINDOW":
-            hrpReturns, weightsSeen = produceHRPPredictions(returnWindow,                    126, startIndex=max(startIndex, 126), maxWindowSize=True)
+            hrpReturns, weightsSeen = produceHRPPredictions(returnWindow, \
+                126, startIndex=max(startIndex, 126), maxWindowSize=True)
         elif portfolioType == "EW":
-            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: [1.0/len(x) for item in x], axis=1, raw=True), columns=returnWindow.columns.values, index=returnWindow.index)
+            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: [1.0/len(x) for item in x], axis=1, raw=True),\
+             columns=returnWindow.columns.values, index=returnWindow.index)
         elif portfolioType == "EW By Ticker":
             weightArray = getWeightingForAlgos(allModels, returnWindow.columns)
-            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True), columns=returnWindow.columns.values, index=returnWindow.index)
+            weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True),\
+             columns=returnWindow.columns.values, index=returnWindow.index)
             
         
         if historicalWeights is None:
@@ -370,7 +377,6 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
         else:
             historicalWeights = pd.concat([historicalWeights, weightsSeen])
         
-        print(historicalWeights)
         modelsUsed = []
 
         tickersSeen = {}
@@ -379,13 +385,16 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             thisModel = hashToModel[modelHash]
             modelsUsed.append(thisModel)
         if startIndex == 0:
-            scaledStats = getLimitedDataForPortfolio(historicalWeights,                                    historicalPredictions, modelsUsed, factorToTrade, joinedData)
+            scaledStats = getLimitedDataForPortfolio(historicalWeights,\
+                        historicalPredictions, modelsUsed, factorToTrade, joinedData)
             print(scaledStats)
             if scaledStats["sharpe difference"] < 0.0 or scaledStats["annualizedReturn"] < scaledStats["annualizedVolatility"]:
                 return None, None
     
-    trainStats = getLimitedDataForPortfolio(historicalWeights[:-252],                                               historicalPredictions, modelsUsed, factorToTrade, joinedData)
-    testStats = getLimitedDataForPortfolio(historicalWeights[-252:],                                               historicalPredictions, modelsUsed, factorToTrade, joinedData)
+    trainStats = getLimitedDataForPortfolio(historicalWeights[:-252], \
+        historicalPredictions, modelsUsed, factorToTrade, joinedData)
+    testStats = getLimitedDataForPortfolio(historicalWeights[-252:], \
+        historicalPredictions, modelsUsed, factorToTrade, joinedData)
     
     if trainStats["sharpe difference"] > 0.0 and trainStats["annualizedReturn"] > trainStats["annualizedVolatility"]:
         print("ACCEPTED", trainStats, testStats)
