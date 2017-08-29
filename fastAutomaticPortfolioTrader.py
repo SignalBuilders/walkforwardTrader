@@ -197,7 +197,6 @@ def produceEWByTickerPredictions(aggregateReturns, startIndex, weights):
         i = startIndex
     columns = aggregateReturns.columns
     weightsKeys = list(weights.keys())
-    print(weights)
     while i < len(aggregateReturns):
         todayReturn = aggregateReturns[i:i+1]
         thisWeights = pd.DataFrame([[weights[item] for item in weightsKeys]], index=todayReturn.index, columns=columns.tolist())
