@@ -264,6 +264,7 @@ def storeDiscoveredPortfolio(models, portfolioType, benchmark, IS_DATA, OOS_DATA
                 toUpload[ticker] = True
             
             toUpload["TICKERS TRADED"] = len(seenTickers)
+            toUpload["ALGORITHMS TRADED"] = len(allHashes)
             
             datastoreClient = datastore.Client('money-maker-1236')
             #HASH DIGEST
