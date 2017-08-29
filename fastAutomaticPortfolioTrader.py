@@ -26,26 +26,8 @@ import portfolio
 # In[ ]:
 print("STARTING OBJECT DOWNLOAD")
 
-def getValidTradingModels(db, returnEntireObject = False):
-    while True:
-        try:
-            datastore_client = datastore.Client('money-maker-1236')
-            query = datastore_client.query(kind=db)
-            query.add_filter("IS_SHARPE DIFFERENCE SLIPPAGE", '>', 0.0)
-            retrievedModels = list(query.fetch(limit=5000))
-            toReturn = []
-            for source in retrievedModels:
-                if returnEntireObject == False:
-                    toReturn.append(pickle.loads(source["model"]))
-                else:
-                    source["model"] = pickle.loads(source["model"])
-                    toReturn.append(source)
-            return toReturn
-        except:
-            time.sleep(10)
-            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
-dataObjs = getValidTradingModels(params.treeModels, returnEntireObject=True)
+dataObjs = dataAck.getValidModels(params.treeModels, returnEntireObject=True)
 
 
 # In[ ]:
@@ -203,7 +185,7 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 # In[ ]:
 
 def returnSelectAlgos(algoColumns):
-    return np.random.choice(algoColumns, size=random.randint(5, 6), replace= False)
+    return np.random.choice(algoColumns, size=random.randint(15, len(algoColumns)), replace= False)
 
 
 # In[ ]:
@@ -430,7 +412,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
     
     if trainStats["sharpe difference"] > 0.0 and trainStats["annualizedReturn"] > trainStats["annualizedVolatility"]:
         print("ACCEPTED", trainStats, testStats)
-#         storeDiscoveredPortfolio(modelsUsed, portfolioType, factorToTrade, trainStats, testStats)
+        storeDiscoveredPortfolio(modelsUsed, portfolioType, factorToTrade, trainStats, testStats)
     else:
         print("FAILED", trainStats)
     
@@ -438,7 +420,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types = ["EW By Ticker"]#, "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
@@ -471,7 +453,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
 print("STARTING GENERATION")
 
 ##REMOVE BREAK TO DO FULL AUTO
-createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=0)
+createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=3)
 
 
 # In[ ]:
