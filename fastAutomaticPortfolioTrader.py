@@ -392,7 +392,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types =  ["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["HRP BINARY", "HRP WINDOW", "HRP FULL"]#["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
