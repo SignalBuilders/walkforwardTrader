@@ -379,11 +379,12 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
         historicalPredictions, modelsUsed, factorToTrade, joinedData)
 
     tickerAllocationsTable = pd.concat([tickerAllocationsTableTrain, tickerAllocationsTableTest])
-    print(tickerAllocationsTable)
+    
     
     if trainStats["sharpe difference"] > 0.0 and trainStats["annualizedReturn"] > trainStats["annualizedVolatility"]:
         print("ACCEPTED", trainStats, testStats)
-        storeDiscoveredPortfolio(modelsUsed, portfolioType, factorToTrade, trainStats, testStats)
+        portfolioHash = storeDiscoveredPortfolio(modelsUsed, portfolioType, factorToTrade, trainStats, testStats)
+        curveTreeDB.storeFastPortfolio(portfolioHash, tickerAllocationsTable, historicalWeights, historicalPredictions)
     else:
         print("FAILED", trainStats)
     

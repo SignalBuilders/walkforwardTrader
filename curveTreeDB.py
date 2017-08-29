@@ -496,6 +496,35 @@ def modelExists(db, modelHash):
             time.sleep(10)
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
 
+def storePortfolioInputData(cleanedReturns, cleanedPredictions, hashToModel, joinedData):
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.validModelsCache)
+            blob = storage.Blob(params.validModelsLookup, bucket)
+            blob.upload_from_string(pickle.dumps((cleanedReturns, cleanedPredictions, hashToModel, joinedData)))
+            print("STORING", params.validModelsLookup)
+            break
+        except:
+            print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    pass
+
+def storeFastPortfolio(portfolioKey, tickerAllocationsTable, historicalWeights, historicalPredictions):
+    
+    storageClient = storage.Client('money-maker-1236')
+    while True:
+        try:
+            bucket = storageClient.get_bucket(params.discoveredPortfolioCache)
+            blob = storage.Blob(portfolioKey, bucket)
+            blob.upload_from_string(pickle.dumps((tickerAllocationsTable, historicalWeights, historicalPredictions)))
+            print("STORING", portfolioKey)
+            break
+        except:
+            print("UPLOAD BLOB ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+    pass
+
 
 
 
