@@ -151,7 +151,7 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 # In[ ]:
 
 def returnSelectAlgos(algoColumns):
-    return np.random.choice(algoColumns, size=random.randint(5, 15), replace= False)
+    return np.random.choice(algoColumns, size=random.randint(15, 200), replace= False)
 
 
 # In[ ]:
@@ -342,6 +342,7 @@ def produceMinVarPredictions(aggregateReturns, windowSize, startIndex, maxWindow
     return historicalWeights
 
 
+
 def produceEWPredictions(aggregateReturns, startIndex):
     historicalWeights = pd.DataFrame([])
     i = 0
@@ -482,71 +483,79 @@ def binarizeReturns(returnArr):
 
 # In[ ]:
 
+from google.cloud import error_reporting
+
+
 def performPortfolioPerformanceEstimation(historicalPredictions, historicalReturns, factorToTrade, portfolioType, hashToModel, joinedData):
-    returnWindows = [(0, historicalReturns[:600]), (600, historicalReturns)]
-    historicalWeights = None
-    allModels = [hashToModel[item] for item in historicalPredictions.columns]
-    for selectedReturns in returnWindows:
-        startIndex = selectedReturns[0]
-        returnWindow = selectedReturns[1]
-        weightsSeen = None
-        if portfolioType == "HRP FULL":
-            weightsSeen = produceHRPPredictions(returnWindow, \
-                126, startIndex=max(startIndex, 126), maxWindowSize=False)
-        elif portfolioType == "HRP BINARY":
-            weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
-             axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
-        elif portfolioType == "HRP WINDOW":
-            weightsSeen = produceHRPPredictions(returnWindow, \
-                126, startIndex=max(startIndex, 126), maxWindowSize=True)
-        elif portfolioType == "EW":
-            weightsSeen = produceEWPredictions(returnWindow, startIndex=max(startIndex, 126))
-        elif portfolioType == "EW By Ticker":
-            weights = getWeightingForAlgos(allModels, returnWindow.columns)
-            weightsSeen = produceEWByTickerPredictions(returnWindow, startIndex=max(startIndex, 126), weights=weights)
-        elif portfolioType == "MIN VAR":
-            weightsSeen = produceMinVarPredictions(returnWindow, \
-                126, startIndex=max(startIndex, 126), maxWindowSize=False)
+    client = error_reporting.Client('money-maker-1236', service="Curve Search", version=params.curveAndTreeVersion)
+
+    try:
+        returnWindows = [(0, historicalReturns[:600]), (600, historicalReturns)]
+        historicalWeights = None
+        allModels = [hashToModel[item] for item in historicalPredictions.columns]
+        for selectedReturns in returnWindows:
+            startIndex = selectedReturns[0]
+            returnWindow = selectedReturns[1]
+            weightsSeen = None
+            if portfolioType == "HRP FULL":
+                weightsSeen = produceHRPPredictions(returnWindow, \
+                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
+            elif portfolioType == "HRP BINARY":
+                weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
+                 axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
+            elif portfolioType == "HRP WINDOW":
+                weightsSeen = produceHRPPredictions(returnWindow, \
+                    126, startIndex=max(startIndex, 126), maxWindowSize=True)
+            elif portfolioType == "EW":
+                weightsSeen = produceEWPredictions(returnWindow, startIndex=max(startIndex, 126))
+            elif portfolioType == "EW By Ticker":
+                weights = getWeightingForAlgos(allModels, returnWindow.columns)
+                weightsSeen = produceEWByTickerPredictions(returnWindow, startIndex=max(startIndex, 126), weights=weights)
+            elif portfolioType == "MIN VAR":
+                weightsSeen = produceMinVarPredictions(returnWindow, \
+                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
+            
+            if historicalWeights is None:
+                historicalWeights = weightsSeen
+            else:
+                historicalWeights = pd.concat([historicalWeights, weightsSeen])
+            
+            modelsUsed = []
+
+            tickersSeen = {}
+
+            for modelHash in historicalPredictions.columns:
+                thisModel = hashToModel[modelHash]
+                modelsUsed.append(thisModel)
+            if startIndex == 0:
+                scaledStats, unused = getLimitedDataForPortfolio(historicalWeights,\
+                            historicalPredictions, modelsUsed, factorToTrade, joinedData)
+                print(scaledStats)
+                if scaledStats["sharpe difference"] < 0.0 or scaledStats["annualizedReturn"] < scaledStats["annualizedVolatility"]:
+                    return None, None
         
-        if historicalWeights is None:
-            historicalWeights = weightsSeen
+        trainStats, tickerAllocationsTableTrain = getLimitedDataForPortfolio(historicalWeights[:-252], \
+            historicalPredictions, modelsUsed, factorToTrade, joinedData)
+        testStats, tickerAllocationsTableTest = getLimitedDataForPortfolio(historicalWeights[-252:], \
+            historicalPredictions, modelsUsed, factorToTrade, joinedData)
+
+        tickerAllocationsTable = pd.concat([tickerAllocationsTableTrain, tickerAllocationsTableTest])
+        
+        
+        if trainStats["sharpe difference"] > 0.0 and trainStats["annualizedReturn"] > trainStats["annualizedVolatility"]:
+            print("ACCEPTED", trainStats, testStats)
+            portfolioHash = storeDiscoveredPortfolio(modelsUsed, portfolioType, factorToTrade, trainStats, testStats)
+            curveTreeDB.storeFastPortfolio(portfolioHash, tickerAllocationsTable, historicalWeights, historicalPredictions)
         else:
-            historicalWeights = pd.concat([historicalWeights, weightsSeen])
-        
-        modelsUsed = []
-
-        tickersSeen = {}
-
-        for modelHash in historicalPredictions.columns:
-            thisModel = hashToModel[modelHash]
-            modelsUsed.append(thisModel)
-        if startIndex == 0:
-            scaledStats, unused = getLimitedDataForPortfolio(historicalWeights,\
-                        historicalPredictions, modelsUsed, factorToTrade, joinedData)
-            print(scaledStats)
-            if scaledStats["sharpe difference"] < 0.0 or scaledStats["annualizedReturn"] < scaledStats["annualizedVolatility"]:
-                return None, None
-    
-    trainStats, tickerAllocationsTableTrain = getLimitedDataForPortfolio(historicalWeights[:-252], \
-        historicalPredictions, modelsUsed, factorToTrade, joinedData)
-    testStats, tickerAllocationsTableTest = getLimitedDataForPortfolio(historicalWeights[-252:], \
-        historicalPredictions, modelsUsed, factorToTrade, joinedData)
-
-    tickerAllocationsTable = pd.concat([tickerAllocationsTableTrain, tickerAllocationsTableTest])
-    
-    
-    if trainStats["sharpe difference"] > 0.0 and trainStats["annualizedReturn"] > trainStats["annualizedVolatility"]:
-        print("ACCEPTED", trainStats, testStats)
-        portfolioHash = storeDiscoveredPortfolio(modelsUsed, portfolioType, factorToTrade, trainStats, testStats)
-        curveTreeDB.storeFastPortfolio(portfolioHash, tickerAllocationsTable, historicalWeights, historicalPredictions)
-    else:
-        print("FAILED", trainStats)
+            print("FAILED", trainStats)
+    except:
+        client.report_exception()
     
 
 
 # In[ ]:
 
-types =  ["MIN VAR", "HRP WINDOW"]#["HRP BINARY", "HRP WINDOW", "HRP FULL"]#["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["MIN VAR", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
