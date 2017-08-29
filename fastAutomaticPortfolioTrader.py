@@ -156,9 +156,134 @@ def returnSelectAlgos(algoColumns):
 
 # In[ ]:
 
+import cvxopt as opt
+import cvxopt.solvers as optsolvers
+
+def min_var_portfolio(cov_mat, allow_short=False):
+    """
+    Computes the minimum variance portfolio.
+
+    Note: As the variance is not invariant with respect
+    to leverage, it is not possible to construct non-trivial
+    market neutral minimum variance portfolios. This is because
+    the variance approaches zero with decreasing leverage,
+    i.e. the market neutral portfolio with minimum variance
+    is not invested at all.
+    
+    Parameters
+    ----------
+    cov_mat: pandas.DataFrame
+        Covariance matrix of asset returns.
+    allow_short: bool, optional
+        If 'False' construct a long-only portfolio.
+        If 'True' allow shorting, i.e. negative weights.
+
+    Returns
+    -------
+    weights: pandas.Series
+        Optimal asset weights.
+    """
+    if not isinstance(cov_mat, pd.DataFrame):
+        raise ValueError("Covariance matrix is not a DataFrame")
+
+    n = len(cov_mat)
+
+    P = opt.matrix(cov_mat.values)
+    q = opt.matrix(0.0, (n, 1))
+
+    # Constraints Gx <= h
+    if not allow_short:
+        # x >= 0
+        G = opt.matrix(-np.identity(n))
+        h = opt.matrix(0.0, (n, 1))
+    else:
+        G = None
+        h = None
+
+    # Constraints Ax = b
+    # sum(x) = 1
+    A = opt.matrix(1.0, (1, n))
+    b = opt.matrix(1.0)
+
+    # Solve
+    optsolvers.options['show_progress'] = False
+    sol = optsolvers.qp(P, q, G, h, A, b)
+
+    if sol['status'] != 'optimal':
+        warnings.warn("Convergence problem")
+
+    # Put weights into a labeled series
+    weights = pd.Series(sol['x'], index=cov_mat.index)
+    return weights
+
+
+def tangency_portfolio(cov_mat, exp_rets, allow_short=False):
+    """
+    Computes a tangency portfolio, i.e. a maximum Sharpe ratio portfolio.
+    
+    Note: As the Sharpe ratio is not invariant with respect
+    to leverage, it is not possible to construct non-trivial
+    market neutral tangency portfolios. This is because for
+    a positive initial Sharpe ratio the sharpe grows unbound
+    with increasing leverage.
+    
+    Parameters
+    ----------
+    cov_mat: pandas.DataFrame
+        Covariance matrix of asset returns.
+    exp_rets: pandas.Series
+        Expected asset returns (often historical returns).
+    allow_short: bool, optional
+        If 'False' construct a long-only portfolio.
+        If 'True' allow shorting, i.e. negative weights.
+
+    Returns
+    -------
+    weights: pandas.Series
+        Optimal asset weights.
+    """
+    if not isinstance(cov_mat, pd.DataFrame):
+        raise ValueError("Covariance matrix is not a DataFrame")
+
+    if not isinstance(exp_rets, pd.Series):
+        raise ValueError("Expected returns is not a Series")
+
+    if not cov_mat.index.equals(exp_rets.index):
+        raise ValueError("Indices do not match")
+
+    n = len(cov_mat)
+
+    P = opt.matrix(cov_mat.values)
+    q = opt.matrix(0.0, (n, 1))
+
+    # Constraints Gx <= h
+    if not allow_short:
+        # exp_rets*x >= 1 and x >= 0
+        G = opt.matrix(np.vstack((-exp_rets.values,
+                                  -np.identity(n))))
+        h = opt.matrix(np.vstack((-1.0,
+                                  np.zeros((n, 1)))))
+    else:
+        # exp_rets*x >= 1
+        G = opt.matrix(-exp_rets.values).T
+        h = opt.matrix(-1.0)
+
+    # Solve
+    optsolvers.options['show_progress'] = False
+    sol = optsolvers.qp(P, q, G, h)
+
+    if sol['status'] != 'optimal':
+        warnings.warn("Convergence problem")
+
+    # Put weights into a labeled series
+    weights = pd.Series(sol['x'], index=cov_mat.index)
+
+    # Rescale weights, so that sum(weights) = 1
+    weights /= weights.sum()
+    return weights
+
 import hrpPortfolioOpt as hrp
 def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSize = False):
-    hrpReturns = pd.DataFrame([])
     historicalWeights = pd.DataFrame([])
     i = windowSize
     if startIndex is not None:
@@ -180,14 +305,41 @@ def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSiz
             todayReturn = aggregateReturns[i:i+1] * weights
         #     display(todayReturn)
             sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
-            hrpReturns = pd.concat([hrpReturns, sumReturn])
             thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
             historicalWeights = pd.concat([historicalWeights, thisWeights])
         except:
             # print("FAILED:",i)
             pass
         i += 1
-    return hrpReturns, historicalWeights
+    return historicalWeights
+
+def produceMinVarPredictions(aggregateReturns, windowSize, startIndex, maxWindowSize = False):
+    
+    historicalWeights = pd.DataFrame([])
+    i = windowSize
+    if startIndex is not None:
+        i = startIndex
+    while i < len(aggregateReturns):
+        corr = None
+        cov = None
+        if maxWindowSize == False:
+            cov = (aggregateReturns[:i]).cov()
+        else:
+            cov = (aggregateReturns[i-windowSize:i]).cov()
+        try:
+            weights = min_var_portfolio(cov)
+        #     display(weights)
+        #     display(aggregateReturns[i+windowSize:i+windowSize+1])
+            todayReturn = aggregateReturns[i:i+1] * weights
+        #     display(todayReturn)
+            sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
+            thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
+            historicalWeights = pd.concat([historicalWeights, thisWeights])
+        except:
+            # print("FAILED:",i)
+            pass
+        i += 1
+    return historicalWeights
 
 
 def produceEWPredictions(aggregateReturns, startIndex):
@@ -331,7 +483,7 @@ def binarizeReturns(returnArr):
 # In[ ]:
 
 def performPortfolioPerformanceEstimation(historicalPredictions, historicalReturns, factorToTrade, portfolioType, hashToModel, joinedData):
-    returnWindows = [(0, historicalReturns[:450]), (450, historicalReturns)]
+    returnWindows = [(0, historicalReturns[:600]), (600, historicalReturns)]
     historicalWeights = None
     allModels = [hashToModel[item] for item in historicalPredictions.columns]
     for selectedReturns in returnWindows:
@@ -339,20 +491,22 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
         returnWindow = selectedReturns[1]
         weightsSeen = None
         if portfolioType == "HRP FULL":
-            hrpReturns, weightsSeen = produceHRPPredictions(returnWindow, \
+            weightsSeen = produceHRPPredictions(returnWindow, \
                 126, startIndex=max(startIndex, 126), maxWindowSize=False)
         elif portfolioType == "HRP BINARY":
-            hrpReturns, weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
+            weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
              axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
         elif portfolioType == "HRP WINDOW":
-            hrpReturns, weightsSeen = produceHRPPredictions(returnWindow, \
+            weightsSeen = produceHRPPredictions(returnWindow, \
                 126, startIndex=max(startIndex, 126), maxWindowSize=True)
         elif portfolioType == "EW":
             weightsSeen = produceEWPredictions(returnWindow, startIndex=max(startIndex, 126))
         elif portfolioType == "EW By Ticker":
             weights = getWeightingForAlgos(allModels, returnWindow.columns)
             weightsSeen = produceEWByTickerPredictions(returnWindow, startIndex=max(startIndex, 126), weights=weights)
-            
+        elif portfolioType == "MIN VAR":
+            weightsSeen = produceMinVarPredictions(returnWindow, \
+                126, startIndex=max(startIndex, 126), maxWindowSize=False)
         
         if historicalWeights is None:
             historicalWeights = weightsSeen
@@ -392,7 +546,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types =  ["HRP BINARY", "HRP WINDOW", "HRP FULL"]#["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["MIN VAR", "HRP WINDOW"]#["HRP BINARY", "HRP WINDOW", "HRP FULL"]#["HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
