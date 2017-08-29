@@ -115,7 +115,7 @@ try:
 
             attempts += 1
 
-            if runsSeen > 50 or attempts > 100:
+            if runsSeen > 150 or attempts > 250:
 
                 break
 
@@ -158,7 +158,7 @@ try:
 
                 attempts += 1
 
-                if runsSeen > 50 or attempts > 100:
+                if runsSeen > 150 or attempts > 250:
                     # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
 
                     break
@@ -195,7 +195,7 @@ try:
 
                 
                 attempts += 1
-                if runsSeen > 50 or attempts > 100:
+                if runsSeen > 150 or attempts > 250:
                     # if runsSeen < 10:
                         # dataAck.logModel("Tree Search Stopped Early", {"runsSeen":runsSeen, "attempts":attempts})
 
