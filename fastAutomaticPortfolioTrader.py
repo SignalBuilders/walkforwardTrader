@@ -364,13 +364,13 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             weightArray = getWeightingForAlgos(allModels, returnWindow.columns)
             weightsSeen = pd.DataFrame(returnWindow.apply(lambda x: weightArray, axis=1, raw=True), columns=returnWindow.columns.values, index=returnWindow.index)
             
-        print(weightsSeen)
+        
         if historicalWeights is None:
             historicalWeights = weightsSeen
         else:
             historicalWeights = pd.concat([historicalWeights, weightsSeen])
         
-        
+        print(historicalWeights)
         modelsUsed = []
 
         tickersSeen = {}
