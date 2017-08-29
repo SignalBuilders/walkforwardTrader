@@ -408,7 +408,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
 print("STARTING GENERATION")
 
 ##REMOVE BREAK TO DO FULL AUTO
-createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=1)
+createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=0)
 
 
 # In[ ]:
