@@ -24,6 +24,7 @@ import portfolio
 
 
 # In[ ]:
+print("STARTING OBJECT DOWNLOAD")
 
 dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
 
