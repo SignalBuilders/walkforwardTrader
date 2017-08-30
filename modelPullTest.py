@@ -36,7 +36,7 @@ def getValidCounts(db):
         runningP = []
         for ticker in allTickers:
             
-            while len(runningP) > 8:
+            while len(runningP) > 16:
                 runningP = dataAck.cycleP(runningP)
             
             p = mpEngine.Process(target=getValidModelsByTicker, args=(db, ticker, returnDict, ))
@@ -45,7 +45,7 @@ def getValidCounts(db):
 
 
         while len(runningP) > 0:
-                runningP = cycleP(runningP)
+                runningP = dataAck.cycleP(runningP)
                 
         storedData = {}  
         for ticker in storedTickers:
@@ -57,4 +57,4 @@ def getValidCounts(db):
             
         return storedData
 
-getValidCounts(params.treeModels)
+print(getValidCounts(params.treeModels))
