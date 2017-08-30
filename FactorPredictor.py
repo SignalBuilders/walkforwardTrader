@@ -20,10 +20,10 @@ class FactorPredictor:
         self.position = position
 
     def describe(self):
-        return (self.targetTicker)
+        return (self.targetTicker, self.position)
 
     def getHash(self):
-        return hashlib.sha224(str((self.targetTicker)).encode('utf-8')).hexdigest()
+        return hashlib.sha224(str((self.targetTicker, self.position)).encode('utf-8')).hexdigest()
 
     def runModelToday(self, dataOfInterest):
         return self.position
