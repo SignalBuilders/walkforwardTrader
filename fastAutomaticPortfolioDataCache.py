@@ -38,19 +38,6 @@ for item in dataObjs:
         continue
 
 
-##ADD FACTOR PREDICTOR
-factorModels = []
-factorObjs = curveTreeDB.getModels(params.factorModels, returnEntireObject=True)
-for item in factorObjs:
-    try:
-        model = item["model"]
-        print(model.targetTicker, model.getHash())
-        factorModels.append(model)
-        if model.targetTicker not in tickersSeen:
-            tickersSeen.append(model.targetTicker)
-    except:
-        continue
-
 # In[ ]:
 
 # len(allModels)
@@ -70,7 +57,7 @@ factorToTrade = "VTI"#tickersSeen[random.randint(0, len(tickersSeen) - 1)]
 
 # In[ ]:
 
-uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData = autoPortfolioTree.computeReturnsForUniqueModelsCache(treeModels, factorModels, factorToTrade)
+uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData = autoPortfolioTree.computeReturnsForUniqueModelsCache(treeModels, factorToTrade)
 
 
 # In[ ]:

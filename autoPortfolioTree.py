@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import portfolio
 
-def generateAllReturnsFromCache(treeModels, factorModels):
+def generateAllReturnsFromCache(treeModels):
     aggregateReturns = None
     aggregatePredictions = None
     aggregateSlippageReturns = None
@@ -33,32 +33,13 @@ def generateAllReturnsFromCache(treeModels, factorModels):
             aggregatePredictions = aggregatePredictions.join(algoPredictions)
             aggregateSlippageReturns = aggregateSlippageReturns.join(algoSlippageAdjustedReturn)
         cleanedModels.append(mod)
-    for mod in factorModels:
-        
-        # try:
-        algoReturn, algoPredictions, algoSlippageAdjustedReturn = curveTreeDB.getModelData(params.factorModelData, mod)
-        print(mod.describe())
-
-        algoReturn.columns = [str(mod.describe())]
-        algoPredictions.columns = [str(mod.describe())]
-        algoSlippageAdjustedReturn.columns =  [str(mod.describe())]
-        if aggregateReturns is None:
-            aggregateReturns = algoReturn
-            aggregatePredictions = algoPredictions
-            aggregateSlippageReturns = algoSlippageAdjustedReturn
-        else:
-            aggregateReturns = aggregateReturns.join(algoReturn)
-            aggregatePredictions = aggregatePredictions.join(algoPredictions)
-            aggregateSlippageReturns = aggregateSlippageReturns.join(algoSlippageAdjustedReturn)
-        cleanedModels.append(mod)
-        # except:
-        #     print("SKIPPING", mod.describe())
+    
     return aggregateReturns, aggregatePredictions, aggregateSlippageReturns, cleanedModels
 
 
-def computeReturnsForUniqueModelsCache(treeModels, factorModels, factorToTrade):
+def computeReturnsForUniqueModelsCache(treeModels, factorToTrade):
     tickersRequired = []
-    for mod in treeModels + factorModels:
+    for mod in treeModels:
         if mod.targetTicker not in tickersRequired:
             tickersRequired.append(mod.targetTicker)
 
@@ -72,7 +53,7 @@ def computeReturnsForUniqueModelsCache(treeModels, factorModels, factorToTrade):
 
     joinedData = dataAck.joinDatasets([pulledData[ticker] for ticker in pulledData])
     
-    modelReturns, modelPredictions, modelSlippageReturns, cleanedModels = generateAllReturnsFromCache(treeModels, factorModels)
+    modelReturns, modelPredictions, modelSlippageReturns, cleanedModels = generateAllReturnsFromCache(treeModels)
     
     return cleanedModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturns.join(dataAck.getDailyFactorReturn(factorToTrade, joinedData)).dropna(), joinedData
 
