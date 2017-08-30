@@ -334,11 +334,10 @@ def cyclePSpecial(runningProcesses):
     newP = []
     toCollect = []
     for pT in runningProcesses:
-        print(pT[0])
         p = pT[0]
         i = pT[1]
         if p.is_alive() == True:
-            newP.append(p)
+            newP.append((p, i))
         else:
             toCollect.append(i)
             p.join()
