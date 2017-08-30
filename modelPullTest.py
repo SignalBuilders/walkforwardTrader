@@ -20,7 +20,7 @@ def getValidModelsByTicker(db, ticker, sharedDict):
             query.keys_only()
             retrievedModels = list(query.fetch())
             sharedDict[ticker] = len(retrievedModels)
-            print(ticker, len(retrievedModels))
+            # print(ticker, len(retrievedModels))
             return
         except:
             print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
@@ -56,5 +56,6 @@ def getValidCounts(db):
                 continue
             
         return storedData
+print("CURVES", getValidCounts(params.curveModels))
 
-print(getValidCounts(params.treeModels))
+print("TREES", getValidCounts(params.treeModels))
