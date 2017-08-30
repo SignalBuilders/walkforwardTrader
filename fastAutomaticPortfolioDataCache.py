@@ -24,18 +24,18 @@ print("STARTING OBJECT DOWNLOAD")
 ##DISABLE TO TEST FACTORS
 treeModels = []
 tickersSeen = []
-# dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
+dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
 
-# for item in dataObjs:
-#     try:
-#         if item["IS_PROFITABILITY SLIPPAGE"] > 0.51 and item["IS_ANNUALIZED RETURN"] > 0.05:
-#             model = item["model"]
-#             print(model.targetTicker, model.getHash(), item["IS_SHARPE SLIPPAGE"], item["IS_SHARPE DIFFERENCE SLIPPAGE"], item["IS_BETA"])
-#             allModels.append(model)
-#             if model.targetTicker not in tickersSeen:
-#                 tickersSeen.append(model.targetTicker)
-#     except:
-#         continue
+for item in dataObjs:
+    try:
+        if item["IS_PROFITABILITY SLIPPAGE"] > 0.51 and item["IS_ANNUALIZED RETURN"] > 0.05:
+            model = item["model"]
+            print(model.targetTicker, model.getHash(), item["IS_SHARPE SLIPPAGE"], item["IS_SHARPE DIFFERENCE SLIPPAGE"], item["IS_BETA"])
+            treeModels.append(model)
+            if model.targetTicker not in tickersSeen:
+                tickersSeen.append(model.targetTicker)
+    except:
+        continue
 
 
 ##ADD FACTOR PREDICTOR
