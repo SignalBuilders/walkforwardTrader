@@ -334,6 +334,7 @@ def cyclePSpecial(runningProcesses):
     newP = []
     toCollect = []
     for pT in runningProcesses:
+        print(pT)
         p = pT[0]
         i = pT[1]
         if p.is_alive() == True:
