@@ -312,20 +312,20 @@ def produceSingleHRP(identifier, aggregateReturns, sharedDict):
     corr = (aggregateReturns[:identifier]).corr()
     cov = (aggregateReturns[:identifier]).cov()
 
-    try:
-        # 
-        weights = hrp.getHRP(cov, corr)
-        # 
-    #     display(weights)
-    #     display(aggregateReturns[i+windowSize:i+windowSize+1])
-        todayReturn = aggregateReturns[identifier:identifier+1] * weights
-    #     display(todayReturn)
-        sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
-        thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
-        sharedDict[identifier] = thisWeights
-        print(thisWeights)
-    except:
-        sharedDict[identifier] = None
+    # try:
+    # 
+    weights = hrp.getHRP(cov, corr)
+    # 
+#     display(weights)
+#     display(aggregateReturns[i+windowSize:i+windowSize+1])
+    todayReturn = aggregateReturns[identifier:identifier+1] * weights
+#     display(todayReturn)
+    sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
+    thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
+    sharedDict[identifier] = thisWeights
+    print(thisWeights)
+# except:
+#     sharedDict[identifier] = None
 
     print("HRP SINGLE", str(datetime.datetime.now() - startTime))
 
