@@ -542,7 +542,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             elif portfolioType == "MIN VAR":
                 weightsSeen = produceMinVarPredictions(returnWindow, \
                     126, startIndex=max(startIndex, 126), maxWindowSize=False)
-            
+            print(weightsSeen)
             if historicalWeights is None:
                 historicalWeights = weightsSeen
             else:
