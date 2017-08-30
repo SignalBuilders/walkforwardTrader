@@ -316,17 +316,17 @@ def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSiz
         corr = None
         cov = None
         if maxWindowSize == False:
-            startTime = datetime.datetime.now()
+            # startTime = datetime.datetime.now()
             corr = (aggregateReturns[:i]).corr()
             cov = (aggregateReturns[:i]).cov()
-            print("COV CORR", str(datetime.datetime.now() - startTime))
+            # print("COV CORR", str(datetime.datetime.now() - startTime))
         else:
             corr = (aggregateReturns[i-windowSize:i]).corr()
             cov = (aggregateReturns[i-windowSize:i]).cov()
         try:
-            startTime = datetime.datetime.now()
+            # startTime = datetime.datetime.now()
             weights = hrp.getHRP(cov, corr)
-            print("WEIGHTS", str(datetime.datetime.now() - startTime))
+            # print("WEIGHTS", str(datetime.datetime.now() - startTime))
         #     display(weights)
         #     display(aggregateReturns[i+windowSize:i+windowSize+1])
             todayReturn = aggregateReturns[i:i+1] * weights
