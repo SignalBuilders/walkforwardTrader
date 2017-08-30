@@ -104,6 +104,15 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     factorReturn = dataAck.getDailyFactorReturn(benchmark, joinedData)
     factorReturn.columns = ["Factor Return (" + benchmark + ")"]
     algoPerformance.columns = ["Algo Return"]
+
+    algoPerformanceRollingWeekly = algoPerformance.rolling(5, min_periods=5).apply(lambda x:empyrical.cum_returns(x)[-1]).dropna()
+    algoPerformanceRollingWeekly.columns = ["Weekly Rolling Performance"]
+    
+    algoPerformanceRollingMonthly = algoPerformance.rolling(22, min_periods=22).apply(lambda x:empyrical.cum_returns(x)[-1]).dropna()
+    algoPerformanceRollingMonthly.columns = ["Monthly Rolling Performance"]
+    
+    algoPerformanceRollingYearly = algoPerformance.rolling(252, min_periods=252).apply(lambda x:empyrical.cum_returns(x)[-1]).dropna()
+    algoPerformanceRollingYearly.columns = ["Yearly Rolling Performance"]
     
     tickersUsed = []
     for mod in modelsUsed:
@@ -143,7 +152,10 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
         "stability":stability,
         "profitability":profitability,
         "rollingSharpeError":rollingSharpeError,
-        "rollingSharpeMinimum":rollingSharpeMinimum
+        "rollingSharpeMinimum":rollingSharpeMinimum,
+        "weeklyMinimum":algoPerformanceRollingWeekly.min().values[0],
+        "monthlyMinimum":algoPerformanceRollingMonthly.min().values[0],
+        "yearlyMinimum":algoPerformanceRollingYearly.min().values[0]
     }, tickerAllocationsTable
     
 
@@ -153,6 +165,22 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
 def returnSelectAlgos(algoColumns):
     return np.random.choice(algoColumns, size=random.randint(15, len(algoColumns)), replace= False)
 
+def getAlgosForTicker(allModels):
+    modsPerTicker = {}
+    for mod in allModels:
+        if mod.targetTicker not in modsPerTicker:
+            modsPerTicker[mod.targetTicker] = []
+        modsPerTicker[mod.targetTicker].append(mod.getHash())
+    return modsPerTicker
+
+def returnSelectTickers(modsPerTicker):
+    ##RANDOMLY CHOOSE SOME SUBSET OF TICKERS TO TRADE...TRADE ALL ALGORITHMS DISCOVERED WITHIN TICKER
+    tickersAvailable = list(modsPerTicker.keys())
+    chosenTickers = np.random.choice(np.array(tickersAvailable), size=random.randint(3, len(tickersAvailable)), replace= False)
+    modelsToUse = []
+    for ticker in chosenTickers:
+        modelsToUse += modsPerTicker[ticker]
+    return modelsToUse
 
 # In[ ]:
 
@@ -555,7 +583,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types =  ["MIN VAR", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["HRP FULL", "EW", "EW By Ticker"]#["MIN VAR", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
@@ -567,8 +595,10 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
     mpEngine = mp.get_context('fork')
         
     runningP = []
+    allModels = [hashToModel[item] for item in cleanedPredictions.columns]
+    modsPerTicker = getAlgosForTicker(allModels)
     while True:
-        selectedAlgorithms = returnSelectAlgos(cleanedReturns.columns)
+        selectedAlgorithms = returnSelectTickers(modsPerTicker)
         factorToTrade = "VTI"#hashToModel[selectedAlgorithms[random.randint(0, len(selectedAlgorithms) - 1)]].targetTicker
         
         while len(runningP) > threadsToUse:
