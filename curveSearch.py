@@ -21,6 +21,7 @@ try:
         import random
         ##ADVANCED TICKER TO TRADE SELECTION
         validMap = curveTreeDB.getValidCounts(params.curveModels)
+        print(validMap)
         validTickersToTrade = []
 
         for ticker in allTickers:
