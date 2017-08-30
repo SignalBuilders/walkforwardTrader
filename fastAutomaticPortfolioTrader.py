@@ -607,10 +607,10 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             weightsSeen = None
             if portfolioType == "HRP FULL":
                 weightsSeen = produceHRPMP(returnWindow, \
-                    126, startIndex=max(startIndex, 126), threads=8)
+                    126, startIndex=max(startIndex, 126), threads=80)
             elif portfolioType == "HRP BINARY":
                 weightsSeen = produceHRPMP(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
-                 axis=1)),                    126, startIndex=max(startIndex, 126), threads=8)
+                 axis=1)),                    126, startIndex=max(startIndex, 126), threads=80)
             elif portfolioType == "HRP WINDOW":
                 weightsSeen = produceHRPPredictions(returnWindow, \
                     126, startIndex=max(startIndex, 126), maxWindowSize=True)
