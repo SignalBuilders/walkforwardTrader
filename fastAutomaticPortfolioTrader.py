@@ -171,6 +171,7 @@ def returnSelectTickers(modsPerTicker):
     ##RANDOMLY CHOOSE SOME SUBSET OF TICKERS TO TRADE...TRADE ALL ALGORITHMS DISCOVERED WITHIN TICKER
     tickersAvailable = list(modsPerTicker.keys())
     chosenTickers = np.random.choice(np.array(tickersAvailable), size=random.randint(3, len(tickersAvailable)), replace= False)
+    print(chosenTickers)
     modelsToUse = []
     for ticker in chosenTickers:
         modelsToUse += modsPerTicker[ticker]
