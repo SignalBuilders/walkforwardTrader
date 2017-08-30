@@ -327,7 +327,7 @@ def produceSingleHRP(identifier, aggregateReturns, sharedDict):
         sharedDict[identifier] = None
 
 
-    print("HRP SINGLE",identifier, str(datetime.datetime.now() - startTime))
+    # print("HRP SINGLE",identifier, str(datetime.datetime.now() - startTime))
 
 def cyclePSpecial(runningProcesses):
 
@@ -607,10 +607,10 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             weightsSeen = None
             if portfolioType == "HRP FULL":
                 weightsSeen = produceHRPMP(returnWindow, \
-                    126, startIndex=max(startIndex, 126), threads=32)
+                    126, startIndex=max(startIndex, 126), threads=8)
             elif portfolioType == "HRP BINARY":
-                weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
-                 axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
+                weightsSeen = produceHRPMP(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
+                 axis=1)),                    126, startIndex=max(startIndex, 126), threads=8)
             elif portfolioType == "HRP WINDOW":
                 weightsSeen = produceHRPPredictions(returnWindow, \
                     126, startIndex=max(startIndex, 126), maxWindowSize=True)
@@ -662,7 +662,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types =  ["HRP FULL"]#["HRP FULL", "EW", "EW By Ticker"]#["MIN VAR", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["HRP FULL", "HRP BINARY"]#["HRP FULL", "EW", "EW By Ticker"]#["MIN VAR", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
