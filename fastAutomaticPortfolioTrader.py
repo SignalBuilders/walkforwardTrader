@@ -308,8 +308,8 @@ def tangency_portfolio(cov_mat, exp_rets, allow_short=False):
 
 import hrpPortfolioOpt as hrp
 def produceSingleHRP(identifier, aggregateReturns, sharedDict):
-    corr = (aggregateReturns[:i]).corr()
-    cov = (aggregateReturns[:i]).cov()
+    corr = (aggregateReturns[:identifier]).corr()
+    cov = (aggregateReturns[:identifier]).cov()
 
     try:
         # startTime = datetime.datetime.now()
@@ -317,7 +317,7 @@ def produceSingleHRP(identifier, aggregateReturns, sharedDict):
         # print("WEIGHTS", str(datetime.datetime.now() - startTime))
     #     display(weights)
     #     display(aggregateReturns[i+windowSize:i+windowSize+1])
-        todayReturn = aggregateReturns[i:i+1] * weights
+        todayReturn = aggregateReturns[identifier:identifier+1] * weights
     #     display(todayReturn)
         sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
         thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
