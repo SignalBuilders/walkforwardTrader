@@ -352,6 +352,8 @@ def produceHRPMP(aggregateReturns, windowSize, startIndex, threads):
             p.start()
             runningP.append(p)
 
+            i += 1
+
 
         while len(runningP) > 0:
                 runningP = cycleP(runningP)
