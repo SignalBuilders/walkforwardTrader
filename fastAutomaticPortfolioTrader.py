@@ -91,12 +91,6 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     
     tickerAllocationsTable = scaledTickerAllocationsTable
     tickerAllocationsTable = tickerAllocationsTable.fillna(0)
-    rawTickerPerformance = portfolioGeneration.calculatePerformanceForTable(tickerAllocationsTable, tickerAllocationsTable.columns, joinedData)
-    
-    rawTickerPerformance = rawTickerPerformance[~rawTickerPerformance.index.duplicated(keep='first')]
-    
-
-    rawAlgoPerformance = pd.DataFrame(rawTickerPerformance.apply(lambda x:sum(x), axis=1), columns=["Algo Return Without Commissions"])
 
     tickerPerformance, algoPerformance, algoTransactionCost =  portfolioGeneration.calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
 
@@ -542,7 +536,6 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             elif portfolioType == "MIN VAR":
                 weightsSeen = produceMinVarPredictions(returnWindow, \
                     126, startIndex=max(startIndex, 126), maxWindowSize=False)
-            print(weightsSeen)
             if historicalWeights is None:
                 historicalWeights = weightsSeen
             else:
