@@ -13,6 +13,10 @@ prior to this strategy change, only tickers with a beta lower than 0.5 could inf
 Model search iterates through different series and different learning combinations and stores results for both
 generated curves and trees
 
+-> addFactorModels.py
+
+Add raw factor to each portfolio to use to minimize volatility
+
 -> modelResultCacherTree.py
 
 Saves and backfills aggregate model predictions
