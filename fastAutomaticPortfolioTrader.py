@@ -355,7 +355,7 @@ def produceHRPMP(aggregateReturns, windowSize, startIndex, threads):
 
 
         while len(runningP) > 0:
-                runningP = cycleP(runningP)
+                runningP = dataAck.cycleP(runningP)
                 
         storedData = [] 
         for identifier in identifiersUsed:
