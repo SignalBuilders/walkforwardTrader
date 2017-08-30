@@ -40,7 +40,7 @@ tickersSeen = []
 
 ##ADD FACTOR PREDICTOR
 factorModels = []
-factorObjs = curveTreeDB.getValidModels(params.factorModels, returnEntireObject=True)
+factorObjs = curveTreeDB.getModels(params.factorModels, returnEntireObject=True)
 for item in factorObjs:
     try:
         model = item["model"]
