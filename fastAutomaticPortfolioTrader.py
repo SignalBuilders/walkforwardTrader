@@ -307,6 +307,63 @@ def tangency_portfolio(cov_mat, exp_rets, allow_short=False):
     return weights
 
 import hrpPortfolioOpt as hrp
+def produceSingleHRP(identifier, aggregateReturns, sharedDict):
+    corr = (aggregateReturns[:i]).corr()
+    cov = (aggregateReturns[:i]).cov()
+
+    try:
+        # startTime = datetime.datetime.now()
+        weights = hrp.getHRP(cov, corr)
+        # print("WEIGHTS", str(datetime.datetime.now() - startTime))
+    #     display(weights)
+    #     display(aggregateReturns[i+windowSize:i+windowSize+1])
+        todayReturn = aggregateReturns[i:i+1] * weights
+    #     display(todayReturn)
+        sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
+        thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
+        sharedDict[identifier] = thisWeights
+    except:
+        sharedDict[identifier] = None
+
+
+
+def produceHRPMP(aggregateReturns, windowSize, startIndex, threads):
+    mpEngine = mp.get_context('fork')
+    with mpEngine.Manager() as manager:
+        returnDict = manager.dict()
+        historicalWeights = pd.DataFrame([])
+        runningP = []
+        identifiersUsed = []
+        i = windowSize
+        if startIndex is not None:
+            i = startIndex
+
+        while i < len(aggregateReturns):
+            identifiersUsed.append(i)
+            
+            while len(runningP) > threads:
+                runningP = dataAck.cycleP(runningP)
+            
+            p = mpEngine.Process(target=produceSingleHRP, args=(i, aggregateReturns, returnDict, ))
+            p.start()
+            runningP.append(p)
+
+
+        while len(runningP) > 0:
+                runningP = cycleP(runningP)
+                
+        storedData = [] 
+        for identifier in identifiersUsed:
+            try:
+                if returnDict[identifier] is not None:
+                    storedData.append(returnDict[identifier])
+            except:
+                continue
+
+        return pd.concat(storedData).sort_index()
+
+
+
 def produceHRPPredictions(aggregateReturns, windowSize, startIndex, maxWindowSize = False):
     historicalWeights = pd.DataFrame([])
     i = windowSize
@@ -525,8 +582,8 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             returnWindow = selectedReturns[1]
             weightsSeen = None
             if portfolioType == "HRP FULL":
-                weightsSeen = produceHRPPredictions(returnWindow, \
-                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
+                weightsSeen = produceHRPMP(returnWindow, \
+                    126, startIndex=max(startIndex, 126), threads=32)
             elif portfolioType == "HRP BINARY":
                 weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
                  axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
