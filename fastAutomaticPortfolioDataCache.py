@@ -21,29 +21,35 @@ import portfolio
 # In[ ]:
 print("STARTING OBJECT DOWNLOAD")
 
-
-dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
-
-
-# In[ ]:
-
-allModels = []
+##DISABLE TO TEST FACTORS
+treeModels = []
 tickersSeen = []
-for item in dataObjs:
-    try:
-        if item["IS_PROFITABILITY SLIPPAGE"] > 0.51 and item["IS_ANNUALIZED RETURN"] > 0.05:
-            model = item["model"]
-            print(model.targetTicker, model.getHash(), item["IS_SHARPE SLIPPAGE"], item["IS_SHARPE DIFFERENCE SLIPPAGE"], item["IS_BETA"])
-            allModels.append(model)
-            if model.targetTicker not in tickersSeen:
-                tickersSeen.append(model.targetTicker)
-    except:
-        continue
-        
+# dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True)
+
+# for item in dataObjs:
+#     try:
+#         if item["IS_PROFITABILITY SLIPPAGE"] > 0.51 and item["IS_ANNUALIZED RETURN"] > 0.05:
+#             model = item["model"]
+#             print(model.targetTicker, model.getHash(), item["IS_SHARPE SLIPPAGE"], item["IS_SHARPE DIFFERENCE SLIPPAGE"], item["IS_BETA"])
+#             allModels.append(model)
+#             if model.targetTicker not in tickersSeen:
+#                 tickersSeen.append(model.targetTicker)
+#     except:
+#         continue
 
 
 ##ADD FACTOR PREDICTOR
-
+factorModels = []
+factorObjs = curveTreeDB.getValidModels(params.factorModels, returnEntireObject=True)
+for item in factorObjs:
+    try:
+        model = item["model"]
+        print(model.targetTicker, model.getHash())
+        factorModels.append(model)
+        if model.targetTicker not in tickersSeen:
+            tickersSeen.append(model.targetTicker)
+    except:
+        continue
 
 # In[ ]:
 
@@ -64,7 +70,7 @@ factorToTrade = "VTI"#tickersSeen[random.randint(0, len(tickersSeen) - 1)]
 
 # In[ ]:
 
-uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData = autoPortfolioTree.computeReturnsForUniqueModelsCache(allModels, factorToTrade)
+uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturnsWithFactor, joinedData = autoPortfolioTree.computeReturnsForUniqueModelsCache(treeModels, factorModels, factorToTrade)
 
 
 # In[ ]:
