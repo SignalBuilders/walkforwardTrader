@@ -323,7 +323,6 @@ def produceSingleHRP(identifier, aggregateReturns, sharedDict):
         sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
         thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
         sharedDict[identifier] = thisWeights
-        print(thisWeights)
     except:
         sharedDict[identifier] = None
 
