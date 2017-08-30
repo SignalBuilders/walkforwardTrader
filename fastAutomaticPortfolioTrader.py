@@ -384,7 +384,6 @@ def produceHRPMP(aggregateReturns, windowSize, startIndex, threads):
                 except:
                     continue
 
-        print(storedData)
 
         return pd.concat(storedData).sort_index()
 
