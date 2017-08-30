@@ -48,7 +48,7 @@ def getValidCounts(db):
                 runningP = dataAck.cycleP(runningP)
                 
         storedData = {}  
-        for ticker in storedTickers:
+        for ticker in allTickers:
             try:
                 if returnDict[ticker] is not None:
                     storedData[ticker] = returnDict[ticker]
