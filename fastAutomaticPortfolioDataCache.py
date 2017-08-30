@@ -77,9 +77,11 @@ uniqueModels, modelReturns, modelPredictions, modelSlippageReturns, modelReturns
 
 cleanedReturns = modelReturns.fillna(0)
 cleanedReturns.columns = [item.getHash() for item in uniqueModels]
+cleanedReturns = cleanedReturns["2008-01-01":]
 
 cleanedPredictions = modelPredictions.fillna(0)
 cleanedPredictions.columns = [item.getHash() for item in uniqueModels]
+cleanedPredictions = cleanedPredictions["2008-01-01":]
 hashToModel = {}
 for item in uniqueModels:
     hashToModel[item.getHash()] = item

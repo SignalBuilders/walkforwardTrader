@@ -311,20 +311,20 @@ def produceSingleHRP(identifier, aggregateReturns, sharedDict):
     startTime = datetime.datetime.now()
     corr = (aggregateReturns[:identifier]).corr()
     cov = (aggregateReturns[:identifier]).cov()
-    print(aggregateReturns[:identifier])
-    # try:
+
+    try:
         # 
-    weights = hrp.getHRP(cov, corr)
-    # 
-#     display(weights)
-#     display(aggregateReturns[i+windowSize:i+windowSize+1])
-    todayReturn = aggregateReturns[identifier:identifier+1] * weights
-#     display(todayReturn)
-    sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
-    thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
-    sharedDict[identifier] = thisWeights
-    # except:
-    #     sharedDict[identifier] = None
+        weights = hrp.getHRP(cov, corr)
+        # 
+    #     display(weights)
+    #     display(aggregateReturns[i+windowSize:i+windowSize+1])
+        todayReturn = aggregateReturns[identifier:identifier+1] * weights
+    #     display(todayReturn)
+        sumReturn = pd.DataFrame(todayReturn.apply(lambda x:sum(x), axis=1))
+        thisWeights = pd.DataFrame([[weights[item] for item in weights.index]], index=sumReturn.index, columns=weights.index.tolist())
+        sharedDict[identifier] = thisWeights
+    except:
+        sharedDict[identifier] = None
 
 
     # print("HRP SINGLE",identifier, str(datetime.datetime.now() - startTime))
@@ -687,7 +687,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
         portfolioType = types[random.randint(0, len(types) - 1)]
         print(factorToTrade, len(selectedAlgorithms), portfolioType)
         
-        p = mpEngine.Process(target=performPortfolioPerformanceEstimation, args=(cleanedPredictions[selectedAlgorithms],                    cleanedReturns[selectedAlgorithms], factorToTrade, portfolioType, hashToModel, joinedData))
+        p = mpEngine.Process(target=performPortfolioPerformanceEstimation, args=(cleanedPredictions[selectedAlgorithms], cleanedReturns[selectedAlgorithms], factorToTrade, portfolioType, hashToModel, joinedData))
         p.start()
         runningP.append(p)
 
