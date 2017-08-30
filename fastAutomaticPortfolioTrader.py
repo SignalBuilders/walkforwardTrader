@@ -638,7 +638,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
 
 # In[ ]:
 
-types =  ["HRP FULL", "EW", "EW By Ticker"]#["MIN VAR", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
+types =  ["HRP FULL"]#["HRP FULL", "EW", "EW By Ticker"]#["MIN VAR", "HRP BINARY", "EW", "HRP WINDOW", "HRP FULL", "EW By Ticker"]
 
 
 # In[ ]:
@@ -675,7 +675,7 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
 print("STARTING GENERATION")
 
 ##REMOVE BREAK TO DO FULL AUTO
-createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=3)
+createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, joinedData, threadsToUse=0)
 
 
 # In[ ]:
