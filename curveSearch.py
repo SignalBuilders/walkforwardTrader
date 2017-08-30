@@ -20,20 +20,19 @@ try:
         startTime = datetime.datetime.now()
         import random
         ##ADVANCED TICKER TO TRADE SELECTION
-        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.curveModels)
-
+        validMap = curveTreeDB.getValidCounts(params.curveModels)
         validTickersToTrade = []
 
         for ticker in allTickers:
-            if ticker not in modelSplitByTicker:
+            if ticker not in validMap or validMap[ticker] == 0:
                 validTickersToTrade.append(ticker)
                 print("NOT PRESENT", ticker)
 
         if len(validTickersToTrade) == 0:
             ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
-            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:40]:
+            for ticker in sorted(validMap, key=validMap.get)[:20]:
                 validTickersToTrade.append(ticker)
-                print(ticker, modelSplitByTicker[ticker])
+                print(ticker, validMap[ticker])
 
 
 
