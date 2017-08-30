@@ -692,6 +692,14 @@ def createPossiblePortfoliosMP(cleanedPredictions, cleanedReturns, hashToModel, 
         p.start()
         runningP.append(p)
 
+        p = mpEngine.Process(target=performPortfolioPerformanceEstimation, args=(cleanedPredictions[selectedAlgorithms], cleanedReturns[selectedAlgorithms], factorToTrade, "EW", hashToModel, joinedData))
+        p.start()
+        runningP.append(p)
+
+        p = mpEngine.Process(target=performPortfolioPerformanceEstimation, args=(cleanedPredictions[selectedAlgorithms], cleanedReturns[selectedAlgorithms], factorToTrade, "EW By Ticker", hashToModel, joinedData))
+        p.start()
+        runningP.append(p)
+
 # In[ ]:
 
 
