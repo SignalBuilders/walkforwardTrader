@@ -23,17 +23,9 @@ try:
         validMap = curveTreeDB.getValidCounts(params.curveModels)
         print(validMap)
         validTickersToTrade = []
-
-        for ticker in allTickers:
-            if ticker not in validMap or validMap[ticker] == 0:
-                validTickersToTrade.append(ticker)
-                print("NOT PRESENT", ticker)
-
-        if len(validTickersToTrade) == 0:
-            ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
-            for ticker in sorted(validMap, key=validMap.get)[:20]:
-                validTickersToTrade.append(ticker)
-                print(ticker, validMap[ticker])
+        for ticker in sorted(validMap, key=validMap.get)[:20]:
+            validTickersToTrade.append(ticker)
+            print(ticker, validMap[ticker])
 
 
 
