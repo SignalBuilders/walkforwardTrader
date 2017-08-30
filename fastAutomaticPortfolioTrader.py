@@ -329,6 +329,19 @@ def produceSingleHRP(identifier, aggregateReturns, sharedDict):
 
     print("HRP SINGLE",identifier, str(datetime.datetime.now() - startTime))
 
+def cyclePSpecial(runningProcesses):
+
+    newP = []
+    toCollect = []
+    for pT in runningProcesses:
+        p = pT[0]
+        i = pT[1]
+        if p.is_alive() == True:
+            newP.append(p)
+        else:
+            toCollect.append(i)
+            p.join()
+    return newP, toCollect
 
 def produceHRPMP(aggregateReturns, windowSize, startIndex, threads):
     mpEngine = mp.get_context('fork')
@@ -337,6 +350,7 @@ def produceHRPMP(aggregateReturns, windowSize, startIndex, threads):
         historicalWeights = pd.DataFrame([])
         runningP = []
         identifiersUsed = []
+        storedData = [] 
         i = windowSize
         if startIndex is not None:
             i = startIndex
@@ -345,25 +359,30 @@ def produceHRPMP(aggregateReturns, windowSize, startIndex, threads):
             identifiersUsed.append(i)
             
             while len(runningP) > threads:
-                runningP = dataAck.cycleP(runningP)
+                runningP, toCollect = cyclePSpecial(runningP)
+                for identifier in toCollect:
+                    try:
+                        if returnDict[identifier] is not None:
+                            storedData.append(returnDict[identifier])
+                    except:
+                        continue
+
             
             p = mpEngine.Process(target=produceSingleHRP, args=(i, aggregateReturns, returnDict, ))
             p.start()
-            runningP.append(p)
+            runningP.append((p, i))
 
             i += 1
 
 
         while len(runningP) > 0:
-                runningP = dataAck.cycleP(runningP)
-                
-        storedData = [] 
-        for identifier in identifiersUsed:
-            try:
-                if returnDict[identifier] is not None:
-                    storedData.append(returnDict[identifier])
-            except:
-                continue
+            runningP, toCollect = cyclePSpecial(runningP)
+            for identifier in toCollect:
+                try:
+                    if returnDict[identifier] is not None:
+                        storedData.append(returnDict[identifier])
+                except:
+                    continue
 
         return pd.concat(storedData).sort_index()
 
@@ -588,7 +607,7 @@ def performPortfolioPerformanceEstimation(historicalPredictions, historicalRetur
             weightsSeen = None
             if portfolioType == "HRP FULL":
                 weightsSeen = produceHRPMP(returnWindow, \
-                    126, startIndex=max(startIndex, 126), threads=64)
+                    126, startIndex=max(startIndex, 126), threads=32)
             elif portfolioType == "HRP BINARY":
                 weightsSeen = produceHRPPredictions(pd.DataFrame(returnWindow.apply(lambda x:binarizeReturns(x),\
                  axis=1)),                    126, startIndex=max(startIndex, 126), maxWindowSize=False)
