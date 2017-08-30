@@ -311,7 +311,7 @@ def produceSingleHRP(identifier, aggregateReturns, sharedDict):
     startTime = datetime.datetime.now()
     corr = (aggregateReturns[:identifier]).corr()
     cov = (aggregateReturns[:identifier]).cov()
-    
+    print(aggregateReturns[:identifier])
     # try:
         # 
     weights = hrp.getHRP(cov, corr)
