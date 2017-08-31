@@ -90,7 +90,7 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     
     normalTickerAllocationsTable, scaledTickerAllocationsTable = historicalWeightsToTickerAllocations(historicalWeights, historicalPredictions, modelsUsed)
     
-    tickerAllocationsTable = scaledTickerAllocationsTable
+    tickerAllocationsTable = normalTickerAllocationsTable #scaledTickerAllocationsTable
     tickerAllocationsTable = tickerAllocationsTable.fillna(0)
 
     tickerPerformance, algoPerformance, algoTransactionCost =  portfolioGeneration.calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
