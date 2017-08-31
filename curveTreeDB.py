@@ -7,14 +7,67 @@ import sys
 import dataAck
 import multiprocessing as mp
 
+def hashForDictionary(metricsDictionary):
+    arrToHash = []
+    for key in sorted(metricsDictionary):
+        arrToHash.append(key)
+        arrToHash.append(metricsDictionary[key])
+    return hashlib.sha224(str(arrToHash).encode('utf-8')).hexdigest()
 
-##USED TO STORE DESCRIPTION INFO
+##ENSURE ORGANISMS WITH VERY SIMILAR METRICS ARE NOT DUPLICATED
+def storeMetricsHash(metricsDictionary):
+    while True:
+        try:
+            datastoreClient = datastore.Client('money-maker-1236')
+
+            ##ENSURE HASH FOR DICTIONARY IS ALWAYS SAME
+
+            metricsHash = hashForDictionary(metricsDictionary)
+            toUpload = {"metricsHash":metricsHash}
+            #HASH DIGEST
+            key = datastoreClient.key(params.metricsLookup,  metricsHash) #NEED TO HASH TO ENSURE UNDER COUNT
+            organismToStore = datastore.Entity(key=key)
+            organismToStore.update(toUpload)
+            datastoreClient.put(organismToStore)
+            break
+        except:
+            print("UPLOAD ERROR:", str(sys.exc_info()))
+            time.sleep(10)
+
+def metricsHashExists(metricsDictionary):
+    while True:
+        try:
+            datastore_client = datastore.Client('money-maker-1236')
+            ##form keys
+            metricsHash = hashForDictionary(metricsDictionary)
+            key = datastore_client.key(params.metricsLookup, metricsHash)
+            retrievedModel = datastore_client.get(key)
+            if retrievedModel is None:
+                return False
+            else:
+                return True
+            
+        except:
+            time.sleep(10)
+            print("DATA SOURCE RETRIEVAL ERROR:", str(sys.exc_info()))
+
+
+##USED TO STORE DESCRIPTION INFO...CHECK METRICS HASH IS UNIQUE
 def storeModel(db, model, uploadInformation, trainingMetrics, oosMetrics):
     toUpload = uploadInformation
+    metricsDictionary = {}
     for k in trainingMetrics:
         toUpload["IS_" + k] = trainingMetrics[k]
+        metricsDictionary["IS_" + k] = trainingMetrics[k]
     for k in oosMetrics:
         toUpload["OOS_" + k] = oosMetrics[k]
+        metricsDictionary["OOS_" + k] = oosMetrics[k]
+
+    if metricsHashExists(metricsDictionary) == True:
+        dataAck.logModel("MetricsDuplicate"+"_" + db, metricsDictionary)
+        return
+    
+    storeMetricsHash(metricsDictionary)
     toUpload["model"] = pickle.dumps(model)
     organismHash = model.getHash()
     ##UPLOAD ORGANISM OBJECT

@@ -44,6 +44,7 @@ curveAndTreeVersion = "0.0.1"
 discoveredPortfolioModels = "discoveredPortfolioModels"
 discoveredPortfolios = "discoveredPortfolios"
 discoveredPortfolioCache = "discoveredportfoliocache"
+metricsLookup = "metricsHashes"
 
 ##FACTOR PREDICTOR
 factorModels = "factor_models"
