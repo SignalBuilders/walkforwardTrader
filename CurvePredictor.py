@@ -108,7 +108,6 @@ class CurvePredictor:
         nn.fit(xVals)
         closest = nn.radius_neighbors([xTarget], self.radius)
         keptNeighbors = CurvePredictor.ensureNoShifts(closest[1][0])
-        print(len(keptNeighbors))
         pred = 0.5
         if len(keptNeighbors) > self.minNeighbors:
             predictions = []
