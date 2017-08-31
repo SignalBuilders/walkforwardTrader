@@ -88,7 +88,7 @@ try:
                             for minConfidence in [0.01, 0.05, 0.1, 0.2, 0.3]:
                                 for lastXDays in [0, 50, 100, 150, 252, 350, 500, 600]: ##LAST XDAYS 0 MEANS ALL DAYS
                                     for maxDistance in [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 1000000000]:
-                                        if random.uniform(0,1) < 0.97: ##RANDOMLY SKIP A LOT...FAILING FAST ON SERIES ALLOWS US TO EXAMINE MUCH LARGER SAMPLE SPACE
+                                        if random.uniform(0,1) < 0.995: ##RANDOMLY SKIP A LOT...FAILING FAST ON SERIES ALLOWS US TO EXAMINE MUCH LARGER SAMPLE SPACE
                                             continue
                                         cPre = CurvePredictor.CurvePredictor(s, tickerToTrade, lookback, prediction, minConfidence, neighbors, lastXDays, maxDistance)
                                         algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = cPre.runModelHistorical(joinedData, earlyStop=True)
