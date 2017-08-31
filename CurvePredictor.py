@@ -20,7 +20,7 @@ import curveTreeDB
 
 
 class CurvePredictor:
-    def __init__(self, inputSeries, targetTicker, lookbackDistance, predictionDistance, minConfidence, neighbors, lastXDays):
+    def __init__(self, inputSeries, targetTicker, lookbackDistance, predictionDistance, minConfidence, neighbors, lastXDays, maxDistance):
         self.parallelism = 16
         self.inputSeries = inputSeries
         self.targetTicker = targetTicker
@@ -29,9 +29,10 @@ class CurvePredictor:
         self.minConfidence = minConfidence
         self.neighbors = neighbors
         self.lastXDays = lastXDays
+        self.maxDistance = maxDistance
     
     def describe(self):
-        return (self.inputSeries.describe(), self.targetTicker, self.lookbackDistance, self.predictionDistance, self.minConfidence, self.neighbors, self.lastXDays)
+        return (self.inputSeries.describe(), self.targetTicker, self.lookbackDistance, self.predictionDistance, self.minConfidence, self.neighbors, self.lastXDays, self.maxDistance)
 
     def getHash(self):
         return hashlib.sha224(str(self.describe()).encode('utf-8')).hexdigest()
@@ -50,6 +51,7 @@ class CurvePredictor:
         toUpload["minConfidence"] = self.minConfidence
         toUpload["neighbors"] = self.neighbors
         toUpload["lastXDays"] = self.lastXDays
+        toUpload["maxDistance"] = self.maxDistance
         toUpload["series"] = str(self.inputSeries.describe())
         return toUpload
 
@@ -62,10 +64,13 @@ class CurvePredictor:
 
 
     @staticmethod
-    def ensureNoShifts(nearestIndicies):
+    def ensureNoShifts(distanceToNearestIndicies, nearestIndicies):
         breadth = 5
+        keptDistances = []
         keptIndicies = []
-        for item in nearestIndicies:
+        for i in range(len(nearestIndicies)):
+            item = nearestIndicies[i]
+
             k = item-breadth
             shouldAdd = True
             while k < item + breadth:
@@ -74,8 +79,16 @@ class CurvePredictor:
                     break
                 k += 1
             if shouldAdd == True:
+                keptDistances.append(distanceToNearestIndicies[i])
                 keptIndicies.append(item)
-        return keptIndicies
+        return keptDistances, keptIndicies
+
+    def ensureShorterThanMaxDistance(self, keptDistances, keptIndicies):
+        newIndicies = []
+        for i in range(len(keptDistances)):
+            if keptDistances[i] < self.maxDistance:
+                newIndicies.append(keptIndicies[i])
+        return newIndicies
     
     def generateWindows(self, joinedData):
         transformedSeries = pd.DataFrame(self.inputSeries.transformJoinedData(joinedData))
@@ -107,14 +120,16 @@ class CurvePredictor:
         shortenedY = yVals[-self.lastXDays:]
 
         nn = NearestNeighbors(p=2, n_jobs = 1)
-        nn.fit(xVals)
-        closest = nn.kneighbors([xTarget], self.neighbors)
-        keptNeighbors = CurvePredictor.ensureNoShifts(closest[1][0])
+        nn.fit(shortenedX)
+        distanceToClosest, closest = nn.kneighbors([xTarget], self.neighbors)
+        keptDistances, keptNeighborsRaw = CurvePredictor.ensureNoShifts(distanceToClosest[0], closest[0])
+        keptNeighbors = self.ensureShorterThanMaxDistance(keptDistances, keptNeighborsRaw)
+
         pred = 0.5
         if len(keptNeighbors) > 0:
             predictions = []
             for sampleIndex in keptNeighbors:
-                predictions.append(yVals[sampleIndex])
+                predictions.append(shortenedY[sampleIndex])
             predictions = np.array(predictions)
 
             pred = len(predictions[predictions > 0])/float(len(predictions))

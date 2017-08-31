@@ -86,30 +86,31 @@ try:
                     for prediction in [2, 3, 5, 7, 10, 15]:
                         for neighbors in [1, 2, 3, 4, 5, 7, 10, 15, 20, 25, 30]:
                             for minConfidence in [0.01, 0.05, 0.1, 0.2, 0.3]:
-                                for lastXDays in [50, 100, 150, 252, 350, 500, 600]:
-                                    if random.uniform(0,1) < 0.97: ##RANDOMLY SKIP A LOT...FAILING FAST ON SERIES ALLOWS US TO EXAMINE MUCH LARGER SAMPLE SPACE
-                                        continue
-                                    cPre = CurvePredictor.CurvePredictor(s, tickerToTrade, lookback, prediction, minConfidence, neighbors, lastXDays)
-                                    algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = cPre.runModelHistorical(joinedData, earlyStop=True)
-                                    if algoReturn is None:
-                                        toLog = factorReturn
-                                        toLog["modelDescription"] = str(cPre.describe())
-                                        # dataAck.logModel("Model Curve Stopped Early", toLog)
-                                        print("Model Curve Stopped Early", toLog)
-                                        continue
-                                    metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
-                                    print("TRAIN:", metrics)
-                                    if metrics["RAW BETA"] < 0.6 and metrics["TOTAL DAYS SEEN"] >= 1700\
-                                         and (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["STABILITY"] > 0.5:
-                                        ##STORE
-                                        testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
-                                        print("TEST:", testMetrics)
-                                        curveTreeDB.storeModel(params.curveModels, cPre, cPre.formUploadDictionary(), metrics, testMetrics)
-                                    else:
-                                        toLog = {"modelDescription":str(cPre.describe())}
-                                        for k in metrics:
-                                            toLog[k] = metrics[k]
-                                        dataAck.logModel("Model Curve Skipped", toLog)
+                                for lastXDays in [0, 50, 100, 150, 252, 350, 500, 600]: ##LAST XDAYS 0 MEANS ALL DAYS
+                                    for maxDistance in [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 1000000000]:
+                                        if random.uniform(0,1) < 0.97: ##RANDOMLY SKIP A LOT...FAILING FAST ON SERIES ALLOWS US TO EXAMINE MUCH LARGER SAMPLE SPACE
+                                            continue
+                                        cPre = CurvePredictor.CurvePredictor(s, tickerToTrade, lookback, prediction, minConfidence, neighbors, lastXDays, maxDistance)
+                                        algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = cPre.runModelHistorical(joinedData, earlyStop=True)
+                                        if algoReturn is None:
+                                            toLog = factorReturn
+                                            toLog["modelDescription"] = str(cPre.describe())
+                                            # dataAck.logModel("Model Curve Stopped Early", toLog)
+                                            print("Model Curve Stopped Early", toLog)
+                                            continue
+                                        metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
+                                        print("TRAIN:", metrics)
+                                        if metrics["RAW BETA"] < 0.6 and metrics["TOTAL DAYS SEEN"] >= 1700\
+                                             and (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0) and metrics["ACTIVITY"] > 0.2 and metrics["STABILITY"] > 0.5:
+                                            ##STORE
+                                            testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
+                                            print("TEST:", testMetrics)
+                                            curveTreeDB.storeModel(params.curveModels, cPre, cPre.formUploadDictionary(), metrics, testMetrics)
+                                        else:
+                                            toLog = {"modelDescription":str(cPre.describe())}
+                                            for k in metrics:
+                                                toLog[k] = metrics[k]
+                                            dataAck.logModel("Model Curve Skipped", toLog)
             except:
                 print("FAILED", s.describe())
                 dataAck.logModel("Series Failed", {
