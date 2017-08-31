@@ -21,7 +21,7 @@ try:
         validMap = curveTreeDB.getValidCounts(params.treeModels)
         print(validMap)
         validTickersToTrade = []
-        for ticker in sorted(validMap, key=validMap.get)[:20]:
+        for ticker in sorted(validMap, key=validMap.get)[:50]:
             validTickersToTrade.append(ticker)
             print(ticker, validMap[ticker])
 
