@@ -5,6 +5,7 @@ import TreePredictor
 import FactorPredictor
 import curveTreeDB
 import params
+import empyrical
 import datetime 
 from google.cloud import error_reporting
 
@@ -15,16 +16,15 @@ allTickers = dataAck.getAllTickersPlain()
 tData = dataAck.getTrainingData(params.tickerDataLookup)
 joinedData = tData[0]
 validTickers = tData[1]
+print("TICKER", "ANNUALIZED RETURN", "ANNUALIZED VOLATILITY", "COST OF RETURN")
 for tickerToTrade in validTickers:
-    print(tickerToTrade)
-    for pos in [0.0, 1.0]:
+    if tickerToTrade != "VTI" and tickerToTrade != "SPY" and tickerToTrade != "AGG"\
+         and tickerToTrade != "GLD" and tickerToTrade != "JNK" and tickerToTrade != "USO"\
+         and tickerToTrade != "EEM":
+        continue
+    for pos in [1.0]:
         fPre = FactorPredictor.FactorPredictor(tickerToTrade, pos)
         algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = fPre.runModelHistorical(joinedData)
-        metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
-        print(metrics)
-        testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
-        print("TEST:", testMetrics)
-        curveTreeDB.storeModelData(params.factorModelData, fPre, algoReturn, predictions, slippageAdjustedReturn)
-        curveTreeDB.storeModel(params.factorModels, fPre, fPre.formUploadDictionary(), metrics, testMetrics)
-
-        
+        print(tickerToTrade, round(empyrical.annual_return(factorReturn)[0] * 100, 2), "%",\
+                     round(empyrical.annual_volatility(factorReturn) * 100, 2), "%", \
+                     round(empyrical.annual_return(factorReturn)[0] * 100, 2) - round(empyrical.annual_volatility(factorReturn) * 100, 2), "%")

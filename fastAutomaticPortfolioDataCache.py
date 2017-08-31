@@ -28,9 +28,9 @@ dataObjs = curveTreeDB.getValidModels(params.treeModels, returnEntireObject=True
 
 for item in dataObjs:
     try:
-        if item["IS_PROFITABILITY SLIPPAGE"] > 0.51 and item["IS_ANNUALIZED RETURN"] > 0.05 and item["IS_BETA"] < 0.25:
+        if item["IS_PROFITABILITY SLIPPAGE"] > 0.52 and item["IS_ANNUALIZED RETURN"] > 0.05 and item["IS_BETA"] < 0.15:
             model = item["model"]
-            print(model.targetTicker, model.getHash(), item["IS_SHARPE SLIPPAGE"], item["IS_SHARPE DIFFERENCE SLIPPAGE"], item["IS_BETA"])
+            print(model.targetTicker, item["IS_BETA"], item["OOS_BETA"], item["IS_ANNUALIZED RETURN"], item["OOS_ANNUALIZED RETURN"])
             treeModels.append(model)
             if model.targetTicker not in tickersSeen:
                 tickersSeen.append(model.targetTicker)
