@@ -20,18 +20,18 @@ import curveTreeDB
 
 
 class CurvePredictor:
-    def __init__(self, inputSeries, targetTicker, lookbackDistance, predictionDistance, radius, minConfidence, minNeighbors):
+    def __init__(self, inputSeries, targetTicker, lookbackDistance, predictionDistance, minConfidence, neighbors, lastXDays):
         self.parallelism = 16
         self.inputSeries = inputSeries
         self.targetTicker = targetTicker
         self.lookbackDistance = lookbackDistance
         self.predictionDistance = predictionDistance
-        self.radius = radius
         self.minConfidence = minConfidence
-        self.minNeighbors = minNeighbors
+        self.neighbors = neighbors
+        self.lastXDays = lastXDays
     
     def describe(self):
-        return (self.inputSeries.describe(), self.targetTicker, self.lookbackDistance, self.predictionDistance, self.radius, self.minConfidence, self.minNeighbors)
+        return (self.inputSeries.describe(), self.targetTicker, self.lookbackDistance, self.predictionDistance, self.minConfidence, self.neighbors, self.lastXDays)
 
     def getHash(self):
         return hashlib.sha224(str(self.describe()).encode('utf-8')).hexdigest()
@@ -47,9 +47,9 @@ class CurvePredictor:
         toUpload["ticker"] = self.targetTicker
         toUpload["predictionLength"] = self.predictionDistance
         toUpload["lookbackDistance"] = self.lookbackDistance
-        toUpload["radius"] = self.radius
         toUpload["minConfidence"] = self.minConfidence
-        toUpload["minNeighbors"] = self.minNeighbors
+        toUpload["neighbors"] = self.neighbors
+        toUpload["lastXDays"] = self.lastXDays
         toUpload["series"] = str(self.inputSeries.describe())
         return toUpload
 
@@ -103,13 +103,15 @@ class CurvePredictor:
     
     def runDay(self, xVals, yVals, xTarget, identifier=None, sharedDict=None):
         
-        
+        shortenedX = xVals[-self.lastXDays:]
+        shortenedY = yVals[-self.lastXDays:]
+
         nn = NearestNeighbors(p=2, n_jobs = 1)
         nn.fit(xVals)
-        closest = nn.radius_neighbors([xTarget], self.radius)
+        closest = nn.kneighbors([xTarget], self.neighbors)
         keptNeighbors = CurvePredictor.ensureNoShifts(closest[1][0])
         pred = 0.5
-        if len(keptNeighbors) > self.minNeighbors:
+        if len(keptNeighbors) > 0:
             predictions = []
             for sampleIndex in keptNeighbors:
                 predictions.append(yVals[sampleIndex])
