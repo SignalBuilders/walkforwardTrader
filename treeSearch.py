@@ -18,16 +18,16 @@ try:
         startTime = datetime.datetime.now()
         import random
         ##ADVANCED TICKER TO TRADE SELECTION
-        validMap = curveTreeDB.getValidCounts(params.treeModels)
-        print(validMap)
-        validTickersToTrade = []
-        for ticker in sorted(validMap, key=validMap.get)[:50]:
-            validTickersToTrade.append(ticker)
-            print(ticker, validMap[ticker])
+        # validMap = curveTreeDB.getValidCounts(params.treeModels)
+        # print(validMap)
+        # validTickersToTrade = []
+        # for ticker in sorted(validMap, key=validMap.get)[:50]:
+        #     validTickersToTrade.append(ticker)
+        #     print(ticker, validMap[ticker])
 
 
 
-        tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
+        tickerToTrade = allTickers[random.randint(0, len(allTickers)) - 1]
         print(tickerToTrade)
 
         
