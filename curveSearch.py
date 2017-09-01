@@ -19,24 +19,25 @@ try:
     while True:
         startTime = datetime.datetime.now()
         import random
-        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.curveModels)
+        # modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.curveModels)
 
-        validTickersToTrade = []
+        # validTickersToTrade = []
 
-        for ticker in allTickers:
-            if ticker not in modelSplitByTicker:
-                validTickersToTrade.append(ticker)
-                print("NOT PRESENT", ticker)
+        # for ticker in allTickers:
+        #     if ticker not in modelSplitByTicker:
+        #         validTickersToTrade.append(ticker)
+        #         print("NOT PRESENT", ticker)
 
-        if len(validTickersToTrade) == 0:
-            ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
-            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:20]:
-                validTickersToTrade.append(ticker)
-                print(ticker, modelSplitByTicker[ticker])
+        # if len(validTickersToTrade) == 0:
+        #     ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
+        #     for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:20]:
+        #         validTickersToTrade.append(ticker)
+        #         print(ticker, modelSplitByTicker[ticker])
 
 
 
-        tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
+        # tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
+        tickerToTrade = "VUG"
         print(tickerToTrade)
         
         
@@ -98,6 +99,7 @@ try:
                                             continue
                                         cPre = CurvePredictor.CurvePredictor(s, tickerToTrade, lookback, prediction, minConfidence, neighbors, lastXDays, maxDistance)
                                         algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = cPre.runModelHistorical(joinedData, earlyStop=True)
+                                        print(algoReturn)
                                         if algoReturn is None:
                                             toLog = factorReturn
                                             toLog["modelDescription"] = str(cPre.describe())
