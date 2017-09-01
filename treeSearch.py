@@ -21,10 +21,10 @@ try:
 
         validTickersToTrade = []
 
-        # for ticker in allTickers:
-        #     if ticker not in modelSplitByTicker:
-        #         validTickersToTrade.append(ticker)
-        #         print("NOT PRESENT", ticker)
+        for ticker in allTickers:
+            if ticker not in modelSplitByTicker:
+                validTickersToTrade.append(ticker)
+                print("NOT PRESENT", ticker)
 
         # if len(validTickersToTrade) == 0:
         #     ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
