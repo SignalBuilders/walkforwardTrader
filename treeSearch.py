@@ -17,24 +17,25 @@ try:
     while True:
         startTime = datetime.datetime.now()
         import random
-        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
+        # modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
 
-        validTickersToTrade = []
+        # validTickersToTrade = []
 
-        for ticker in allTickers:
-            if ticker not in modelSplitByTicker:
-                validTickersToTrade.append(ticker)
-                print("NOT PRESENT", ticker)
+        # for ticker in allTickers:
+        #     if ticker not in modelSplitByTicker:
+        #         validTickersToTrade.append(ticker)
+        #         print("NOT PRESENT", ticker)
 
-        # if len(validTickersToTrade) == 0:
-        #     ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
-        for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:30]:
-            validTickersToTrade.append(ticker)
-            print(ticker, modelSplitByTicker[ticker])
+        # # if len(validTickersToTrade) == 0:
+        # #     ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
+        # for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:30]:
+        #     validTickersToTrade.append(ticker)
+        #     print(ticker, modelSplitByTicker[ticker])
 
 
 
-        tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
+        # tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
+        tickerToTrade = "VUG"
         print(tickerToTrade)
 
         

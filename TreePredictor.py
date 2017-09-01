@@ -116,8 +116,12 @@ class TreePredictor:
         rawPredictions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions 1"]).dropna()
         rawPredictions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions 2"]).dropna()
 
+        print(rawPredictions1)
+        print(rawPredictions2)
+
         rawPredictions = rawPredictions1.join(rawPredictions2).dropna()
 
+        print(rawPredictions)
         predsTable = pd.DataFrame(rawPredictions.apply(lambda x:self.combinePredictions(x), axis=1, raw=True))
         rawPredictions = predsTable
         ##PREDICTIONS COMBINED AS 0, 0.5, 1 where
