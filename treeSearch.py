@@ -26,8 +26,6 @@ try:
                 validTickersToTrade.append(ticker)
                 print("NOT PRESENT", ticker)
 
-        # if len(validTickersToTrade) == 0:
-        #     ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
         for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:30]:
             validTickersToTrade.append(ticker)
             print(ticker, modelSplitByTicker[ticker])
