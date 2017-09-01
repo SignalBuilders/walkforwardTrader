@@ -26,7 +26,7 @@ try:
                 validTickersToTrade.append(ticker)
                 print("NOT PRESENT", ticker)
 
-        for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:30]:
+        for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:20]:
             validTickersToTrade.append(ticker)
             print(ticker, modelSplitByTicker[ticker])
 
