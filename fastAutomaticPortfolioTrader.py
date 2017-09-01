@@ -90,10 +90,10 @@ def getLimitedDataForPortfolio(historicalWeights, historicalPredictions, modelsU
     
     normalTickerAllocationsTable, scaledTickerAllocationsTable = historicalWeightsToTickerAllocations(historicalWeights, historicalPredictions, modelsUsed)
     
-    capitalUsed = pd.DataFrame(normalTickerAllocationsTable.apply(lambda x: sum([abs(item) for item in x]), axis=1))
-    print(capitalUsed)
+    # capitalUsed = pd.DataFrame(normalTickerAllocationsTable.apply(lambda x: sum([abs(item) for item in x]), axis=1))
+    # print(capitalUsed)
 
-    tickerAllocationsTable = normalTickerAllocationsTable #scaledTickerAllocationsTable
+    tickerAllocationsTable = scaledTickerAllocationsTable #scaledTickerAllocationsTable
     tickerAllocationsTable = tickerAllocationsTable.fillna(0)
 
     tickerPerformance, algoPerformance, algoTransactionCost =  portfolioGeneration.calculatePerformanceForAllocations(tickerAllocationsTable, joinedData)
