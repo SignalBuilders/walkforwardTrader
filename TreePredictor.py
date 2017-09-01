@@ -113,6 +113,9 @@ class TreePredictor:
         returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions1 = self.obj1.runModelHistorical(dataOfInterest)
         returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions2 = self.obj2.runModelHistorical(dataOfInterest)
 
+        print(rawPredictions1)
+        print(rawPredictions2)
+
         rawPredictions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions 1"]).dropna()
         rawPredictions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions 2"]).dropna()
 
