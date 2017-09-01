@@ -88,6 +88,8 @@ try:
             try:
 
                 blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
+                if blocksToUse[0].getHash() != "410467a205132736411bd6f5d386fd8ac90d9dc8539d07b6e2f6bdca" and blocksToUse[1].getHash() != "410467a205132736411bd6f5d386fd8ac90d9dc8539d07b6e2f6bdca":
+                    continue
                 tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
                 if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
                     dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
