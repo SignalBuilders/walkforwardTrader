@@ -99,7 +99,7 @@ try:
                                             continue
                                         cPre = CurvePredictor.CurvePredictor(s, tickerToTrade, lookback, prediction, minConfidence, neighbors, lastXDays, maxDistance)
                                         algoReturn, factorReturn, predictions, slippageAdjustedReturn, rawPredictions = cPre.runModelHistorical(joinedData, earlyStop=True)
-                                        print(algoReturn)
+                                        print(rawPredictions)
                                         if algoReturn is None:
                                             toLog = factorReturn
                                             toLog["modelDescription"] = str(cPre.describe())
