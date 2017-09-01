@@ -216,7 +216,7 @@ class CurvePredictor:
 
                 ##CREATE ACCURATE BLENDING ACROSS DAYS
                 predsTable = pd.DataFrame(preds, index=days, columns=["Predictions"])
-                rawPredictions = pd.DataFrame(preds, index=days, columns=["Predictions"])
+                
                 i = 1
                 tablesToJoin = []
                 while i < self.predictionDistance:
@@ -226,14 +226,14 @@ class CurvePredictor:
                     i += 1
                 
                 predsTable = predsTable.join(tablesToJoin)
-                
                 transformedPreds = pd.DataFrame(predsTable.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions"]).dropna()
                 dailyFactorReturn = dataAck.getDailyFactorReturn(self.targetTicker, dataOfInterest)
                 transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
                 returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"]) if returnStream is None else pd.concat([returnStream, pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])])
                 factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]]) if factorReturn is None else pd.concat([factorReturn, pd.DataFrame(transformedPreds[["Factor Return"]])])
                 predictions = pd.DataFrame(transformedPreds[["Predictions"]]) if predictions is None else pd.concat([predictions, pd.DataFrame(transformedPreds[["Predictions"]])])
-
+                rawPredictions = pd.DataFrame(preds, index=days, columns=["Predictions"]) if rawPredictions is None else pd.concat([rawPredictions, pd.DataFrame(preds, index=days, columns=["Predictions"])])
+                
                 alpha, beta = empyrical.alpha_beta(returnStream, factorReturn)
                 activity = np.count_nonzero(returnStream)/float(len(returnStream))
                 rawBeta = abs(empyrical.alpha_beta(returnStream.apply(lambda x:dataAck.applyBinary(x), axis=0), factorReturn.apply(lambda x:dataAck.applyBinary(x), axis=0))[1])
