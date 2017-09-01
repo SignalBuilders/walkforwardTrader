@@ -17,17 +17,24 @@ try:
     while True:
         startTime = datetime.datetime.now()
         import random
-        ##ADVANCED TICKER TO TRADE SELECTION
-        # validMap = curveTreeDB.getValidCounts(params.treeModels)
-        # print(validMap)
-        # validTickersToTrade = []
-        # for ticker in sorted(validMap, key=validMap.get)[:50]:
-        #     validTickersToTrade.append(ticker)
-        #     print(ticker, validMap[ticker])
+        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
+
+        validTickersToTrade = []
+
+        for ticker in allTickers:
+            if ticker not in modelSplitByTicker:
+                validTickersToTrade.append(ticker)
+                print("NOT PRESENT", ticker)
+
+        if len(validTickersToTrade) == 0:
+            ##MEANS ALL TICKERS HAVE AT LEAST ONE MODEL
+            for ticker in sorted(modelSplitByTicker, key=modelSplitByTicker.get)[:20]:
+                validTickersToTrade.append(ticker)
+                print(ticker, modelSplitByTicker[ticker])
 
 
 
-        tickerToTrade = allTickers[random.randint(0, len(allTickers)) - 1]
+        tickerToTrade = validTickersToTrade[random.randint(0, len(validTickersToTrade)) - 1]
         print(tickerToTrade)
 
         
