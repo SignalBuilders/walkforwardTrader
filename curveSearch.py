@@ -19,7 +19,7 @@ try:
     while True:
         startTime = datetime.datetime.now()
         import random
-        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
+        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.curveModels)
 
         validTickersToTrade = []
 
