@@ -87,7 +87,7 @@ try:
 
             try:
                 for lookback in [5, 10, 22, 44]:
-                    for prediction in [2, 3, 5, 7, 10, 15]:
+                    for prediction in [1, 2, 3, 5]:
                         for neighbors in [1, 2, 3, 4, 5, 7, 10, 15, 20, 25, 30]:
                             for minConfidence in [0.01, 0.05, 0.1, 0.2, 0.3]:
                                 for lastXDays in [0, 50, 100, 150, 252, 350, 500, 600]: ##LAST XDAYS 0 MEANS ALL DAYS
