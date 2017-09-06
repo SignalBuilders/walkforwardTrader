@@ -111,7 +111,7 @@ class AverageTreePredictor:
         transformedPositions = transformedPositions.join(dailyFactorReturn).dropna()
         returnStream = pd.DataFrame(transformedPositions.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])
         factorReturn = pd.DataFrame(transformedPositions[["Factor Return"]])
-        positions = pd.DataFrame(transformedPreds[["Positions"]])
+        positions = pd.DataFrame(transformedPositions[["Positions"]])
         print("POSITIONS")
         print(positions)
         estimatedSlippageLoss = portfolioGeneration.estimateTransactionCost(positions)
