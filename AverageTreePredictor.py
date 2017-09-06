@@ -44,8 +44,8 @@ class AverageTreePredictor:
         return (self.obj1.describe(), self.obj2.describe(), self.predictionDistance)
 
     def getHash(self):
-        hash1 = hashlib.sha224(str((self.obj1.describe(), self.obj2.describe(), self.predictionDistance, self.combiner)).encode('utf-8')).hexdigest()
-        hash2 = hashlib.sha224(str((self.obj2.describe(), self.obj1.describe(), self.predictionDistance, self.combiner)).encode('utf-8')).hexdigest()
+        hash1 = hashlib.sha224(str((self.obj1.describe(), self.obj2.describe(), self.predictionDistance)).encode('utf-8')).hexdigest()
+        hash2 = hashlib.sha224(str((self.obj2.describe(), self.obj1.describe(), self.predictionDistance)).encode('utf-8')).hexdigest()
         return hashlib.sha224((hash1 + hash2).encode('utf-8')).hexdigest() if hash1 < hash2 else hashlib.sha224((hash2 + hash1).encode('utf-8')).hexdigest()
 
     def getAllHashes(self):
@@ -80,7 +80,7 @@ class AverageTreePredictor:
 
         print(rawPredictions1)
         print(rawPredictions2)
-        
+
         #computePositionConfidence
         rawPredictions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions 1"]).dropna()
         rawPredictions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions 2"]).dropna()
