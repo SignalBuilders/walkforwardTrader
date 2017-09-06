@@ -838,7 +838,9 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["ROLLING SHARPE ERROR 90"] = rollingSharpe["90 Day Rolling Sharpe"].std()
         metrics["SHARPE TO MIN RATIO 90"] = metrics["SHARPE"] / abs(metrics["MIN ROLLING SHARPE 90"])
         
-        metrics["PROFITABILITY 90"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+        metrics["MIN PROFITABILITY 90"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+        metrics["25TH PROFITABILITY 90"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 25)
+
 
     rollingPeriod = 45
 
@@ -853,7 +855,8 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["ROLLING SHARPE ERROR 45"] = rollingSharpe["45 Day Rolling Sharpe"].std()
         metrics["SHARPE TO MIN RATIO 45"] = metrics["SHARPE"] / abs(metrics["MIN ROLLING SHARPE 45"])
         
-        metrics["PROFITABILITY 45"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+        metrics["MIN PROFITABILITY 45"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+        metrics["25TH PROFITABILITY 45"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 25)
 
 
     returns = returnStream.apply(lambda x:empyrical.cum_returns(x))
