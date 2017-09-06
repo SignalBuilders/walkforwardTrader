@@ -1,7 +1,7 @@
 import dataAck
 import portfolio
 import CurvePredictor
-import TreePredictor
+import AverageTreePredictor
 import curveTreeDB
 import params
 from google.cloud import error_reporting
@@ -17,7 +17,7 @@ try:
     while True:
         startTime = datetime.datetime.now()
         import random
-        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.treeModels)
+        modelCount, modelSplitByTicker, predictionCount, numPredictors = curveTreeDB.getModelCounts(params.averageTreeModels)
 
         validTickersToTrade = []
 
@@ -77,7 +77,7 @@ try:
             
         ##RUN TREE SEARCH
         curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
-        treeBlocks = curveTreeDB.getModels(params.treeModels, ticker=tickerToTrade)
+        treeBlocks = curveTreeDB.getModels(params.averageTreeModels, ticker=tickerToTrade)
         runsSeen = 0
         attempts = 0
         buildingBlocks = curveBlocks
@@ -85,8 +85,8 @@ try:
             try:
 
                 blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
-                tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
-                if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
+                tPre = AverageTreePredictor.AverageTreePredictor(blocksToUse[0], blocksToUse[1]) 
+                if curveTreeDB.modelExists(params.averageTreeModels, tPre.getHash()) == True:
                     dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
                     raise ValueError("Tree Model Already Exists") 
                 curveTreeDB.logModelAttempted(tPre)
@@ -100,7 +100,7 @@ try:
                     testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                     print("TEST:", testMetrics)
                     curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
-                    curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
+                    curveTreeDB.storeModel(params.averageTreeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
                 else:
                     toLog = {"modelDescription":str(tPre.describe())}
                     for k in metrics:
@@ -129,9 +129,9 @@ try:
             while True:
                 try:
                     blocksToUse = np.random.choice(buildingBlocks, 2, replace=False)
-                    tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
+                    tPre = AverageTreePredictor.AverageTreePredictor(blocksToUse[0], blocksToUse[1]) 
                     
-                    if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
+                    if curveTreeDB.modelExists(params.averageTreeModels, tPre.getHash()) == True:
                         dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
                         raise ValueError("Tree Model Already Exists") 
                     curveTreeDB.logModelAttempted(tPre)
@@ -143,7 +143,7 @@ try:
                         testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                         print("TEST:", testMetrics)
                         curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
-                        curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
+                        curveTreeDB.storeModel(params.averageTreeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
                     else:
                         toLog = {"modelDescription":str(tPre.describe())}
                         for k in metrics:
@@ -167,8 +167,8 @@ try:
             while True:
                 try:
                     blocksToUse = [np.random.choice(curveBlocks, 1, replace=False)[0], np.random.choice(treeBlocks, 1, replace=False)[0]]
-                    tPre = TreePredictor.TreePredictor(blocksToUse[0], blocksToUse[1], "OR" if random.uniform(0,1) < 0.5 else "AND") 
-                    if curveTreeDB.modelExists(params.treeModels, tPre.getHash()) == True:
+                    tPre = AverageTreePredictor.AverageTreePredictor(blocksToUse[0], blocksToUse[1]) 
+                    if curveTreeDB.modelExists(params.averageTreeModels, tPre.getHash()) == True:
                         dataAck.logModel("Model Tree Already Exists", {"numPredictors":tPre.numberOfPredictors()})
                         raise ValueError("Tree Model Already Exists") 
                     curveTreeDB.logModelAttempted(tPre)
@@ -180,7 +180,7 @@ try:
                         testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                         print("TEST:", testMetrics)
                         curveTreeDB.storeModelData(params.treeModelData, tPre, algoReturn, predictions, slippageAdjustedReturn)
-                        curveTreeDB.storeModel(params.treeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
+                        curveTreeDB.storeModel(params.averageTreeModels, tPre, tPre.formUploadDictionary(), metrics, testMetrics)
                     else:
                         toLog = {"modelDescription":str(tPre.describe())}
                         for k in metrics:

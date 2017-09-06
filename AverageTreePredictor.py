@@ -17,8 +17,8 @@ import sys
 
 
 
-class TreePredictor:
-    def __init__(self, obj1, obj2, combiner):
+class AverageTreePredictor:
+    def __init__(self, obj1, obj2):
         self.obj1 = obj1
         self.obj2 = obj2
 
@@ -39,10 +39,9 @@ class TreePredictor:
         
         self.predictionDistance = max(self.obj1.predictionDistance, self.obj2.predictionDistance) ##SHOULD BE SAME FOR BOTH OBJECTS
         self.targetTicker = self.obj1.targetTicker
-        self.combiner = combiner ##AND or OR -> TREAT 0 AS SAME TYPE
 
     def describe(self):
-        return (self.obj1.describe(), self.obj2.describe(), self.predictionDistance, self.combiner)
+        return (self.obj1.describe(), self.obj2.describe(), self.predictionDistance)
 
     def getHash(self):
         hash1 = hashlib.sha224(str((self.obj1.describe(), self.obj2.describe(), self.predictionDistance, self.combiner)).encode('utf-8')).hexdigest()
@@ -57,7 +56,6 @@ class TreePredictor:
         toUpload = {}
         toUpload["ticker"] = self.targetTicker
         toUpload["predictionLength"] = self.predictionDistance
-        toUpload["combiner"] = self.combiner
         toUpload["numberOfPredictors"] = self.numberOfPredictors()
         return toUpload
 
@@ -68,43 +66,10 @@ class TreePredictor:
         return self.obj1.returnAllTickersInvolved() + self.obj2.returnAllTickersInvolved()
 
     def runModelToday(self, dataOfInterest):
-        return self.combinePredictions([dataAck.computePosition([self.obj1.runModelToday(dataOfInterest)]), dataAck.computePosition([self.obj2.runModelToday(dataOfInterest)])])
+        return self.combinePredictions([dataAck.computePositionConfidence([self.obj1.runModelToday(dataOfInterest)]), dataAck.computePositionConfidence([self.obj2.runModelToday(dataOfInterest)])])
 
     def combinePredictions(self, predictionArr):
-        if self.combiner == "AND":
-            if predictionArr[0] == predictionArr[1]:
-                if predictionArr[0] == 1:
-                    return 1.0 ##BUY
-                elif predictionArr[0] == 0:
-                    return 0.5 ##NO POS
-                else:
-                    return 0.0 ##SHORT
-            else:
-                return 0.5
-        elif self.combiner == "OR":
-            if predictionArr[0] == predictionArr[1]:
-                if predictionArr[0] == 1:
-                    return 1.0 ##BUY
-                elif predictionArr[0] == 0:
-                    return 0.5 ##NO POS
-                else:
-                    return 0.0 ##SHORT
-            elif predictionArr[0] == 0 and predictionArr[1] != 0:
-                if predictionArr[1] == 1:
-                    return 1.0 ##BUY
-                elif predictionArr[1] == 0:
-                    return 0.5 ##NO POS
-                else:
-                    return 0.0 ##SHORT
-            elif predictionArr[0] != 0 and predictionArr[1] == 0:
-                if predictionArr[0] == 1:
-                    return 1.0 ##BUY
-                elif predictionArr[0] == 0:
-                    return 0.5 ##NO POS
-                else:
-                    return 0.0 ##SHORT
-            elif predictionArr[0] != predictionArr[1]:
-                return 0.5 ## NO POSITION
+        return (predictionArr[0] + predictionArr[1])/2.0
 
 
     def runModelHistorical(self, dataOfInterest):
@@ -115,9 +80,10 @@ class TreePredictor:
 
         print(rawPredictions1)
         print(rawPredictions2)
+        
         #computePositionConfidence
-        rawPredictions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions 1"]).dropna()
-        rawPredictions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions 2"]).dropna()
+        rawPredictions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions 1"]).dropna()
+        rawPredictions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions 2"]).dropna()
 
         print(rawPredictions1)
         print(rawPredictions2)
@@ -145,7 +111,7 @@ class TreePredictor:
 
         predsTable = predsTable.join(tablesToJoin)
         ##AVERAGE...A LOT OF SUBTLETY IN STRENGTH OF PREDICTION
-        transformedPreds = pd.DataFrame(predsTable.apply(lambda x:dataAck.computePosition(x), axis=1), columns=["Predictions"]).dropna()
+        transformedPreds = pd.DataFrame(predsTable.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
         dailyFactorReturn = dataAck.getDailyFactorReturn(self.targetTicker, dataOfInterest)
         transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
         returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])
