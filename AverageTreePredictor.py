@@ -90,6 +90,7 @@ class AverageTreePredictor:
         # print(rawPredictions)
         #averagePredictions
         positionsTable = pd.DataFrame(positions.apply(lambda x:self.combinePredictions(x), axis=1, raw=True))
+        print("POSITIONS TABLE")
         print(positionsTable)
         rawPositions = positionsTable
         ##PREDICTIONS COMBINED AS 0, 0.5, 1 where
