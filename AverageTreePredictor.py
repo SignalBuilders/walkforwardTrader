@@ -111,6 +111,7 @@ class AverageTreePredictor:
         slippageAdjustedReturn = None
 
         predsTable = predsTable.join(tablesToJoin)
+        print(predsTable)
         ##AVERAGE...A LOT OF SUBTLETY IN STRENGTH OF PREDICTION
         transformedPreds = pd.DataFrame(predsTable.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
         print(transformedPreds)
