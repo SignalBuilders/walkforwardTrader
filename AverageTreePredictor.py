@@ -113,7 +113,7 @@ class AverageTreePredictor:
         predsTable = predsTable.join(tablesToJoin)
         print(predsTable)
         ##AVERAGE...A LOT OF SUBTLETY IN STRENGTH OF PREDICTION
-        transformedPreds = pd.DataFrame(predsTable.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
+        transformedPreds = pd.DataFrame(predsTable.apply(lambda x:sum(x)/len(x), axis=1), columns=["Predictions"]).dropna()
         print(transformedPreds)
         dailyFactorReturn = dataAck.getDailyFactorReturn(self.targetTicker, dataOfInterest)
         transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
