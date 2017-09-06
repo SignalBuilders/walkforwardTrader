@@ -66,7 +66,8 @@ class AverageTreePredictor:
         return self.obj1.returnAllTickersInvolved() + self.obj2.returnAllTickersInvolved()
 
     def runModelToday(self, dataOfInterest):
-        return self.combinePredictions([dataAck.computePositionConfidence([self.obj1.runModelToday(dataOfInterest)]), dataAck.computePositionConfidence([self.obj2.runModelToday(dataOfInterest)])])
+        ##CURVE MODEL EXPORTS BLENDED PREDICTIONS
+        return self.combinePredictions([self.obj1.runModelToday(dataOfInterest), self.obj2.runModelToday(dataOfInterest)])
 
     def combinePredictions(self, predictionArr):
         return (predictionArr[0] + predictionArr[1])/2.0
@@ -78,7 +79,7 @@ class AverageTreePredictor:
         returnStream, factorReturn, predictions1, slippageAdjustedReturn, rawPredictions1 = self.obj1.runModelHistorical(dataOfInterest)
         returnStream, factorReturn, predictions2, slippageAdjustedReturn, rawPredictions2 = self.obj2.runModelHistorical(dataOfInterest)
 
-        positions = predictions1.join(predictions2).dropna()
+        positions = predictions1.join(predictions2, rsuffix="2").dropna()
 
         # print(rawPredictions)
         #averagePredictions
@@ -92,7 +93,7 @@ class AverageTreePredictor:
         factorReturn = None
         predictions = None
         slippageAdjustedReturn = None
-        
+
         positionsTable.columns = ["Positions"]
         positionsTable = positionsTable.dropna()
         rawPositions = positionsTable

@@ -333,5 +333,14 @@ class CurvePredictor:
 
     def runModelToday(self, dataOfInterest):
         xVals, yVals, yIndex, xToday = self.generateWindows(dataOfInterest)
-        return self.runDay(xVals, yVals, xToday, identifier=None, sharedDict=None)
+        ##GET PERTINENT PREDICTIONS
+        i = 0
+        predictionsToJoin = []
+        while i < self.predictionDistance:
+            xTarget = xVals[-i]
+            thisDayPrediction = self.runDay(xVals[:-i - 1], yVals[:-i - 1], xTarget, identifier=None, sharedDict=None)
+            predictionsToJoin.append(thisDayPrediction)
+            i += 1
+        print("PREDICTIONS TO JOIN", predictionsToJoin)
+        return dataAck.computePosition(predictionsToJoin)
         
