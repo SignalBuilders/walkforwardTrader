@@ -81,6 +81,8 @@ class AverageTreePredictor:
         #computePositionConfidence 
         # print(rawPredictions1)
         # print(rawPredictions2)
+
+        print(rawPredictions1.join(rawPredictions2, router="2"))
         positions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Positions 1"]).dropna()
         positions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Positions 2"]).dropna()
 
