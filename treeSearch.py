@@ -77,7 +77,7 @@ try:
             
         ##RUN TREE SEARCH
         curveBlocks = curveTreeDB.getModels(params.curveModels, ticker=tickerToTrade) 
-        # treeBlocks = curveTreeDB.getModels(params.averageTreeModels, ticker=tickerToTrade)
+        treeBlocks = curveTreeDB.getModels(params.averageTreeModels, ticker=tickerToTrade)
         runsSeen = 0
         attempts = 0
         buildingBlocks = curveBlocks
