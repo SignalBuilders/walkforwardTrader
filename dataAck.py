@@ -845,7 +845,9 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["MIN PROFITABILITY 90"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
         metrics["PROFITABILITY DROP 90"] = metrics["PROFITABILITY"] - metrics["MIN PROFITABILITY 90"]
         metrics["25TH PROFITABILITY 90"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 25)
-
+        
+        metrics["MIN FACTOR PROFITABILITY 90"] = np.percentile(factorReturn.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+        metrics["MIN PROFITABILITY DIFFERENCE 90"] = metrics["MIN PROFITABILITY 90"] - metrics["MIN FACTOR PROFITABILITY 90"] 
 
     rollingPeriod = 45
 
@@ -864,6 +866,8 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["PROFITABILITY DROP 45"] = metrics["PROFITABILITY"] - metrics["MIN PROFITABILITY 45"]
         metrics["25TH PROFITABILITY 45"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 25)
 
+        metrics["MIN FACTOR PROFITABILITY 45"] = np.percentile(factorReturn.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+        metrics["MIN PROFITABILITY DIFFERENCE 45"] = metrics["MIN PROFITABILITY 45"] - metrics["MIN FACTOR PROFITABILITY 45"] 
 
     returns = returnStream.apply(lambda x:empyrical.cum_returns(x))
     returns.columns = ["algo"]
