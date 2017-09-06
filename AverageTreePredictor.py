@@ -90,7 +90,7 @@ class AverageTreePredictor:
 
         rawPredictions = rawPredictions1.join(rawPredictions2).dropna()
 
-        print(rawPredictions)
+        # print(rawPredictions)
         #averagePredictions
         predsTable = pd.DataFrame(rawPredictions.apply(lambda x:self.combinePredictions(x), axis=1, raw=True))
         rawPredictions = predsTable
@@ -112,6 +112,7 @@ class AverageTreePredictor:
         predsTable = predsTable.join(tablesToJoin)
         ##AVERAGE...A LOT OF SUBTLETY IN STRENGTH OF PREDICTION
         transformedPreds = pd.DataFrame(predsTable.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions"]).dropna()
+        print(transformedPreds)
         dailyFactorReturn = dataAck.getDailyFactorReturn(self.targetTicker, dataOfInterest)
         transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
         returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])
