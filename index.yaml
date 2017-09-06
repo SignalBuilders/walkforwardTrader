@@ -13,6 +13,12 @@ indexes:
   - name: predictionLength
     direction: desc
 
+- kind: average_tree_models
+  properties:
+  - name: ticker
+  - name: predictionLength
+    direction: desc
+
 - kind: tree_models
   properties:
   - name: ticker
