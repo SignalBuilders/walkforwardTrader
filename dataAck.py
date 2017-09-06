@@ -823,17 +823,17 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
             rollingSharpe.plot()
             rollingDownside.plot()
 
-    # rollingPeriod = 90
+    rollingPeriod = 90
 
 
-    # rollingSharpe = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
-    # rollingSharpe.columns = ["90 Day Rolling Sharpe"]
+    rollingSharpe = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
+    rollingSharpe.columns = ["90 Day Rolling Sharpe"]
 
-    # if len(rollingSharpe["90 Day Rolling Sharpe Algo"].values) > 50:
+    if len(rollingSharpe["90 Day Rolling Sharpe Algo"].values) > 50:
 
-    #     metrics["25TH PERCENTILE SHARPE 90"] = np.percentile(rollingSharpe["90 Day Rolling Sharpe Algo"].values, 25)
-    #     metrics["MIN ROLLING SHARPE 90"] = np.percentile(rollingSharpe["90 Day Rolling Sharpe Algo"].values, 1)
-    #     metrics["ROLLING SHARPE ERROR 90"] = rollingSharpe["90 Day Rolling Sharpe Algo"].std()
+        metrics["25TH PERCENTILE SHARPE 90"] = np.percentile(rollingSharpe["90 Day Rolling Sharpe Algo"].values, 25)
+        metrics["MIN ROLLING SHARPE 90"] = np.percentile(rollingSharpe["90 Day Rolling Sharpe Algo"].values, 1)
+        metrics["ROLLING SHARPE ERROR 90"] = rollingSharpe["90 Day Rolling Sharpe Algo"].std()
 
     
     returns = returnStream.apply(lambda x:empyrical.cum_returns(x))
