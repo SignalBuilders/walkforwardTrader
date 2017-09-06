@@ -78,30 +78,24 @@ class AverageTreePredictor:
         returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions1 = self.obj1.runModelHistorical(dataOfInterest)
         returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions2 = self.obj2.runModelHistorical(dataOfInterest)
 
-        print(rawPredictions1)
-        print(rawPredictions2)
-
         #computePositionConfidence
-        rawPredictions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions 1"]).dropna()
-        rawPredictions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Predictions 2"]).dropna()
+        positions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Positions 1"]).dropna()
+        positions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Positions 2"]).dropna()
 
-        print(rawPredictions1)
-        print(rawPredictions2)
 
-        rawPredictions = rawPredictions1.join(rawPredictions2).dropna()
+        positions = positions1.join(positions2).dropna()
 
         # print(rawPredictions)
         #averagePredictions
-        predsTable = pd.DataFrame(rawPredictions.apply(lambda x:self.combinePredictions(x), axis=1, raw=True))
-        print(predsTable)
-        rawPredictions = predsTable
+        positionsTable = pd.DataFrame(positions.apply(lambda x:self.combinePredictions(x), axis=1, raw=True))
+        rawPositions = positionsTable
         ##PREDICTIONS COMBINED AS 0, 0.5, 1 where
 
         i = 1
         tablesToJoin = []
         while i < self.predictionDistance:
-            thisTable = predsTable.shift(i)
-            thisTable.columns = ["Predictions_" + str(i)]
+            thisTable = positionsTable.shift(i)
+            thisTable.columns = ["Positions_" + str(i)]
             tablesToJoin.append(thisTable)
             i += 1
 
@@ -110,19 +104,19 @@ class AverageTreePredictor:
         predictions = None
         slippageAdjustedReturn = None
 
-        predsTable = predsTable.join(tablesToJoin)
-        print(predsTable)
+        positionsTable = positionsTable.join(tablesToJoin)
         ##AVERAGE...A LOT OF SUBTLETY IN STRENGTH OF PREDICTION
-        transformedPreds = pd.DataFrame(predsTable.apply(lambda x:sum(x)/len(x), axis=1), columns=["Predictions"]).dropna()
-        print(transformedPreds)
+        transformedPositions = pd.DataFrame(positionsTable.apply(lambda x:sum(x)/len(x), axis=1), columns=["Positions"]).dropna()
         dailyFactorReturn = dataAck.getDailyFactorReturn(self.targetTicker, dataOfInterest)
-        transformedPreds = transformedPreds.join(dailyFactorReturn).dropna()
-        returnStream = pd.DataFrame(transformedPreds.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])
-        factorReturn = pd.DataFrame(transformedPreds[["Factor Return"]])
-        predictions = pd.DataFrame(transformedPreds[["Predictions"]])
-        estimatedSlippageLoss = portfolioGeneration.estimateTransactionCost(predictions)
+        transformedPositions = transformedPositions.join(dailyFactorReturn).dropna()
+        returnStream = pd.DataFrame(transformedPositions.apply(lambda x:x[0] * x[1], axis=1), columns=["Algo Return"])
+        factorReturn = pd.DataFrame(transformedPositions[["Factor Return"]])
+        positions = pd.DataFrame(transformedPreds[["Positions"]])
+        print("POSITIONS")
+        print(positions)
+        estimatedSlippageLoss = portfolioGeneration.estimateTransactionCost(positions)
         estimatedSlippageLoss.columns = returnStream.columns
         slippageAdjustedReturn = (returnStream - estimatedSlippageLoss).dropna()
 
-        return returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions
+        return returnStream, factorReturn, positions, slippageAdjustedReturn, rawPositions
 
