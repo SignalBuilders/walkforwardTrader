@@ -773,6 +773,8 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
     rollingPeriod = 252
 
 
+    
+
     rollingSharpe = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
     rollingSharpe.columns = ["252 Day Rolling Sharpe"]
     rollingSharpeFactor = factorReturn.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
@@ -834,9 +836,26 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["25TH PERCENTILE SHARPE 90"] = np.percentile(rollingSharpe["90 Day Rolling Sharpe"].values, 25)
         metrics["MIN ROLLING SHARPE 90"] = np.percentile(rollingSharpe["90 Day Rolling Sharpe"].values, 1)
         metrics["ROLLING SHARPE ERROR 90"] = rollingSharpe["90 Day Rolling Sharpe"].std()
-
         metrics["SHARPE TO MIN RATIO 90"] = metrics["SHARPE"] / abs(metrics["MIN ROLLING SHARPE 90"])
-    
+        
+        metrics["PROFITABILITY 90"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+
+    rollingPeriod = 45
+
+
+    rollingSharpe = returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:empyrical.sharpe_ratio(x)).dropna()
+    rollingSharpe.columns = ["45 Day Rolling Sharpe"]
+
+    if len(rollingSharpe["45 Day Rolling Sharpe"].values) > 50:
+
+        metrics["25TH PERCENTILE SHARPE 45"] = np.percentile(rollingSharpe["45 Day Rolling Sharpe"].values, 25)
+        metrics["MIN ROLLING SHARPE 45"] = np.percentile(rollingSharpe["45 Day Rolling Sharpe"].values, 1)
+        metrics["ROLLING SHARPE ERROR 45"] = rollingSharpe["45 Day Rolling Sharpe"].std()
+        metrics["SHARPE TO MIN RATIO 45"] = metrics["SHARPE"] / abs(metrics["MIN ROLLING SHARPE 45"])
+        
+        metrics["PROFITABILITY 45"] = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 1)
+
+
     returns = returnStream.apply(lambda x:empyrical.cum_returns(x))
     returns.columns = ["algo"]
     factorReturn = factorReturn.apply(lambda x:empyrical.cum_returns(x))
