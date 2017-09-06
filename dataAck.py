@@ -835,6 +835,7 @@ def vizResults(slippageAdjustedReturn, returnStream, factorReturn, plotting = Fa
         metrics["MIN ROLLING SHARPE 90"] = np.percentile(rollingSharpe["90 Day Rolling Sharpe"].values, 1)
         metrics["ROLLING SHARPE ERROR 90"] = rollingSharpe["90 Day Rolling Sharpe"].std()
 
+        metrics["SHARPE TO MIN RATIO 90"] = metrics["SHARPE"] / abs(metrics["MIN ROLLING SHARPE 90"])
     
     returns = returnStream.apply(lambda x:empyrical.cum_returns(x))
     returns.columns = ["algo"]
