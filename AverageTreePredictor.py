@@ -79,8 +79,8 @@ class AverageTreePredictor:
         returnStream, factorReturn, predictions, slippageAdjustedReturn, rawPredictions2 = self.obj2.runModelHistorical(dataOfInterest)
 
         #computePositionConfidence 
-        print(rawPredictions1)
-        print(rawPredictions2)
+        # print(rawPredictions1)
+        # print(rawPredictions2)
         positions1 = pd.DataFrame(rawPredictions1.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Positions 1"]).dropna()
         positions2 = pd.DataFrame(rawPredictions2.apply(lambda x:dataAck.computePositionConfidence(x), axis=1), columns=["Positions 2"]).dropna()
 
@@ -90,6 +90,7 @@ class AverageTreePredictor:
         # print(rawPredictions)
         #averagePredictions
         positionsTable = pd.DataFrame(positions.apply(lambda x:self.combinePredictions(x), axis=1, raw=True))
+        print(positionsTable)
         rawPositions = positionsTable
         ##PREDICTIONS COMBINED AS 0, 0.5, 1 where
 
