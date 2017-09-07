@@ -52,6 +52,7 @@ class CurvePredictor:
         toUpload["neighbors"] = self.neighbors
         toUpload["lastXDays"] = self.lastXDays
         toUpload["maxDistance"] = self.maxDistance
+        toUpload["maxDistancePerPoint"] = self.maxDistance/self.lookbackDistance
         toUpload["series"] = str(self.inputSeries.describe())
         return toUpload
 
