@@ -258,10 +258,14 @@ class CurvePredictor:
                 sharpeDiffSlippage = empyrical.sharpe_ratio(slippageAdjustedReturn) - empyrical.sharpe_ratio(factorReturn)
                 relativeSharpeSlippage = sharpeDiffSlippage / empyrical.sharpe_ratio(factorReturn) * (empyrical.sharpe_ratio(factorReturn)/abs(empyrical.sharpe_ratio(factorReturn)))
                 
+
+                twentyFifthPercentileRollingProfitablity = np.percentile(returnStream.rolling(rollingPeriod, min_periods=rollingPeriod).apply(lambda x:len((x)[x > 0])/len(x)).dropna().values, 25)
+
+
                 if np.isnan(shortSharpe) == True:
                     return None, {"sharpe":shortSharpe}, None, None, None
 
-                elif (empyrical.sharpe_ratio(returnStream) < 0.0  or activity < 0.3 or abs(rawBeta) > 0.6 or stability < 0.3) and shortSeen == 0:
+                elif (empyrical.sharpe_ratio(returnStream) < 0.0  or activity < 0.3 or abs(rawBeta) > 0.6 or stability < 0.3 or twentyFifthPercentileRollingProfitablity < 0.35) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "activity":activity,
@@ -281,10 +285,11 @@ class CurvePredictor:
                             "sharpeDiffSlippage":sharpeDiffSlippage,
                             "relativeSharpeSlippage":relativeSharpeSlippage,
                             "rawBeta":rawBeta,
-                            "stability":stability
+                            "stability":stability,
+                            "twentyFifthPercentileRollingProfitablity":twentyFifthPercentileRollingProfitablity
                     }, None, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 and sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.4 and sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(rawBeta) > 0.6 or activity < 0.3 or stability < 0.4) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 and sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.4 and sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(rawBeta) > 0.6 or activity < 0.3 or stability < 0.4 or twentyFifthPercentileRollingProfitablity < 0.41) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
@@ -309,7 +314,8 @@ class CurvePredictor:
                             "sharpeDiffSlippage":sharpeDiffSlippage,
                             "relativeSharpeSlippage":relativeSharpeSlippage,
                             "rawBeta":rawBeta,
-                            "stability":stability
+                            "stability":stability,
+                            "twentyFifthPercentileRollingProfitablity":twentyFifthPercentileRollingProfitablity
                     }, None, None, None
                     
                 elif shortSeen < 4:
