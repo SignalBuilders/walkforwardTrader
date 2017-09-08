@@ -268,7 +268,7 @@ class CurvePredictor:
                 if np.isnan(shortSharpe) == True:
                     return None, {"sharpe":shortSharpe}, None, None, None
 
-                elif (empyrical.sharpe_ratio(returnStream) < 0.0  or activity < 0.3 or abs(rawBeta) > 0.4 or stability < 0.3) and shortSeen == 0:
+                elif (profitability < 0.4  or activity < 0.3 or abs(rawBeta) > 0.4 or stability < 0.3) and shortSeen == 0:
                     return None, {
                             "sharpe":shortSharpe, ##OVERLOADED IN FAIL
                             "activity":activity,
@@ -294,10 +294,8 @@ class CurvePredictor:
                             "profitability":profitability
                     }, None, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 and sharpeDiff < 0.0) and shortSeen == 1) \
-                    or ((empyrical.sharpe_ratio(returnStream) < 0.4 and sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3))\
-                     or abs(rawBeta) > 0.33 or activity < 0.3 or stability < 0.4 or twentyFifthPercentileRollingProfitablity < 0.41 \
-                     or minRollingProfitability < 0.3) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif abs(rawBeta) > 0.33 or activity < 0.3 or stability < 0.4 or twentyFifthPercentileRollingProfitablity < 0.41 \
+                     or minRollingProfitability < 0.3 or profitability < 0.46:
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"
