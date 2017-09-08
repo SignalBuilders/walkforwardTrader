@@ -184,7 +184,7 @@ class CurvePredictor:
             shortSeen = 0 if earlyStop == True else -1
             for clippedIdentifiers in identifierWindows:
                 
-                splitIdentifiers = np.array_split(np.array(clippedIdentifiers), 16)
+                splitIdentifiers = np.array_split(np.array(clippedIdentifiers), 4)
                 
                 
                 runningP = []
