@@ -294,7 +294,10 @@ class CurvePredictor:
                             "profitability":profitability
                     }, None, None, None
                 
-                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 and sharpeDiff < 0.0) and shortSeen == 1) or ((empyrical.sharpe_ratio(returnStream) < 0.4 and sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3)) or abs(rawBeta) > 0.3 or activity < 0.3 or stability < 0.4 or twentyFifthPercentileRollingProfitablity < 0.41 or minRollingProfitability < 0.35) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
+                elif (((empyrical.sharpe_ratio(returnStream) < 0.25 and sharpeDiff < 0.0) and shortSeen == 1) \
+                    or ((empyrical.sharpe_ratio(returnStream) < 0.4 and sharpeDiff < 0.0) and (shortSeen == 2 or shortSeen == 3))\
+                     or abs(rawBeta) > 0.33 or activity < 0.3 or stability < 0.4 or twentyFifthPercentileRollingProfitablity < 0.41 \
+                     or minRollingProfitability < 0.3) and (shortSeen == 1 or shortSeen == 2 or shortSeen == 3):
                     periodName = "first 600 days"
                     if shortSeen == 2:
                         periodName = "first 900 days"

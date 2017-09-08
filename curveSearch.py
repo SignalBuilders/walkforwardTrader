@@ -108,10 +108,10 @@ try:
                                         metrics = dataAck.vizResults(slippageAdjustedReturn[:-252], algoReturn[:-252], factorReturn[:-252], False)
                                         print("TRAIN:", metrics)
                                         print("TODAY:", cPre.runModelToday(joinedData))
-                                        if metrics["RAW BETA"] <= 0.25 and metrics["TOTAL DAYS SEEN"] >= 1700\
+                                        if metrics["RAW BETA"] <= 0.3 and metrics["TOTAL DAYS SEEN"] >= 1700\
                                             and (metrics["SHARPE"] > 0.5 or metrics["SHARPE DIFFERENCE"] > 0.0)\
                                             and metrics["ACTIVITY"] > 0.2 and metrics["STABILITY"] > 0.5\
-                                            and metrics["25TH PROFITABILITY 45"] > 0.43 and metrics["MIN PROFITABILITY 45"] >= 0.37:
+                                            and metrics["25TH PROFITABILITY 45"] > 0.41 and metrics["MIN PROFITABILITY 45"] >= 0.3:
                                             ##STORE
                                             testMetrics = dataAck.vizResults(slippageAdjustedReturn[-252:], algoReturn[-252:], factorReturn[-252:], False)
                                             print("TEST:", testMetrics)
